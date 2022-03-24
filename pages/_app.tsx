@@ -1,13 +1,8 @@
 import React from "react";
-import { useState } from "react";
-
-import { BasicProfile } from "@datamodels/identity-profile-basic";
-
 import { ExploreRounded, MenuRounded, VisibilityRounded } from "@mui/icons-material";
-import { useViewerRecord, useConnection, Provider } from "@self.id/framework";
+import { Provider } from "@self.id/framework";
 
 import type { AppProps } from "next/app";
-import Link from "next/link";
 import Head from "next/head";
 import { useRouter } from "next/router";
 
@@ -54,13 +49,13 @@ const App = ({ Component, pageProps }: AppProps) => {
 
 	// Allow each navigable item to be switched to through the navbar
 	const navItems = pages.map(({ label, path, icon }) =>
-		<Link key={ label } href={{ pathname: path }}>
-			<NavItem
-				label={ label }
-				icon={ icon }
-				active={ router.pathname == path }
-			/>
-		</Link>
+		<NavItem
+			key={ label } 
+			label={ label }
+			icon={ icon }
+			onActive={ () => router.push(path) }
+			active={ router.pathname == path }
+		/>
 	);
 
 	return (
@@ -74,6 +69,7 @@ const App = ({ Component, pageProps }: AppProps) => {
 						<NavPanel
 							items={navItems}
 							onConnectRequested={() => alert("Connect?")}
+							onProfileClicked={() => router.push("/profile")}
 						/>
 					</div>
 					<div className="workspace">

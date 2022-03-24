@@ -8,13 +8,22 @@ import { BasicProfile } from "@datamodels/identity-profile-basic";
 import { useConnection, useViewerRecord } from "@self.id/framework";
 
 import { ReactElement } from "react";
-import Link from "next/link";
 
 export type NavProps = {
 	/**
 	 * The items to display in the panel, and what to do when each item is selected.
 	 */
 	items: ReactElement[],
+
+	/**
+	 * What to do when the user clicks their profile
+	 */
+	onProfileClicked: () => void,
+
+	/**
+	 * What to do when the user requests that they change Vision's settings.
+	 */
+	onSettingsActive: () => void,
 
 	/**
 	 * What to do when the user requests to connect to ceramic. This will only be
@@ -30,7 +39,7 @@ export type NavProps = {
  * - Renders the user's profile info, linking to /profile
  * - Renders a settings button, linking to /settings
  */
-export const NavPanel = ({ items, onConnectRequested }: NavProps) => {
+export const NavPanel = ({ items, onConnectRequested, onProfileClicked }: NavProps) => {
 	// Wrap details of the user's login for component convenience.
 	// Assume the user is disconnected
 	let sessionInfo: undefined | [BasicProfile | null | "loading", Uint8Array | null | "loading"] = undefined;
@@ -70,12 +79,9 @@ export const NavPanel = ({ items, onConnectRequested }: NavProps) => {
 	if (sessionInfo != undefined) {
 		// If the user is not signed in, a create account button should be avilable
 		profileDisp = (
-			// TODO: Extract into a definition in a lib file
-			<Link href={{ pathname: "/profile" }}>
-				<OutlinedButton>
-					Create Account
-				</OutlinedButton>
-			</Link>
+			<OutlinedButton callback={ onProfileClicked }>
+				Create Account
+			</OutlinedButton>
 		);
 
 		const [profile, pic] = sessionInfo;
