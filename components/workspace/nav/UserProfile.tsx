@@ -1,7 +1,7 @@
 import type { BasicProfile } from "@datamodels/identity-profile-basic";
-import defaultProfileIcon from "../../assets/icons/round_account_circle_white_48dp.png";
+import defaultProfileIcon from "../../../public/icons/round_account_circle_white_48dp.png";
 import LoadingIcon from "../../status/Loading";
-import { blobify } from "../../util/blobify";
+import { blobify } from "../../../lib/util/blobify";
 
 /**
  * A component that renders some non-null ceramic user profile.

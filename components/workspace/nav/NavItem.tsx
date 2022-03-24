@@ -1,4 +1,4 @@
-import "./NavItem.css";
+import styles from "./NavItem.module.css";
 import { ReactElement } from "react";
 
 /**
@@ -26,10 +26,10 @@ export interface NavItemProps {
  * A component representing a selectable item in the navigation panel.
  */
 export const NavItem = ({ label, icon, active }: NavItemProps) => {
-	const styles = "navbutton " + (active ? "active" : "inactive");
+	const style = active ? "active" : "inactive";
 
 	return (
-		<div className={ styles }>
+		<div className={ `${styles.navbutton} ${styles[style]}`}>
 			<div>
 				{ icon }
 				<h1>{ label }</h1>

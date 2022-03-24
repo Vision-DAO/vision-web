@@ -3,7 +3,9 @@ import LoadingIcon from "../../status/Loading";
 import OutlinedButton from "../../status/OutlinedButton";
 
 import styles from "./NavPanel.module.css";
+
 import { BasicProfile } from "@datamodels/identity-profile-basic";
+import { useConnection, useViewerRecord } from "@self.id/framework";
 
 import { ReactElement } from "react";
 import Link from "next/link";
@@ -13,11 +15,6 @@ export type NavProps = {
 	 * The items to display in the panel, and what to do when each item is selected.
 	 */
 	items: ReactElement[],
-
-	/**
-	 * The details of the currently logged in user to display on the navigation bar
-	 */
-	sessionInfo?: [null | BasicProfile | "loading", null | Uint8Array | "loading"],
 
 	/**
 	 * What to do when the user requests to connect to ceramic. This will only be
@@ -33,7 +30,35 @@ export type NavProps = {
  * - Renders the user's profile info, linking to /profile
  * - Renders a settings button, linking to /settings
  */
-export const NavPanel = ({ items, sessionInfo, onConnectRequested }: NavProps) => {
+export const NavPanel = ({ items, onConnectRequested }: NavProps) => {
+	// Wrap details of the user's login for component convenience.
+	// Assume the user is disconnected
+	let sessionInfo: undefined | [BasicProfile | null | "loading", Uint8Array | null | "loading"] = undefined;
+
+	// Whether we are currently connected to ceramic, hooks to connect/disconnect
+	const [connection, , ] = useConnection();
+
+	// The user's profile. May be loaded, or may not even exist because the user is disconnected from ceramic
+	const profileRecord = useViewerRecord("basicProfile");
+
+	// Setup listeners to ceramic events
+	switch (connection.status) {
+	case "connecting":
+		// Trigger loading icons
+		sessionInfo = ["loading", "loading"];
+
+		break;
+	case "connected":
+		// Since the network is connected, the local user's information might
+		// now be available
+		if (profileRecord.isLoading)
+			sessionInfo = ["loading", "loading"];
+		else if (profileRecord.content)
+			sessionInfo = [profileRecord.content, "loading"];
+
+		break;
+	}
+
 	// Show a button to initiate authentication if no user info is available
 	let profileDisp = (
 		<OutlinedButton callback={ onConnectRequested }>
