@@ -1,2 +1,23 @@
-.connectButton {
+.outlinedButton {
+	border-radius: 5px;
+	border: 0.5px solid rgba(255, 255, 255, 0.25);
+
+	background-color: #141414;
+
+	text-align: center;
+	padding: 1rem;
+
+	cursor: pointer;
+}
+
+.outlinedButton:hover {
+	background-color: #1E1E1E;
+}
+
+.outlinedButton>* {
+	margin: 0;
+}
+
+.outlinedButton h2 {
+	font-size: 1rem;
 }

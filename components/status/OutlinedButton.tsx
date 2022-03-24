@@ -10,7 +10,7 @@ export interface ButtonProps {
  */
 export const OutlinedButton: React.FC<ButtonProps> = ({ callback, children }) => {
 	return (
-		<div className={styles.connectButton} onClick={callback}>
+		<div className={styles.outlinedButton} onClick={callback}>
 			{ children }
 		</div>
 	);

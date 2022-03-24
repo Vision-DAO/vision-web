@@ -8,7 +8,9 @@ import { useRouter } from "next/router";
 
 import NavPanel from "../components/workspace/nav/NavPanel";
 import { NavItem } from "../components/workspace/nav/NavItem";
+
 import styles from "./App.module.css";
+import "./index.css";
 
 /**
  * A page navigable in the application.
@@ -24,7 +26,7 @@ interface Page {
 const pages: Page[] = [
 	{
 		label: "Explore",
-		path: "/index",
+		path: "/",
 		icon: <ExploreRounded />,
 	},
 	{

@@ -1,6 +1,12 @@
 .navPanel {
 	border-right: 0.5px solid rgba(255, 255, 255, 0.25);
 	height: 100%;
+
+	display: flex;
+
+	flex-flow: column nowrap;
+	justify-content: start;
+	align-items: center; 
 }
 
 .navItems {
@@ -14,5 +20,32 @@
 
 .navItems>* {
 	width: 100%;
-	padding-top: 1rem;
+	padding-bottom: 1rem;
+}
+
+.guttered {
+	width: 90%;
+}
+
+.infoSection {
+	padding-top: 0.5rem;
+	padding-bottom: 0.5rem;
+
+	padding: 1rem;
+
+	display: flex;
+	flex-flow: column nowrap;
+
+	justify-content: center;
+	align-items: center;
+
+	width: 100%;
+}
+
+.separated {
+	border-bottom: 0.5px solid rgba(255, 255, 255, 0.5);
+}
+
+.guttered.separated {
+	padding-bottom: 1rem;
 }

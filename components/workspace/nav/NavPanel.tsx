@@ -71,7 +71,7 @@ export const NavPanel = ({ items, onConnectRequested, onProfileClicked }: NavPro
 	// Show a button to initiate authentication if no user info is available
 	let profileDisp = (
 		<OutlinedButton callback={ onConnectRequested }>
-			<h2>Login with <em>3ID Connect</em></h2>
+			<h2>Login with 3ID Connect</h2>
 		</OutlinedButton>
 	);
 
@@ -98,7 +98,11 @@ export const NavPanel = ({ items, onConnectRequested, onProfileClicked }: NavPro
 
 	return (
 		<div className={styles.navPanel}>
-			{ profileDisp }
+			<div className={styles.infoSection}>
+				<div className={ `${styles.guttered} ${styles.separated}` }>
+					{ profileDisp }
+				</div>
+			</div>
 			<ul className={styles.navItems}>
 				{ items.map((item, i) => <li key={i}>{ item }</li>) }
 			</ul>
