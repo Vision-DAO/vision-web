@@ -21,6 +21,16 @@
 .navItems>* {
 	width: 100%;
 	padding-bottom: 1rem;
+
+	display: flex;
+
+	flex-flow: row nowrap;
+	justify-content: center;
+	align-items: stretch;
+}
+
+.navItems>*>* {
+	width: 100%;
 }
 
 .guttered {

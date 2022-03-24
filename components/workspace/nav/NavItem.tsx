@@ -1,5 +1,6 @@
 import styles from "./NavItem.module.css";
 import { ReactElement } from "react";
+import OutlinedButton from "../../status/OutlinedButton";
 
 /**
  * An item that can be selected in the navigation bar with a string label,
@@ -31,15 +32,19 @@ export interface NavItemProps {
  * A component representing a selectable item in the navigation panel.
  */
 export const NavItem = ({ label, icon, active, onActive }: NavItemProps) => {
-	const style = active ? "active" : "inactive";
-
-	return (
-		<div className={ `${styles.navbutton} ${styles[style]}`} onClick={ onActive }>
-			<div>
+	if (active)
+		return (
+			<div className={ `${styles.navbutton} ${styles.active}` } onClick={ onActive }>
 				{ icon }
 				<h1>{ label }</h1>
 			</div>
-		</div>
+		);
+
+	return (
+		<OutlinedButton callback={ onActive }>
+			{ icon }
+			<h1>{ label }</h1>
+		</OutlinedButton>
 	);
 };
 

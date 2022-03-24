@@ -8,6 +8,7 @@ import { useRouter } from "next/router";
 
 import NavPanel from "../components/workspace/nav/NavPanel";
 import { NavItem } from "../components/workspace/nav/NavItem";
+import { guttered } from "../components/workspace/nav/NavPanel.module.css";
 
 import styles from "./App.module.css";
 import "./index.css";
@@ -51,13 +52,14 @@ const App = ({ Component, pageProps }: AppProps) => {
 
 	// Allow each navigable item to be switched to through the navbar
 	const navItems = pages.map(({ label, path, icon }) =>
-		<NavItem
-			key={ label } 
-			label={ label }
-			icon={ icon }
-			onActive={ () => router.push(path) }
-			active={ router.pathname == path }
-		/>
+		<div key={ label } className={router.pathname != path ? guttered : ""}>
+			<NavItem
+				label={ label }
+				icon={ icon }
+				onActive={ () => router.push(path) }
+				active={ router.pathname == path }
+			/>
+		</div>
 	);
 
 	return (
@@ -72,6 +74,7 @@ const App = ({ Component, pageProps }: AppProps) => {
 							items={navItems}
 							onConnectRequested={() => alert("Connect?")}
 							onProfileClicked={() => router.push("/profile")}
+							onSettingsActive={() => router.push("/settings")}
 						/>
 					</div>
 					<div className="workspace">
