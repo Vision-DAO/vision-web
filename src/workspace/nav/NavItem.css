@@ -1,0 +1,52 @@
+.navbutton {
+	width: 100%;
+
+	display: flex;
+	justify-content: center;
+	align-items: center;
+
+	cursor: pointer;
+	font-family: "Roboto", "Helvetica Neue", sans-serif;
+}
+
+.navbutton h1 {
+	margin: 0.75rem;
+
+	font-size: 2rem;
+}
+
+.navbutton div {
+	display: flex;
+	flex-flow: row nowrap;
+	justify-content: center;
+	align-items: center;
+}
+
+.navbutton.active {
+	background-color: #5D5FEF;
+	font-weight: 700;
+}
+
+.navbutton.active div {
+	transition: none;
+}
+
+.navbutton.inactive div {
+	border: 0.5px solid rgba(255, 255, 255, 0.25);
+	background-color: #141414;
+	border-radius: 5px;
+	width: 90%;
+}
+
+.navbutton div {
+	transition: 0.3s background-color;
+}
+
+.navbutton.inactive:hover div {
+	background-color: #1E1E1E;
+}
+
+.navbutton.inactive h1 {
+	font-size: 1.5rem;
+	font-weight: 400;
+}

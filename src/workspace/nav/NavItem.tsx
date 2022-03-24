@@ -1,3 +1,6 @@
+import "./NavItem.css";
+import { ReactElement } from "react";
+
 /**
  * An item that can be selected in the navigation bar with a string label,
  * a material icon name, and a callback upon selection.
@@ -11,7 +14,12 @@ export interface NavItemProps {
 	/**
 	 * The (rounded) material icon to use for the navigation item.
 	 */
-	icon: string,
+	icon: ReactElement,
+
+	/**
+	 * Whether the navigation item should be highlighted.
+	 */
+	active: boolean,
 
 	/**
 	 * What to do when the item is selected.
@@ -22,13 +30,15 @@ export interface NavItemProps {
 /**
  * A component representing a selectable item in the navigation panel.
  */
-export const NavItem = ({ label, icon, onActive }: NavItemProps) => {
+export const NavItem = ({ label, icon, active, onActive }: NavItemProps) => {
+	const styles = "navbutton " + (active ? "active" : "inactive");
+
 	return (
-		<div className="navbutton">
-			<span className="material-icons-round">
+		<div className={ styles } onClick={ onActive }>
+			<div>
 				{ icon }
-			</span>
-			<h1>{ label }</h1>
+				<h1>{ label }</h1>
+			</div>
 		</div>
 	);
 };

@@ -1,7 +1,6 @@
 import type { BasicProfile } from "@datamodels/identity-profile-basic";
-import defaultProfileIcon from "../../assets/icons/baseline_account_circle_white_48dp.png";
+import defaultProfileIcon from "../../assets/icons/round_account_circle_white_48dp.png";
 import LoadingIcon from "../../status/Loading";
-import { useState, useEffect } from "react";
 import { blobify } from "../../util/blobify";
 
 /**
@@ -9,28 +8,23 @@ import { blobify } from "../../util/blobify";
  * Displays the user's profile picture, a loading icon, or a default profile
  * picture.
  */
-const UserProfile = ({ u, profilePicture }: { u: BasicProfile, profilePicture?: Promise<Uint8Array> }) => {
-	// The user's profile picture might still be loading in, so wait for it to
-	// be done
-	const [pfp, setPfp] = useState(<LoadingIcon />);
+const UserProfile = ({ u, profilePicture }: { u: BasicProfile, profilePicture?: null | Uint8Array | "loading" }) => {
+	// If the user has no profile picture, show the default one
+	let pfp = <img src={defaultProfileIcon} />;
 
-	// Load the user's profile picture from IPFS when the component is added
-	useEffect(() => {
-		// Do nothing if the user has no profile picture. Use their default pfp
-		if (!profilePicture) {
-			setPfp(<img src={defaultProfileIcon} />);
+	// Otherwise, allow it to load in
+	if (profilePicture != undefined) {
+		pfp = <LoadingIcon />;
 
-			return;
-		}
-
-		// Allow the user to load the image in
-		profilePicture.then((imgData: Uint8Array) => {
+		// If the profile picture is done loading, show it by converting the blob
+		// to an image
+		if (profilePicture != "loading") {
 			// Convert the IPFS data to an image link blob
-			const imgSrc = blobify(window, imgData, defaultProfileIcon);
+			const imgSrc = blobify(window, profilePicture, defaultProfileIcon);
 
-			setPfp(<img src={imgSrc} />);
-		});
-	});
+			pfp = <img src={imgSrc} />;
+		}
+	}
 
 	return (
 		<div>

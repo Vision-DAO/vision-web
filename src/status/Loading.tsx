@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, createElement } from "react";
+import { HourglassBottomRounded, HourglassTopRounded } from "@mui/icons-material";
 
-const icons = ["bottom", "top"];
+const icons = [HourglassBottomRounded, HourglassTopRounded];
 const opacities = [1.00, 0.00];
 
 /**
@@ -31,11 +32,7 @@ const Loading = ({ interval = 1000 }: { interval?: number }) => {
 		};
 	});
 
-	return (
-		<h1 className="material-icons-round hourglass-animated" style={{opacity: opacity}}>
-			{icons[step]}
-		</h1>
-	);
+	return createElement(icons[step], { style: { opacity: opacity } });
 };
 
 export default Loading;
