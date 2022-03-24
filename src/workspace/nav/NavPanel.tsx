@@ -1,4 +1,3 @@
-import { NavItem } from "./NavItem";
 import UserProfile from "./UserProfile";
 import LoadingIcon from "../../status/Loading";
 import OutlinedButton from "../../status/OutlinedButton";
@@ -6,26 +5,19 @@ import OutlinedButton from "../../status/OutlinedButton";
 import styles from "./NavPanel.module.css";
 import { BasicProfile } from "@datamodels/identity-profile-basic";
 
+import { ReactElement } from "react";
+import Link from "next/link";
+
 export type NavProps = {
 	/**
 	 * The items to display in the panel, and what to do when each item is selected.
 	 */
-	items: ReturnType<typeof NavItem>[],
+	items: ReactElement[],
 
 	/**
 	 * The details of the currently logged in user to display on the navigation bar
 	 */
 	sessionInfo?: [null | BasicProfile | "loading", null | Uint8Array | "loading"],
-
-	/**
-	 * What to do when the user clicks their profile
-	 */
-	onProfileClicked: () => void,
-
-	/**
-	 * What to do when the user requests that they change Vision's settings.
-	 */
-	onSettingsActive: () => void,
 
 	/**
 	 * What to do when the user requests to connect to ceramic. This will only be
@@ -37,8 +29,11 @@ export type NavProps = {
 /**
  * A component allowing the user to switch between multiple contexts, view their
  * profile info, and connect to ceramic if necessary.
+ *
+ * - Renders the user's profile info, linking to /profile
+ * - Renders a settings button, linking to /settings
  */
-export const NavPanel = ({ items, sessionInfo, onConnectRequested, onProfileClicked }: NavProps) => {
+export const NavPanel = ({ items, sessionInfo, onConnectRequested }: NavProps) => {
 	// Show a button to initiate authentication if no user info is available
 	let profileDisp = (
 		<OutlinedButton callback={ onConnectRequested }>
@@ -50,9 +45,12 @@ export const NavPanel = ({ items, sessionInfo, onConnectRequested, onProfileClic
 	if (sessionInfo != undefined) {
 		// If the user is not signed in, a create account button should be avilable
 		profileDisp = (
-			<OutlinedButton callback={ onProfileClicked }>
-				Create Account
-			</OutlinedButton>
+			// TODO: Extract into a definition in a lib file
+			<Link href={{ pathname: "/profile" }}>
+				<OutlinedButton>
+					Create Account
+				</OutlinedButton>
+			</Link>
 		);
 
 		const [profile, pic] = sessionInfo;

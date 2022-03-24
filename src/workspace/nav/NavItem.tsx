@@ -20,21 +20,16 @@ export interface NavItemProps {
 	 * Whether the navigation item should be highlighted.
 	 */
 	active: boolean,
-
-	/**
-	 * What to do when the item is selected.
-	 */
-	onActive: () => void,
 }
 
 /**
  * A component representing a selectable item in the navigation panel.
  */
-export const NavItem = ({ label, icon, active, onActive }: NavItemProps) => {
+export const NavItem = ({ label, icon, active }: NavItemProps) => {
 	const styles = "navbutton " + (active ? "active" : "inactive");
 
 	return (
-		<div className={ styles } onClick={ onActive }>
+		<div className={ styles }>
 			<div>
 				{ icon }
 				<h1>{ label }</h1>
