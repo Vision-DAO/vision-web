@@ -6,8 +6,10 @@ import styles from "./NavPanel.module.css";
 
 import { BasicProfile } from "@datamodels/identity-profile-basic";
 import { useConnection, useViewerRecord } from "@self.id/framework";
+import { useConnStatus } from "../../../lib/util/networks";
+import Web3 from "web3";
 
-import { ReactElement, useEffect, useState } from "react";
+import { ReactElement, useEffect } from "react";
 
 export type NavProps = {
 	/**
@@ -24,13 +26,12 @@ export type NavProps = {
 	 * What to do when the user requests that they change Vision's settings.
 	 */
 	onSettingsActive: () => void,
-};
 
-declare global {
-    interface Window {
-        ethereum: boolean | undefined;
-    }
-}
+	/**
+	 * The application web3 provider, if it is available.
+	 */
+	ctx?: Web3,
+};
 
 /**
  * A component allowing the user to switch between multiple contexts, view their
@@ -39,7 +40,7 @@ declare global {
  * - Renders the user's profile info, linking to /profile
  * - Renders a settings button, linking to /settings
  */
-export const NavPanel = ({ items, onProfileClicked }: NavProps) => {
+export const NavPanel = ({ items, onProfileClicked, ctx }: NavProps) => {
 	// Wrap details of the user's login for component convenience.
 	// Assume the user is disconnected
 	let sessionInfo: undefined | [BasicProfile | null | "loading", Uint8Array | null | "loading"] = undefined;
@@ -47,9 +48,13 @@ export const NavPanel = ({ items, onProfileClicked }: NavProps) => {
 	// Whether we are currently connected to ceramic, hooks to connect/disconnect
 	const [connection, connect, ] = useConnection();
 
+	useEffect(() => {
+		alert("test");
+	});
+
 	// Whether or not the user is connected to an ethereum provider.
 	// Should display an error otherwise
-	const [ethConnection, setEthConnection] = useState(false);
+	const { connected, network } = useConnStatus(ctx);
 
 	// The user's profile. May be loaded, or may not even exist because the user is disconnected from ceramic
 	const profileRecord = useViewerRecord("basicProfile");
@@ -75,16 +80,25 @@ export const NavPanel = ({ items, onProfileClicked }: NavProps) => {
 	// Show a button to initiate authentication if no user info is available
 	let profileDisp = (
 		<OutlinedButton callback={ () => window.open("https://metamask.io/") } severity="error">
-			Please install a Web3 provider to continue.
+			<h2>Please install a <b>Web3</b> provider to continue.</h2>
 		</OutlinedButton>
 	);
 
-	if (ethConnection) {
+	if (connected) {
+		// Make sure the user is connected to the right network
 		profileDisp = (
 			<OutlinedButton callback={ () => connect() } severity="action">
-				<h2>Login with <b>3ID Connect</b></h2>
+				<h2>Connect to <b>Polygon</b></h2>
 			</OutlinedButton>
 		);
+
+		if (network == "polygon") {
+			profileDisp = (
+				<OutlinedButton callback={ () => connect() } severity="action">
+					<h2>Login with <b>3ID Connect</b></h2>
+				</OutlinedButton>
+			);
+		}
 	}
 
 	// The user is already logged in, their info just needs to load
@@ -111,13 +125,6 @@ export const NavPanel = ({ items, onProfileClicked }: NavProps) => {
 				);
 		}
 	}
-
-	// Check that the user has an ethereum instance injected
-	useEffect(() => {
-		if (window.ethereum) {
-			setEthConnection(true);
-		}
-	});
 
 	return (
 		<div className={styles.navPanel}>

@@ -30,9 +30,9 @@ const UserProfile = ({ u, profilePicture }: { u: BasicProfile, profilePicture?: 
 	}
 
 	return (
-		<div className={ styles.profileContainer }>
+		<div className={ `${styles.profileContainer} ${u.name || styles.default}` }>
 			{ pfp }
-			<div className={ `${styles.username} ${u.name || styles.default}` }>
+			<div className={ styles.username }>
 				<EditIcon className={ styles.actionIcon } />
 				<h1>{ u.name || "User Name"}</h1>
 			</div>

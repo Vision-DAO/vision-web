@@ -33,18 +33,14 @@
 	width: 100%;
 }
 
-.username.default {
-	border-bottom: 1px solid rgba(255, 255, 255, 0.5);
-
+.default {
 	transition: 0.3s;
+
+	opacity: 0.5;
 }
 
-.username.default {
-	color: rgba(255, 255, 255, 0.5);
-}
-
-.profileContainer:hover .username.default {
-	color: white;
+.default:hover {
+	opacity: 1;
 }
 
 .actionIcon {
