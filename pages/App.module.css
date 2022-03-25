@@ -11,10 +11,10 @@
 	align-items: stretch;
 }
 
-.app>.nav-panel {
-	width: 12%;
+.app>.navPanel {
+	width: 15%;
 }
 
 .app>.workspace {
-	width: 88%;
+	width: 85%;
 }

@@ -52,7 +52,7 @@ const App = ({ Component, pageProps }: AppProps) => {
 
 	// Allow each navigable item to be switched to through the navbar
 	const navItems = pages.map(({ label, path, icon }) =>
-		<div key={ label } className={router.pathname != path ? guttered : ""}>
+		<div key={ label } className={ router.pathname != path ? guttered : "" }>
 			<NavItem
 				label={ label }
 				icon={ icon }
@@ -69,10 +69,9 @@ const App = ({ Component, pageProps }: AppProps) => {
 			</Head>
 			<Provider client={{ ceramic: "testnet-clay" }}>
 				<div className={ styles.app }>
-					<div className="nav-panel">
+					<div className={ styles.navPanel }>
 						<NavPanel
 							items={navItems}
-							onConnectRequested={() => alert("Connect?")}
 							onProfileClicked={() => router.push("/profile")}
 							onSettingsActive={() => router.push("/settings")}
 						/>

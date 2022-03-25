@@ -1,0 +1,52 @@
+.profileContainer {
+	display: flex;
+
+	flex-flow: column nowrap;
+
+	justify-content: center;
+	align-items: center;
+
+	cursor: pointer;
+}
+
+.username {
+	border-bottom: 1px white;
+
+	margin: 0.5rem;
+
+	border-bottom: 1px solid white;
+
+	display: flex;
+
+	flex-flow: row nowrap;
+
+	justify-content: center;
+	align-items: center;
+}
+
+.username h1 {
+	font-size: 1.75rem;
+	margin: 0;
+}
+
+.username.pic {
+	width: 100%;
+}
+
+.username.default {
+	border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+
+	transition: 0.3s;
+}
+
+.username.default {
+	color: rgba(255, 255, 255, 0.5);
+}
+
+.profileContainer:hover .username.default {
+	color: white;
+}
+
+.actionIcon {
+	margin-right: 0.5rem;
+}

@@ -10,7 +10,8 @@
 
 	background-color: #141414;
 
-	padding: 1rem;
+	padding-top: 1rem;
+	padding-bottom: 1rem;
 
 	cursor: pointer;
 
@@ -32,4 +33,24 @@
 
 	margin-left: 0.75rem;
 	margin-right: 0.75rem;
+
+	font-weight: normal;
+}
+
+.action {
+	background-color: rgba(93, 95, 239, 0.75);
+}
+
+.action:hover {
+	background-color: #5d5fef;
+}
+
+.error {
+	border: 0px;
+
+	background-color: rgba(237, 67, 55, 0.75);
+}
+
+.error:hover {
+	background-color: #ED4337;
 }
