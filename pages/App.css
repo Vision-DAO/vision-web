@@ -1,0 +1,20 @@
+.threeid-connect-manage {
+	overflow: hidden;
+
+	position: absolute;
+
+	--padding: 10px;
+	--margin: calc(5% + var(--padding));
+
+	left: var(--margin) !important;
+	top: var(--margin) !important;
+
+	width: calc(100% - 2 * var(--margin)) !important;
+	height: calc(100% - 2 * var(--margin)) !important;
+
+	border-radius: 5px;
+	border: 10px white solid !important;
+
+	-webkit-box-shadow: 0px 5px 15px 5px rgba(0,0,0,0.44); 
+	box-shadow: 0px 5px 15px 5px rgba(0,0,0,0.44);
+}

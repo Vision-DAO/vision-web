@@ -1,5 +1,5 @@
 import React from "react";
-import { Profiler } from "react";
+import { useEffect, useState } from "react";
 import { ExploreRounded, MenuRounded, VisibilityRounded } from "@mui/icons-material";
 
 import { Provider } from "@self.id/framework";
@@ -18,6 +18,7 @@ import { guttered } from "../components/workspace/nav/NavPanel.module.css";
 import { useWeb3 } from "../lib/util/web3";
 
 import styles from "./App.module.css";
+import "./App.css";
 import "./index.css";
 
 /**
@@ -60,6 +61,22 @@ const App = ({ Component, pageProps }: AppProps) => {
 	// Create
 	const web3 = useWeb3();
 
+	const [hasModal, setHasModal] = useState(false);
+
+	// Custom styles for the entire app
+	useEffect(() => {
+		const body = document.querySelector("body");
+		body.classList.add(styles.root);
+
+		const modal = document.querySelector(".threeid-connect-manage");
+		
+		if (modal && modal.clientWidth != 0) {
+			setHasModal(true);
+		} else if (hasModal) {
+			setHasModal(false);
+		}
+	});
+
 	// Allow each navigable item to be switched to through the navbar
 	const navItems = pages.map(({ label, path, icon }) =>
 		<div key={ label } className={ router.pathname != path ? guttered : "" }>
@@ -74,7 +91,7 @@ const App = ({ Component, pageProps }: AppProps) => {
 
 	// TODO: Make ceramic modal smaller
 	return (
-		<Profiler >
+		<>
 			<Head>
 				<meta name="viewport" content="width=device-width, initial-scale=1" />
 			</Head>
@@ -90,8 +107,9 @@ const App = ({ Component, pageProps }: AppProps) => {
 						}
 					]
 				}}
+				ui={{ style: { overflow: "hidden" } }}
 			>
-				<div className={ styles.app }>
+				<div className={ `${styles.app} ${styles.root}${hasModal ? (" " + styles.hidden) : ""}` }>
 					<div className={ styles.navPanel }>
 						<NavPanel
 							items={navItems}

@@ -6,10 +6,10 @@ import styles from "./NavPanel.module.css";
 
 import { BasicProfile } from "@datamodels/identity-profile-basic";
 import { useConnection, useViewerRecord } from "@self.id/framework";
-import { useConnStatus } from "../../../lib/util/networks";
+import { useConnStatus, requestChangeNetwork, connectMetamask } from "../../../lib/util/networks";
 import Web3 from "web3";
 
-import { ReactElement, useEffect } from "react";
+import { ReactElement } from "react";
 
 export type NavProps = {
 	/**
@@ -28,10 +28,14 @@ export type NavProps = {
 	onSettingsActive: () => void,
 
 	/**
-	 * The application web3 provider, if it is available.
+	 * The application web3 & ethereum provider, if it is available.
 	 */
-	ctx?: Web3,
+	ctx?: [Web3, any],
 };
+
+declare global {
+    interface Window { ethereum: any; }
+}
 
 /**
  * A component allowing the user to switch between multiple contexts, view their
@@ -48,15 +52,12 @@ export const NavPanel = ({ items, onProfileClicked, ctx }: NavProps) => {
 	// Whether we are currently connected to ceramic, hooks to connect/disconnect
 	const [connection, connect, ] = useConnection();
 
-	useEffect(() => {
-		alert("test");
-	});
-
 	// Whether or not the user is connected to an ethereum provider.
 	// Should display an error otherwise
-	const { connected, network } = useConnStatus(ctx);
+	const [{ present, connected, network }, initialize] = useConnStatus(ctx && ctx[1] || undefined);
 
 	// The user's profile. May be loaded, or may not even exist because the user is disconnected from ceramic
+	// TODO: This bugs out and causes infinite re-renders
 	const profileRecord = useViewerRecord("basicProfile");
 
 	// Setup listeners to ceramic events
@@ -79,26 +80,36 @@ export const NavPanel = ({ items, onProfileClicked, ctx }: NavProps) => {
 
 	// Show a button to initiate authentication if no user info is available
 	let profileDisp = (
-		<OutlinedButton callback={ () => window.open("https://metamask.io/") } severity="error">
-			<h2>Please install a <b>Web3</b> provider to continue.</h2>
+		<OutlinedButton severity="error">
+			<h2>Unable to communicate with the Ethereum network. Check console to troubleshoot.</h2>
 		</OutlinedButton>
 	);
+
+	// Make sure a web3 client is available
+	if (!present) {
+		profileDisp = (
+			<OutlinedButton callback={ () => window.open("https://metamask.io/") } severity="error">
+				<h2>Please install a <b>Web3</b> provider to continue.</h2>
+			</OutlinedButton>
+		);
+	}
 
 	if (connected) {
 		// Make sure the user is connected to the right network
 		profileDisp = (
-			<OutlinedButton callback={ () => connect() } severity="action">
+			<OutlinedButton callback={ () => {
+				connectMetamask(window.ethereum)
+					.then(() => {
+						initialize();
+						return requestChangeNetwork(window.ethereum);
+					})
+					.then(() => {
+						connect();
+					});
+			}} severity="action">
 				<h2>Connect to <b>Polygon</b></h2>
 			</OutlinedButton>
 		);
-
-		if (network == "polygon") {
-			profileDisp = (
-				<OutlinedButton callback={ () => connect() } severity="action">
-					<h2>Login with <b>3ID Connect</b></h2>
-				</OutlinedButton>
-			);
-		}
 	}
 
 	// The user is already logged in, their info just needs to load

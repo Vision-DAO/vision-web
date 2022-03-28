@@ -10,16 +10,17 @@ declare global {
 /**
  * Creates a web3 instance from the window's information, if an ethereum provider is available.
  */
-export const useWeb3 = (): Web3 | undefined => {
-	const [web3, setWeb3] = useState(undefined);
+export const useWeb3 = (): [Web3, any] | undefined => {
+	const [ctx, setWeb3] = useState(undefined);
 
 	useEffect(() => {
 		if (!window.ethereum) {
 			return;
 		}
 
-		setWeb3(new Web3(window.ethereum));
+		if (!ctx)
+			setWeb3([new Web3(window.ethereum), window.ethereum]);
 	});
 
-	return web3;
+	return ctx;
 };

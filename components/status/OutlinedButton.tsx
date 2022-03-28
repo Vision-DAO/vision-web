@@ -2,7 +2,7 @@ import styles from "./OutlinedButton.module.css";
 import React from "react";
 
 export interface ButtonProps {
-	callback: () => void;
+	callback?: () => void;
 	severity?: "info" | "action" | "error";
 }
 
