@@ -1,0 +1,18 @@
+.warningContainer {
+	display: flex;
+
+	flex-flow: column nowrap;
+	justify-content: center;
+	align-items: center;
+
+	opacity: 0.5
+}
+
+.warningContainer>* {
+	margin-top: 0.75rem;
+	margin-bottom: 0.75rem;
+}
+
+.warningContainer>svg {
+	transform: scale(2);
+}

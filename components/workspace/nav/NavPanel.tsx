@@ -20,7 +20,7 @@ export type NavProps = {
 	/**
 	 * What to do when the user clicks their profile
 	 */
-	onProfileClicked: () => void,
+	onProfileClicked: (selfId: string) => void,
 
 	/**
 	 * What to do when the user requests that they change Vision's settings.
@@ -54,7 +54,7 @@ export const NavPanel = ({ items, onProfileClicked, ctx }: NavProps) => {
 
 	// Whether or not the user is connected to an ethereum provider.
 	// Should display an error otherwise
-	const [{ present, connected, network }, initialize] = useConnStatus(ctx && ctx[1] || undefined);
+	const [{ present, connected, initialized }, initialize] = useConnStatus(ctx && ctx[1] || undefined);
 
 	// The user's profile. May be loaded, or may not even exist because the user is disconnected from ceramic
 	// TODO: This bugs out and causes infinite re-renders
@@ -113,10 +113,10 @@ export const NavPanel = ({ items, onProfileClicked, ctx }: NavProps) => {
 	}
 
 	// The user is already logged in, their info just needs to load
-	if (sessionInfo != undefined) {
+	if (sessionInfo != undefined && initialized) {
 		// If the user is not signed in, a default account should be available and editable
 		profileDisp = (
-			<div onClick={ () => onProfileClicked() }>
+			<div onClick={ () => connection.status == "connected" && onProfileClicked(connection.selfID.id) }>
 				<UserProfile u={{ name: "" }} />
 			</div>
 		);
@@ -128,9 +128,9 @@ export const NavPanel = ({ items, onProfileClicked, ctx }: NavProps) => {
 			// available
 			profileDisp = <CircularProgress sx={{ color: "white" }} />;
 
-			if (profile != "loading")
+			if (profile != "loading" && connection.status == "connected")
 				profileDisp = (
-					<div onClick={ () => onProfileClicked() }>
+					<div onClick={ () => onProfileClicked(connection.selfID.id) }>
 						<UserProfile u={ profile } profilePicture={ pic } />
 					</div>
 				);

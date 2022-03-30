@@ -1,21 +1,24 @@
 import React from "react";
-import { useEffect, useState } from "react";
-import { ExploreRounded, MenuRounded, VisibilityRounded } from "@mui/icons-material";
+import { useEffect, useState, createContext } from "react";
+import { HomeRounded, MenuRounded, VisibilityRounded } from "@mui/icons-material";
 
 import { Provider } from "@self.id/framework";
 import closeIcon from "@self.id/multiauth/assets/icon-close.svg";
 import selectedIcon from "@self.id/multiauth/assets/icon-selected.svg";
 import ethereumLogo from "@self.id/multiauth/assets/ethereum.png";
 import metaMaskLogo from "@self.id/multiauth/assets/metamask.png";
+import { create } from "ipfs-core";
 
 import type { AppProps } from "next/app";
 import Head from "next/head";
 import { useRouter } from "next/router";
 
+import { NetworkedWorkspace } from "../components/workspace/Networked";
 import NavPanel from "../components/workspace/nav/NavPanel";
 import { NavItem } from "../components/workspace/nav/NavItem";
 import { guttered } from "../components/workspace/nav/NavPanel.module.css";
 import { useWeb3 } from "../lib/util/web3";
+import { IpfsContext } from "../lib/util/ipfs";
 
 import styles from "./App.module.css";
 import "./App.css";
@@ -36,7 +39,7 @@ const pages: Page[] = [
 	{
 		label: "Explore",
 		path: "/",
-		icon: <ExploreRounded />,
+		icon: <HomeRounded />,
 	},
 	{
 		label: "My Ideas",
@@ -58,8 +61,18 @@ const App = ({ Component, pageProps }: AppProps) => {
 	// For indicating the active page in the navbar
 	const router = useRouter();
 
-	// Create
+	// Create a global web3 client
 	const web3 = useWeb3();
+
+	// Keep the global IPFS intance up to date
+	const [ipfs, setIpfs] = useState(undefined);
+
+	useEffect(() => {
+		if (ipfs === undefined) {
+			setIpfs(null);
+			create().then((ipfs) => setIpfs(ipfs));
+		}
+	});
 
 	const [hasModal, setHasModal] = useState(false);
 
@@ -109,19 +122,26 @@ const App = ({ Component, pageProps }: AppProps) => {
 				}}
 				ui={{ style: { overflow: "hidden" } }}
 			>
-				<div className={ `${styles.app} ${styles.root}${hasModal ? (" " + styles.hidden) : ""}` }>
-					<div className={ styles.navPanel }>
-						<NavPanel
-							items={navItems}
-							onProfileClicked={() => router.push("/profile")}
-							onSettingsActive={() => router.push("/settings")}
-							ctx={web3}
-						/>
+				<IpfsContext.Provider value={ ipfs }>
+					<div className={ `${styles.app} ${styles.root}${hasModal ? (" " + styles.hidden) : ""}` }>
+						<div className={ styles.navPanel }>
+							<NavPanel
+								items={navItems}
+								onProfileClicked={(selfId: string) => router.push({
+									pathname: "/profile/[id]",
+									query: { id: selfId } }
+								)}
+								onSettingsActive={() => router.push("/settings")}
+								ctx={web3}
+							/>
+						</div>
+						<div className={styles.workspace}>
+							<NetworkedWorkspace ctx={web3 && web3[1]}>
+								<Component {...pageProps} />
+							</NetworkedWorkspace>
+						</div>
 					</div>
-					<div className="workspace">
-						<Component {...pageProps} />
-					</div>
-				</div>
+				</IpfsContext.Provider>
 			</Provider>
 		</>
 	);

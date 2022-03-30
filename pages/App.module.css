@@ -32,3 +32,11 @@
 .app>.workspace {
 	width: 85%;
 }
+
+.workspace {
+	display: flex;
+
+	flex-flow: column nowrap;
+	justify-content: center;
+	align-items: center;
+}

@@ -69,7 +69,8 @@ export const useConnStatus = (ethProvider?: any): [ConnStatus, () => void] => {
 	useEffect(() => {
 		// The client is not connected if no ethereum client is available
 		if (!ethProvider) {
-			setEthConnection(state => { return { ...state, ...disconnected }; });
+			if (ethConnection.present)
+				setEthConnection(state => { return { ...state, ...disconnected }; });
 
 			return;
 		}
@@ -88,7 +89,7 @@ export const useConnStatus = (ethProvider?: any): [ConnStatus, () => void] => {
 				.then((chainId: string) => {
 					const canonId = networks[chainId] || "unknown";
 
-					if (canonId != "unknown" && ethConnection.network == "unknown" && ethConnection.initialized) {
+					if (canonId != "unknown" && ethConnection.network == "unknown") {
 						setEthConnection(state => { return { ...state, network: canonId }; });
 					}
 				});
