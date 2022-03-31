@@ -1,6 +1,7 @@
 import Image from "next/image";
 import styles from "./ExtendedProfile.module.css";
 import EditIcon from "@mui/icons-material/EditRounded";
+import DoneIcon from "@mui/icons-material/CheckCircleRounded";
 import { useState, useRef, useEffect } from "react";
 
 export interface ExtendedProfileProps {
@@ -39,14 +40,17 @@ export const ExtendedProfile = ({ name, background, profilePicture, editable, on
 	const [formWidth, setFormWidth] = useState(0);
 	const inputWidthOracle = useRef<HTMLElement>(null);
 
-	const [formIconWidth, setFormIconWidth] = useState(0);
+	const [formIconWidth, setFormIconWidth] = useState(null);
 	const formIconWidthOracle = useRef<HTMLDivElement>(null);
+
+	// The edit icon should be invisible if text is already in the input
+	const activeFormIconWidth = formName == "" ? formIconWidth : 0;
 
 	useEffect(() => {
 		// Set the width of the input element to the width of the pseudo element
 		if (inputWidthOracle && inputWidthOracle.current)
 			setFormWidth(inputWidthOracle.current.offsetWidth);
-		if (formIconWidthOracle && formIconWidthOracle.current)
+		if (formIconWidthOracle && formIconWidthOracle.current && formIconWidth == null)
 			setFormIconWidth(formIconWidthOracle.current.offsetWidth);
 	});
 
@@ -60,11 +64,14 @@ export const ExtendedProfile = ({ name, background, profilePicture, editable, on
 	if (editable) {
 		profileName = (
 			<div className={ styles.profileName }>
-				<div className={ styles.fieldIcon } ref={ formIconWidthOracle } style={{ width: formIconWidth }}>
+				<div className={ styles.fieldIcon } ref={ formIconWidthOracle } style={ activeFormIconWidth != null ? { width: activeFormIconWidth } : {}}>
 					<EditIcon />
 				</div>
-				<span className={ styles.hiddenName } ref={ inputWidthOracle }>{ formName.length == 0 ? name : formName }</span>
 				<input type="text" style={{ width: formWidth }} value={ formName } placeholder={ name } onChange={ (e) => setFormName(e.target.value) } />
+				<span className={ styles.hiddenName } ref={ inputWidthOracle }>{ formName.length == 0 ? name : formName }</span>
+				<div className={ `${styles.fieldIcon} ${styles.actionIcon}`} style={{ width: formName != "" ? formIconWidth : 0 }} onClick={ () => onEditName(formName) }>
+					<DoneIcon />
+				</div>
 			</div>
 		);
 	}

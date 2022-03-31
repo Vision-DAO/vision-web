@@ -7,9 +7,11 @@ import styles from "./NavPanel.module.css";
 import { BasicProfile } from "@datamodels/identity-profile-basic";
 import { useConnection, useViewerRecord } from "@self.id/framework";
 import { useConnStatus, requestChangeNetwork, connectMetamask } from "../../../lib/util/networks";
+import { getAll, IpfsContext } from "../../../lib/util/ipfs";
+import { blobify } from "../../../lib/util/blobify";
 import Web3 from "web3";
 
-import { ReactElement } from "react";
+import { ReactElement, useContext, useEffect, useState } from "react";
 
 export type NavProps = {
 	/**
@@ -48,9 +50,30 @@ export const NavPanel = ({ items, onProfileClicked, ctx }: NavProps) => {
 	// Wrap details of the user's login for component convenience.
 	// Assume the user is disconnected
 	let sessionInfo: undefined | [BasicProfile | null | "loading", Uint8Array | null | "loading"] = undefined;
+	const [pfp, setPfp] = useState(null);
 
 	// Whether we are currently connected to ceramic, hooks to connect/disconnect
 	const [connection, connect, ] = useConnection();
+
+	// For loading the user's profile
+	const ipfs = useContext(IpfsContext);
+
+	useEffect(() => {
+		if (!profileRecord.isLoading && pfp == null) {
+			if (!profileRecord.content.image) {
+				setPfp(null);
+
+				return;
+			}
+
+			if (pfp != "loading") {
+				getAll(ipfs, profileRecord.content.image.original.src)
+					.then((imgBlob) => {
+						setPfp(blobify(window, imgBlob, null));
+					});
+			}
+		}
+	});
 
 	// Whether or not the user is connected to an ethereum provider.
 	// Should display an error otherwise
@@ -70,10 +93,11 @@ export const NavPanel = ({ items, onProfileClicked, ctx }: NavProps) => {
 	case "connected":
 		// Since the network is connected, the local user's information might
 		// now be available
-		if (profileRecord.isLoading)
+		if (profileRecord.isLoading) {
 			sessionInfo = ["loading", "loading"];
-		else
+		} else {
 			sessionInfo = [profileRecord.content, "loading"];
+		}
 
 		break;
 	}
@@ -121,7 +145,7 @@ export const NavPanel = ({ items, onProfileClicked, ctx }: NavProps) => {
 			</div>
 		);
 
-		const [profile, pic] = sessionInfo;
+		const [profile, ] = sessionInfo;
 
 		if (profile != null) {
 			// Display a loading icon until the user's profile text (at least) is
@@ -131,7 +155,7 @@ export const NavPanel = ({ items, onProfileClicked, ctx }: NavProps) => {
 			if (profile != "loading" && connection.status == "connected")
 				profileDisp = (
 					<div onClick={ () => onProfileClicked(connection.selfID.id) }>
-						<UserProfile u={ profile } profilePicture={ pic } />
+						<UserProfile u={ profile } profilePicture={ pfp } />
 					</div>
 				);
 		}

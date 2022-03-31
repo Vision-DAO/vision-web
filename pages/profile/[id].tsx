@@ -1,6 +1,6 @@
 import { useState, useEffect, useContext } from "react";
 import { useRouter } from "next/router";
-import { usePublicRecord, useConnection } from "@self.id/framework";
+import { usePublicRecord, useViewerRecord, useConnection } from "@self.id/framework";
 import { ExtendedProfile } from "../../components/profile/ExtendedProfile";
 import CircularProgress from "@mui/material/CircularProgress";
 import defaultProfileIcon from "../../public/icons/account_circle_white_48dp.svg";
@@ -22,10 +22,14 @@ export const Profile = () => {
 
 	// The user's profile will only be editable if the user is the same as [id]
 	const [[[pfp, bg], loading], setImages] = useState([[null, null], true]);
+	const [connection, ,] = useConnection();
+	const isUser = connection.status == "connected" && connection.selfID.id == profileId;
 
 	// Load the indicated user's profile
 	const profile = usePublicRecord("basicProfile", profileId);
-	const [connection, ,] = useConnection();
+
+	// And the locally active user's profile for mutation purposes
+	const selfProfile = useViewerRecord("basicProfile");
 
 	// Generate an empty profile if the record doesn't exist
 	if (!profile.content)
@@ -65,7 +69,18 @@ export const Profile = () => {
 	if (profile == null || profile.isLoading || loading || !ctx)
 		return <CircularProgress sx={{ color: "white" }} />;
 
-	return <ExtendedProfile name={ profile.content.name } background={ bg || defaultBackground } profilePicture={ pfp || defaultProfileIcon } editable={ connection.status == "connected" && connection.selfID.id == profileId }/>;
+	// The user may trigger a name update from the profile display if their profile is editable.
+	// Assume that if it is editable, that they may use an accessor record to mutate their 3ID record
+	const handleChangeName = (name: string) => {
+		// Only proceed to mutate the user's profile if they have the necessary permissions
+		if (!isUser || !selfProfile.isMutable)
+			return;
+
+		// Update the user's name
+		selfProfile.merge({ name: name });
+	};
+
+	return <ExtendedProfile name={ profile.content.name } background={ bg || defaultBackground } profilePicture={ pfp || defaultProfileIcon } editable={ connection.status == "connected" && connection.selfID.id == profileId } onEditName={ handleChangeName }/>;
 };
 
 export default Profile;

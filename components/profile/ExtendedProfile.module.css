@@ -28,16 +28,16 @@
 
 	flex-flow: column nowrap;
 
-	justify-content: center;
+	justify-content: flex-start;
 	align-items: center;
 }
 
 .profilePicContainer {
 	position: relative;
 
-	width: 80%;
+	width: 12vw;
 	height: 0;
-	padding-bottom: 80%;
+	padding-bottom: 12vw;
 }
 
 .profileName {
@@ -74,6 +74,10 @@
 	font-family: "Roboto", "Helvetica Neue", sans-serif;
 }
 
+.profileName input {
+	z-index: 1;
+}
+
 .fieldIcon {
 	height: 100%;
 
@@ -94,11 +98,16 @@
 	opacity: 1;
 }
 
-.profileName:active .fieldIcon {
+.profileName:focus .fieldIcon {
 	width: 0;
+}
+
+.actionIcon {
+	cursor: pointer;
 }
 
 .hiddenName {
 	position: absolute;
 	opacity: 0;
+	z-index: -2;
 }
