@@ -1,0 +1,3 @@
+[submodule "value-tree"]
+	path = value-tree
+	url = git@github.com:dowlandaiello/value-tree.git
