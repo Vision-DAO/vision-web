@@ -17,8 +17,9 @@ import { NetworkedWorkspace } from "../components/workspace/Networked";
 import NavPanel from "../components/workspace/nav/NavPanel";
 import { NavItem } from "../components/workspace/nav/NavItem";
 import { guttered } from "../components/workspace/nav/NavPanel.module.css";
-import { useWeb3 } from "../lib/util/web3";
+import { Web3Context, provideWeb3 } from "../lib/util/web3";
 import { IpfsContext } from "../lib/util/ipfs";
+import { ConnectionContext, provideConnStatus } from "../lib/util/networks";
 
 import styles from "./App.module.css";
 import "./App.css";
@@ -62,7 +63,10 @@ const App = ({ Component, pageProps }: AppProps) => {
 	const router = useRouter();
 
 	// Create a global web3 client
-	const web3 = useWeb3();
+	const web3 = provideWeb3();
+
+	// Create a global connection status state
+	const connStatus = provideConnStatus(web3 ? web3[1] : undefined);
 
 	// Keep the global IPFS intance up to date
 	const [ipfs, setIpfs] = useState(undefined);
@@ -122,26 +126,30 @@ const App = ({ Component, pageProps }: AppProps) => {
 				}}
 				ui={{ style: { overflow: "hidden" } }}
 			>
-				<IpfsContext.Provider value={ ipfs }>
-					<div className={ `${styles.app} ${styles.root}${hasModal ? (" " + styles.hidden) : ""}` }>
-						<div className={ styles.navPanel }>
-							<NavPanel
-								items={navItems}
-								onProfileClicked={(selfId: string) => router.push({
-									pathname: "/profile/[id]",
-									query: { id: selfId } }
-								)}
-								onSettingsActive={() => router.push("/settings")}
-								ctx={web3}
-							/>
-						</div>
-						<div className={styles.workspace}>
-							<NetworkedWorkspace ctx={web3 && web3[1]}>
-								<Component {...pageProps} />
-							</NetworkedWorkspace>
-						</div>
-					</div>
-				</IpfsContext.Provider>
+				<Web3Context.Provider value={ web3 }>
+					<IpfsContext.Provider value={ ipfs }>
+						<ConnectionContext.Provider value={ connStatus }>
+							<div className={ `${styles.app} ${styles.root}${hasModal ? (" " + styles.hidden) : ""}` }>
+								<div className={ styles.navPanel }>
+									<NavPanel
+										items={navItems}
+										onProfileClicked={(selfId: string) => router.push({
+											pathname: "/profile/[id]",
+											query: { id: selfId } }
+										)}
+										onSettingsActive={() => router.push("/settings")}
+										ctx={web3}
+									/>
+								</div>
+								<div className={styles.workspace}>
+									<NetworkedWorkspace>
+										<Component {...pageProps} />
+									</NetworkedWorkspace>
+								</div>
+							</div>
+						</ConnectionContext.Provider>
+					</IpfsContext.Provider>
+				</Web3Context.Provider>
 			</Provider>
 		</>
 	);

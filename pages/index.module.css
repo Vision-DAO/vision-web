@@ -1,0 +1,12 @@
+.browser {
+	width: 100%;
+	height: 100%;
+
+	display: grid;
+
+	grid-template: repeat(64, 1fr) / repeat(64, 1fr);
+}
+
+.hud {
+	z-index: 2;
+}

@@ -1,6 +1,19 @@
-import Web3 from "web3";
-import { useState, useEffect } from "react";
+import { useContext, useState, useEffect, Context, createContext } from "react";
 import { useConnection } from "@self.id/framework";
+
+export type Network = "ethereum" | "polygon" | "polygon-test" | "unknown";
+
+export const ConnectionContext: Context<[ConnStatus, () => void]> = createContext(
+	[
+		{
+			present: false,
+			connected: false,
+			network: "unknown",
+			initialized: false
+		},
+		null
+	]
+);
 
 /**
  * Whether the web3 client is connected, and what network it's connected to.
@@ -8,20 +21,25 @@ import { useConnection } from "@self.id/framework";
 export interface ConnStatus {
 	connected: boolean;
 	present: boolean;
-	network: "ethereum" | "polygon" | "unknown";
+	network: Network;
 	initialized: boolean;
 }
 
 // Chain ID's for different networks used by vision
 const networks = {
 	// Polygon mumbai, mainnet
-	80001: "polygon",
+	80001: "polygon-test",
 	137: "polygon",
 
 	// Eth ropsten, mainnet
 	1981: "ethereum",
 	1: "ethereum",
 };
+
+/**
+ * Generates a topic ID for the network currently connected.
+ */
+export const networkIdeasTopic = (connStatus: ConnStatus) => `ideas_${connStatus.network}`;
 
 /**
  * Prompts the user to consent to sharing their list of accounts.
@@ -56,12 +74,17 @@ export const requestChangeNetwork = async (ethProvider: any): Promise<void> => {
 };
 
 /**
+ * Consumes the global connection status.
+ */
+export const useConnStatus = (): [ConnStatus, () => void] => useContext(ConnectionContext);
+
+/**
  * A hook returning whether a web3 client is present, and which network it's connected
  * to.
  *
  * @param ethProvider - a window.ethereum-like ethereum provider
  */
-export const useConnStatus = (ethProvider?: any): [ConnStatus, () => void] => {
+export const provideConnStatus = (ethProvider?: any): [ConnStatus, () => void] => {
 	const disconnected: ConnStatus = { present: false, connected: false, network: "unknown", initialized: false };
 	const [ethConnection, setEthConnection] = useState({ ...disconnected, initialized: false });
 	const [, connectCeramic, disconnectCeramic] = useConnection();

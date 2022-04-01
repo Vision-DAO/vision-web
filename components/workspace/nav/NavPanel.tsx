@@ -60,7 +60,7 @@ export const NavPanel = ({ items, onProfileClicked, ctx }: NavProps) => {
 
 	useEffect(() => {
 		if (!profileRecord.isLoading && pfp == null) {
-			if (!profileRecord.content.image) {
+			if (!profileRecord.content || !profileRecord.content.image) {
 				setPfp(null);
 
 				return;
