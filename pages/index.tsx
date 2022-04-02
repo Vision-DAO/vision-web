@@ -75,6 +75,7 @@ export const Index = () => {
 			// Remind other users every n seconds about our sovereign ideas,
 			// and register a PID to cancel after the component is dismounted
 			gossipers.push(setTimeout(() => {
+				console.log("PUB");
 				pubRootIdea(ideaAddr);
 			}, heartbeatPeriod));
 		}
