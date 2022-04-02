@@ -2,7 +2,9 @@ import { useParents } from "../lib/util/ipfs";
 import { useWeb3 } from "../lib/util/web3";
 import { useState, useEffect } from "react";
 import Idea from "../value-tree/build/contracts/Idea.json";
-import { IdeaBubble } from "../components/workspace/IdeaBubble";
+import { IdeaBubble, IdeaBubbleProps } from "../components/workspace/IdeaBubble";
+import { NewIdeaModal, NewIdeaSubmission } from "../components/status/NewIdeaModal";
+import { FilledButton } from "../components/status/FilledButton";
 import styles from "./index.module.css";
 
 /**
@@ -25,21 +27,17 @@ export const Index = () => {
 	// networked UI context. Render the list of parents from this context,
 	// and update it later if need be
 	const [rootIdeas, pubRootIdea] = useParents(staticIdeas);
-	const [rendered, setRendered] = useState<Set<string>>(new Set());
-	const [ideaBubbles, setIdeaBubbles] = useState([]);
-	const [web3, ] = useWeb3();
+	const [ideaDetails, setIdeaDetails] = useState({});
+	const [web3, eth] = useWeb3();
+
+	// Display items as a map of bubbles
+	const [zoomFactor, setZoomFactor] = useState(1);
+	const [creatingIdea, setCreatingIdea] = useState(false);
 
 	// Every time the list of parent nodes expands, part of the component
 	// tree must be rebuilt
 	useEffect(() => {
 		for (const ideaAddr of rootIdeas) {
-			if (rendered.has(ideaAddr)) {
-				continue;
-			}
-
-			// Prevent a reload of this idea
-			setRendered(new Set([...rendered, ideaAddr]));
-
 			const contract = new web3.eth.Contract(Idea.abi, ideaAddr);
 
 			// Fetch the basic information of the idea from Ethereum
@@ -55,20 +53,54 @@ export const Index = () => {
 					description: "",
 
 					addr: ideaAddr,
+
+					size: zoomFactor,
+				};
+
+				// Shallow comparison to check that the bubble info has already been cached
+				const bubblesEqual = (a: IdeaBubbleProps, b: IdeaBubbleProps): boolean => {
+					if (!a || !b)
+						return false;
+
+					for (const key of Object.keys(a)) {
+						if (a[key] != b[key])
+							return false;
+					}
+
+					return true;
 				};
 
 				// Render the information of the bubble as a component on the mindmap
-				setIdeaBubbles([...ideaBubbles, IdeaBubble(bubble)]);
+				if (!bubblesEqual(ideaDetails[ideaAddr], bubble))
+					setIdeaDetails({...ideaDetails, [ideaAddr]: bubble});
 			})();
 		}
 	});
 
+	// The size of idea bubbles might change before the information in them does, or is loaded in
+	const ideaBubbles = Object.values(ideaDetails)
+		.map((props: IdeaBubbleProps) => IdeaBubble({ ...props, size: zoomFactor }));
+
 	return (
 		<div className={ styles.browser }>
-			<div>
+			<div className={ styles.map }>
 				{ ideaBubbles }
 			</div>
 			<div className={ styles.hud }>
+				<div className={ styles.hudModal }>
+					<NewIdeaModal active={ creatingIdea } onClose={ () => setCreatingIdea(false) } onDeploy={ (addr) => alert(addr) } ctx={ [web3, eth] } />
+				</div>
+				<div className={ styles.leftActionButton }>
+					<div className={ styles.zoomButtons }>
+						<div className={ styles.zoomButton } onClick={ () => setZoomFactor(zoomFactor * 1.1) }>
+							+
+						</div>
+						<div className={ styles.zoomButton } onClick={ () => setZoomFactor(zoomFactor * 0.9) }>
+							-
+						</div>
+					</div>
+					<FilledButton label="New Idea" onClick={ () => setCreatingIdea(true) }/>
+				</div>
 			</div>
 		</div>
 	);

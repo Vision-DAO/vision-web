@@ -50,6 +50,11 @@ export const connectMetamask = async (ethProvider: any): Promise<void> => {
 };
 
 /**
+ * Gets a list of the user's active accounts.
+ */
+export const accounts = (ethProvider: any): Promise<string[]> => ethProvider.request({method: "eth_requestAccounts"});
+
+/**
  * Issues a request to add the polygon network and change the user's active
  * network to it.
  */

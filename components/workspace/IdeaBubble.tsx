@@ -10,14 +10,16 @@ export interface IdeaBubbleProps {
 	description: string;
 
 	addr: string;
+
+	size: number,
 }
 
 /**
  * A component that renders the details of a vision Idea on the mindmap.
  */
-export const IdeaBubble = ({ title, ticker, totalSupply, addr }: IdeaBubbleProps) => {
+export const IdeaBubble = ({ title, ticker, totalSupply, addr, size }: IdeaBubbleProps) => {
 	return (
-		<div key={ addr } className={ styles.bubble }>
+		<div key={ addr } className={ styles.bubble } style={{ transform: "scale(" + size + "," + size + ")" }}>
 			<h1>{ title }</h1>
 		</div>
 	);

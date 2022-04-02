@@ -7,12 +7,17 @@ import styles from "./WarningMessage.module.css";
  * text information.
  */
 export const WarningMessage = ({ title, message, loading = false }: { title: string, message: string, loading?: boolean }) => {
+	let progress = null;
+
+	if (loading)
+		progress = <LinearProgress sx={{ width: "100%" }} color="inherit" />;
+
 	return (
 		<div className={ styles.warningContainer }>
 			<WarningIcon fontSize="large" />
 			<h1>{ title }</h1>
 			<p>{ message }</p>
-			{ loading && <LinearProgress sx={{ color: "white" }} /> }
+			{ progress }
 		</div>
 	);
 };

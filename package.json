@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@achingbrain/libp2p-gossipsub": "^0.13.5",
+    "@datamodels/identity-accounts-crypto": "^0.1.2",
     "@datamodels/identity-profile-basic": "^0.1.2",
     "@emotion/react": "^11.8.2",
     "@emotion/styled": "^11.8.1",

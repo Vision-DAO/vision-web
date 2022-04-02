@@ -1,6 +1,8 @@
 import React from "react";
 import { useEffect, useState, createContext } from "react";
 import { HomeRounded, MenuRounded, VisibilityRounded } from "@mui/icons-material";
+import { ThemeProvider } from "@mui/material";
+import { createTheme } from "@mui/material/styles";
 
 import { Provider } from "@self.id/framework";
 import closeIcon from "@self.id/multiauth/assets/icon-close.svg";
@@ -53,6 +55,16 @@ const pages: Page[] = [
 		icon: <VisibilityRounded />,
 	}
 ];
+
+// Global theme settings for Material UI.
+// Not dynamic, yet
+const theme = createTheme({
+	palette: {
+		primary: {
+			main: "#FFFFFF",
+		}
+	}
+});
 
 /**
  * A component that shares a global navigation workspace layout between
@@ -126,30 +138,32 @@ const App = ({ Component, pageProps }: AppProps) => {
 				}}
 				ui={{ style: { overflow: "hidden" } }}
 			>
-				<Web3Context.Provider value={ web3 }>
-					<IpfsContext.Provider value={ ipfs }>
-						<ConnectionContext.Provider value={ connStatus }>
-							<div className={ `${styles.app} ${styles.root}${hasModal ? (" " + styles.hidden) : ""}` }>
-								<div className={ styles.navPanel }>
-									<NavPanel
-										items={navItems}
-										onProfileClicked={(selfId: string) => router.push({
-											pathname: "/profile/[id]",
-											query: { id: selfId } }
-										)}
-										onSettingsActive={() => router.push("/settings")}
-										ctx={web3}
-									/>
+				<ThemeProvider theme={ theme }>
+					<Web3Context.Provider value={ web3 }>
+						<IpfsContext.Provider value={ ipfs }>
+							<ConnectionContext.Provider value={ connStatus }>
+								<div className={ `${styles.app} ${styles.root}${hasModal ? (" " + styles.hidden) : ""}` }>
+									<div className={ styles.navPanel }>
+										<NavPanel
+											items={navItems}
+											onProfileClicked={(selfId: string) => router.push({
+												pathname: "/profile/[id]",
+												query: { id: selfId } }
+											)}
+											onSettingsActive={() => router.push("/settings")}
+											ctx={web3}
+										/>
+									</div>
+									<div className={styles.workspace}>
+										<NetworkedWorkspace>
+											<Component {...pageProps} />
+										</NetworkedWorkspace>
+									</div>
 								</div>
-								<div className={styles.workspace}>
-									<NetworkedWorkspace>
-										<Component {...pageProps} />
-									</NetworkedWorkspace>
-								</div>
-							</div>
-						</ConnectionContext.Provider>
-					</IpfsContext.Provider>
-				</Web3Context.Provider>
+							</ConnectionContext.Provider>
+						</IpfsContext.Provider>
+					</Web3Context.Provider>
+				</ThemeProvider>
 			</Provider>
 		</>
 	);

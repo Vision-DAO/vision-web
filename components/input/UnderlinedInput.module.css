@@ -1,0 +1,23 @@
+.underlinedInput {
+	color: white;
+
+	background-color: rgba(0, 0, 0, 0);
+	opacity: 0.5;
+
+	outline: none;
+	text-decoration: none;
+	cursor: text;
+
+	border: none;
+	border-bottom: 1px solid white;
+
+	padding: none;
+
+	font-size: 1em;
+
+	transition: 0.3s;
+}
+
+.underlinedInput:focus {
+	opacity: 1;
+}

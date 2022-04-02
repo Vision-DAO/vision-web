@@ -1,0 +1,64 @@
+.newIdeaModalContainer {
+	opacity: 0;
+
+	transition: 0.3s;
+
+	-webkit-box-shadow: 5px 5px 18px 9px rgba(0,0,0,0.51); 
+	box-shadow: 5px 5px 18px 9px rgba(0,0,0,0.51);
+
+	border: 0.5px solid rgba(255, 255, 255, 0.5);
+	border-radius: 5px;
+
+	background-color: #151515;
+
+	padding: 2rem;
+}
+
+.newIdeaModalContainer h1 {
+	margin: 0;
+}
+
+.modalNav {
+	display: flex;
+
+	flex-flow: row nowrap;
+	justify-content: space-between;
+	align-items: center;
+
+	width: 100%;
+}
+
+.closeIcon {
+	cursor: pointer;
+
+	display: flex;
+
+	align-items: center;
+	justify-content: center;
+}
+
+.active {
+	opacity: 1;
+
+	transition: 0.3s;
+}
+
+.modalForm {
+	margin-top: 2rem;
+
+	display: flex;
+
+	flex-flow: row wrap;
+	justify-content: flex-start;
+	align-items: flex-start;
+}
+
+.modalForm>* {
+	margin: 0.5rem;
+}
+
+.submitButton {
+	margin-top: 2.5rem;
+
+	border-radius: 5px;
+}

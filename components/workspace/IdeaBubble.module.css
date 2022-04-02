@@ -2,14 +2,16 @@
 	border-radius: 100%;
 	border: 1px solid rgba(255, 255, 255, 0.5);
 
-	width: 20vw;
-	height: 20vw;
-
 	display: flex;
+
+	height: 20vw;
+	width: 20vw;
 
 	flex-flow: column nowrap;
 	justify-content: center;
 	align-items: center;
+
+	transition: 0.1s;
 }
 
 .bubble>h1 {
