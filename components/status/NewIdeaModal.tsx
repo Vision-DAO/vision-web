@@ -2,6 +2,7 @@ import Web3 from "web3";
 import styles from "./NewIdeaModal.module.css";
 import { useState, useEffect } from "react";
 import { accounts } from "../../lib/util/networks";
+import { saveIdea, CryptoAccountsRecord } from "../../lib/util/discovery";
 import CloseIcon from "@mui/icons-material/CloseRounded";
 import LinearProgress from "@mui/material/LinearProgress";
 import { UnderlinedInput } from "../input/UnderlinedInput";
@@ -19,7 +20,7 @@ export interface NewIdeaSubmission {
  * A popup modal containing a form with fields for the necessary argumentst to
  * the Idea smart contract constructor.
  */
-export const NewIdeaModal = ({ active, onClose, onDeploy, ctx }: { active: boolean, onClose: () => void, onDeploy: (address: string) => void, ctx: [Web3, any] }) => {
+export const NewIdeaModal = ({ active, onClose, onDeploy, ctx, ideasBuf }: { active: boolean, onClose: () => void, onDeploy: (address: string) => void, ctx: [Web3, any], ideasBuf: CryptoAccountsRecord }) => {
 	// Transition the opacity of the Idea Modal upon clicking the close button,
 	// prevent the modal from being rendered at all before its opacity goes 0->100
 	const [loaded, setLoaded] = useState(false);
@@ -87,7 +88,12 @@ export const NewIdeaModal = ({ active, onClose, onDeploy, ctx }: { active: boole
 			.on("receipt", (receipt) => {
 				setErrorMsg("");
 				setDeploying(false);
-				onDeploy(receipt.contractAddress);
+
+				// Save the user's contract via ceramic
+				saveIdea(receipt.contractAddress, ideasBuf)
+					.then(() => {
+						onDeploy(receipt.contractAddress);
+					});
 			});
 	};
 

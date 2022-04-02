@@ -23,7 +23,7 @@ export interface ExtendedProfileProps {
 	/**
 	 * The user made a change to their username.
 	 */
-	onEditName: (string) => void,
+	onEditName: (name: string) => void,
 
 	/**
 	 * Whether this profile can be edited.
