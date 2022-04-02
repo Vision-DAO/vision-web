@@ -1,4 +1,5 @@
 import { useParents } from "../lib/util/ipfs";
+import { useOwnedIdeas } from "../lib/util/discovery";
 import { useWeb3 } from "../lib/util/web3";
 import { useState, useEffect } from "react";
 import Idea from "../value-tree/build/contracts/Idea.json";
