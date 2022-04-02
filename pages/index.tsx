@@ -1,5 +1,5 @@
 import { useParents } from "../lib/util/ipfs";
-import { useOwnedIdeas } from "../lib/util/discovery";
+import { useOwnedIdeas, isIdeaContract } from "../lib/util/discovery";
 import { useWeb3 } from "../lib/util/web3";
 import { useConnection, useViewerRecord } from "@self.id/framework";
 import { useState, useEffect } from "react";
@@ -27,6 +27,14 @@ const staticIdeas: Map<string, string[]> = new Map([
 const heartbeatPeriod = 5000;
 
 /**
+ * A known instance of the vision Idea contract against which bytecodes are
+ * compared to determine parenthood.
+ *
+ * TODO: This does not work for mainnet at the moment
+ */
+const baseIdeaContract = staticIdeas.get("polygon-test")[0];
+
+/**
  * A navigable page rendering a mind map of ideas minted on vision.
  */
 export const Index = () => {
@@ -41,8 +49,9 @@ export const Index = () => {
 	// locally existing ones (e.g., that were created on vision.eco)
 	const [rootIdeas, pubRootIdea] = useParents(staticIdeas);
 	const userIdeasRecord = useViewerRecord("cryptoAccounts");
-	const ownedIdeas = useOwnedIdeas(conn.status == "connected" ? conn.selfID.id : "", web3, staticIdeas.get("polygon-test")[0]);
+	const ownedIdeas = useOwnedIdeas(conn.status == "connected" ? conn.selfID.id : "", web3, baseIdeaContract);
 	const allIdeas = [...rootIdeas, ...ownedIdeas];
+	const [ideaContractBytecode, setIdeaContractBytecode] = useState(null);
 
 	// Display items as a map of bubbles
 	const [zoomFactor, setZoomFactor] = useState(1);
@@ -51,6 +60,14 @@ export const Index = () => {
 	// Every time the list of parent nodes expands, part of the component
 	// tree must be rebuilt
 	useEffect(() => {
+		// Load an instance of the idea contract bytecode
+		if (ideaContractBytecode == null && web3) {
+			setIdeaContractBytecode("");
+
+			web3.eth.getCode(baseIdeaContract)
+				.then((code) => setIdeaContractBytecode(code));
+		}
+
 		// Set gossip providers for all of the user's self-hosted ideas
 		const gossipers = [];
 
@@ -65,9 +82,19 @@ export const Index = () => {
 		for (const ideaAddr of allIdeas) {
 			const contract = new web3.eth.Contract(Idea.abi, ideaAddr);
 
+			// We cannot check that the given contract is an Idea without
+			// an instance of the Idea contract to compare to
+			if (!ideaContractBytecode || ideaContractBytecode == "")
+				break;
+
 			// Fetch the basic information of the idea from Ethereum
 			// TODO: Loading of extended metadata from IPFS
 			(async () => {
+				// Filter out any contracts that aren't ideas
+				// TODO: Cover Proposals as well
+				if (!await isIdeaContract(web3, ideaAddr, ideaContractBytecode))
+					return;
+
 				const bubble = {
 					title: await contract.methods.name().call(),
 					ticker: await contract.methods.symbol().call(),

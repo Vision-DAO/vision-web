@@ -12,6 +12,8 @@
 	align-items: center;
 
 	transition: 0.1s;
+
+	margin: 1rem;
 }
 
 .bubble>h1 {

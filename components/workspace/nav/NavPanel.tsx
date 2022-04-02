@@ -77,7 +77,7 @@ export const NavPanel = ({ items, onProfileClicked, ctx }: NavProps) => {
 
 	// Whether or not the user is connected to an ethereum provider.
 	// Should display an error otherwise
-	const [{ present, connected, initialized }, initialize] = useConnStatus(ctx && ctx[1] || undefined);
+	const [{ present, connected, initialized, network }, initialize] = useConnStatus(ctx && ctx[1] || undefined);
 
 	// The user's profile. May be loaded, or may not even exist because the user is disconnected from ceramic
 	// TODO: This bugs out and causes infinite re-renders
@@ -125,7 +125,8 @@ export const NavPanel = ({ items, onProfileClicked, ctx }: NavProps) => {
 				connectMetamask(window.ethereum)
 					.then(() => {
 						initialize();
-						return requestChangeNetwork(window.ethereum);
+						if (network != "polygon" && network != "polygon-test")
+							return requestChangeNetwork(window.ethereum);
 					})
 					.then(() => {
 						connect();
