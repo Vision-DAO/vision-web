@@ -45,8 +45,9 @@ export const Index = () => {
 	const [web3, eth] = useWeb3();
 	const [conn, ,] = useConnection();
 
-	// Ideas are discovered through other peers informing us of them, and through
-	// locally existing ones (e.g., that were created on vision.eco)
+	// Ideas are discovered through other peers informing us of them, through
+	// locally existing ones (e.g., that were created on vision.eco),
+	// and through entries in the registry smart contract.
 	const [rootIdeas, pubRootIdea] = useParents(staticIdeas);
 	const userIdeasRecord = useViewerRecord("cryptoAccounts");
 	const ownedIdeas = useOwnedIdeas(conn.status == "connected" ? conn.selfID.id : "", web3, baseIdeaContract);
@@ -75,7 +76,6 @@ export const Index = () => {
 			// Remind other users every n seconds about our sovereign ideas,
 			// and register a PID to cancel after the component is dismounted
 			gossipers.push(setTimeout(() => {
-				console.log("PUB");
 				pubRootIdea(ideaAddr);
 			}, heartbeatPeriod));
 		}

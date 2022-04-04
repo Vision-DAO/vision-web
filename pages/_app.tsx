@@ -9,7 +9,7 @@ import closeIcon from "@self.id/multiauth/assets/icon-close.svg";
 import selectedIcon from "@self.id/multiauth/assets/icon-selected.svg";
 import ethereumLogo from "@self.id/multiauth/assets/ethereum.png";
 import metaMaskLogo from "@self.id/multiauth/assets/metamask.png";
-import { create } from "ipfs-core";
+import { create, multiaddr } from "ipfs-core";
 
 import type { AppProps } from "next/app";
 import Head from "next/head";
@@ -86,7 +86,20 @@ const App = ({ Component, pageProps }: AppProps) => {
 	useEffect(() => {
 		if (ipfs === undefined) {
 			setIpfs(null);
-			create().then((ipfs) => setIpfs(ipfs));
+			create().then((ipfs) => {
+				// TODO: Auto-generate this testing peer on testing environments
+				//
+				// TODO: Figure out why IPFS isn't properly subscribing.
+				// Suspect IPFS are just a bunch of dumbfucks that can't write good
+				// software
+				ipfs.bootstrap.clear()
+					.then(() => {
+						ipfs.bootstrap.add(
+							new multiaddr("/ip4/127.0.0.1/tcp/4003/ws/p2p/12D3KooWNXL7qtg58ku53LYYmSR8N1TSUPeyBmLMwPSXmEwFxobV")
+						);
+						setIpfs(ipfs);
+					});
+			});
 		}
 	});
 

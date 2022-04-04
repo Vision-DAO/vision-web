@@ -37,6 +37,10 @@ export const useParents = (defaults?: Map<string, string[]>): [string[], (ideaAd
 		const topic = networkIdeasTopic(connInfo);
 		ipfs.pubsub.subscribe(topic, handleIdea);
 
+		console.log(topic);
+		ipfs.swarm.peers().then((peers) => console.log(peers));
+		ipfs.pubsub.peers(topic).then((peers) => console.log(peers));
+
 		return () => {
 			ipfs.pubsub.unsubscribe(topic, handleIdea);
 		};
@@ -45,6 +49,8 @@ export const useParents = (defaults?: Map<string, string[]>): [string[], (ideaAd
 	// Allow the user to publish ideas via the callback
 	return [[...ideas, ...defaults.get(connInfo.network)], (ideaAddr: string) => {
 		const enc = new TextEncoder();
+
+		ipfs.pubsub.peers(networkIdeasTopic(connInfo)).then((peers) => console.log(peers));
 
 		ipfs.pubsub.publish(networkIdeasTopic(connInfo), enc.encode(ideaAddr));
 	}];
