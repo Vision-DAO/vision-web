@@ -9,6 +9,27 @@ import { Message } from "ipfs-core-types/src/pubsub";
 export const IpfsContext: React.Context<Awaited<ReturnType<typeof create>>> = createContext(undefined);
 
 /**
+ * Types of data recognizable and renderable on the Vision UI.
+ * file-blob by default.
+ */
+export type ItemDataKind = "utf-8" | "image-blob" | "file-blob" | "url-link";
+
+/**
+ * Decoded data associated with an item on Vision.
+ */
+export interface IdeaData {
+	/**
+	 * How the item's data should be rendered on vision
+	 */
+	kind: ItemDataKind;
+
+	/**
+	 * The raw data associated with the item
+	 */
+	data: Uint8Array;
+}
+
+/**
  * A hook providing a component with an up-to-date list of the most popular root ideas on vision,
  * and a hook for advertising new parents on vision.
  */

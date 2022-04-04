@@ -3,9 +3,11 @@ import styles from "./NewIdeaModal.module.css";
 import { useState, useEffect } from "react";
 import { accounts } from "../../lib/util/networks";
 import { saveIdea, CryptoAccountsRecord } from "../../lib/util/discovery";
+import { IdeaData } from "../../lib/util/ipfs";
 import CloseIcon from "@mui/icons-material/CloseRounded";
 import LinearProgress from "@mui/material/LinearProgress";
 import { UnderlinedInput } from "../input/UnderlinedInput";
+import { MultiTypeInput } from "../input/MultiTypeInput";
 import Idea from "../../value-tree/build/contracts/Idea.json";
 import { FilledButton } from "./FilledButton";
 
@@ -20,7 +22,7 @@ export interface NewIdeaSubmission {
  * A popup modal containing a form with fields for the necessary argumentst to
  * the Idea smart contract constructor.
  */
-export const NewIdeaModal = ({ active, onClose, onDeploy, ctx, ideasBuf }: { active: boolean, onClose: () => void, onDeploy: (address: string) => void, ctx: [Web3, any], ideasBuf: CryptoAccountsRecord }) => {
+export const NewIdeaModal = ({ active, onClose, onDeploy, onUpload, ctx, ideasBuf }: { active: boolean, onClose: () => void, onDeploy: (address: string) => void, onUpload: (ideaData: IdeaData[]) => Promise<string>, ctx: [Web3, any], ideasBuf: CryptoAccountsRecord }) => {
 	// Transition the opacity of the Idea Modal upon clicking the close button,
 	// prevent the modal from being rendered at all before its opacity goes 0->100
 	const [loaded, setLoaded] = useState(false);
@@ -100,11 +102,11 @@ export const NewIdeaModal = ({ active, onClose, onDeploy, ctx, ideasBuf }: { act
 	// Once the user clicks submit, deploy a smart contract with their specified details.
 	// Validate input on:
 	// - # of coins field
-	const handleSubmit = () => {
+	const handleSubmit = async () => {
 		setErrorMsg("");
 
 		// Minimum, essential fields
-		if (!ideaDetails["ideaName"] || !ideaDetails["ideaTicker"] || !ideaDetails["ideaShares"]) {
+		if (!ideaDetails["ideaName"] || !ideaDetails["ideaTicker"] || !ideaDetails["ideaShares"] || !ideaDetails["data"]) {
 			setErrorMsg("Missing required Idea field.");
 
 			return;
@@ -124,7 +126,9 @@ export const NewIdeaModal = ({ active, onClose, onDeploy, ctx, ideasBuf }: { act
 			ideaName: ideaDetails["ideaName"],
 			ideaTicker: ideaDetails["ideaTicker"],
 			ideaShares: nShares,
-			datumIpfsHash: ideaDetails["datumIpfsHash"] || "",
+
+			// Upload the idea's information to IPFS
+			datumIpfsHash: await onUpload(ideaDetails["data"]),
 		});
 	};
 
@@ -144,10 +148,6 @@ export const NewIdeaModal = ({ active, onClose, onDeploy, ctx, ideasBuf }: { act
 			placeholder: "# of Idea Coins",
 			name: "ideaShares",
 		},
-		{
-			placeholder: "IPFS Data Hash",
-			name: "datumIpfsHash",
-		},
 	];
 
 	return (
@@ -159,15 +159,18 @@ export const NewIdeaModal = ({ active, onClose, onDeploy, ctx, ideasBuf }: { act
 				</div>
 			</div>
 			<div className={ styles.modalForm }>
-				{
-					inputs.map(({ placeholder, name }) =>
-						<UnderlinedInput
-							key={ name }
-							placeholder={ placeholder }
-							onChange={ (val) => setIdeaDetails({ ...ideaDetails, [name]: val }) }
-						/>
-					)
-				}
+				<div className={ styles.modalFormTextDetails }>
+					{
+						inputs.map(({ placeholder, name }) =>
+							<UnderlinedInput
+								key={ name }
+								placeholder={ placeholder }
+								onChange={ (val) => setIdeaDetails({ ...ideaDetails, [name]: val }) }
+							/>
+						)
+					}
+				</div>
+				<MultiTypeInput label="Item Data" onChange={ (val) => setIdeaDetails({ ...ideaDetails, data: val }) }/>
 			</div>
 			<p>{ errorMsg }</p>
 			{ deploying ? <LinearProgress color="inherit" /> : <FilledButton label="Create Idea" className={ styles.submitButton } onClick={ handleSubmit } /> }

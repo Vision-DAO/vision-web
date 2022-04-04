@@ -1,8 +1,9 @@
 import { useParents } from "../lib/util/ipfs";
 import { useOwnedIdeas, isIdeaContract } from "../lib/util/discovery";
 import { useWeb3 } from "../lib/util/web3";
+import { IpfsContext } from "../lib/util/ipfs";
 import { useConnection, useViewerRecord } from "@self.id/framework";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import Idea from "../value-tree/build/contracts/Idea.json";
 import { IdeaBubble, IdeaBubbleProps } from "../components/workspace/IdeaBubble";
 import { NewIdeaModal, NewIdeaSubmission } from "../components/status/NewIdeaModal";
@@ -43,6 +44,7 @@ export const Index = () => {
 	// and update it later if need be
 	const [ideaDetails, setIdeaDetails] = useState({});
 	const [web3, eth] = useWeb3();
+	const ipfs = useContext(IpfsContext);
 	const [conn, ,] = useConnection();
 
 	// Ideas are discovered through other peers informing us of them, through
@@ -148,7 +150,14 @@ export const Index = () => {
 			</div>
 			<div className={ styles.hud }>
 				<div className={ styles.hudModal }>
-					<NewIdeaModal active={ creatingIdea } onClose={ () => setCreatingIdea(false) } onDeploy={ () => setCreatingIdea(false) } ctx={ [web3, eth] } ideasBuf={ userIdeasRecord } />
+					<NewIdeaModal
+						active={ creatingIdea }
+						onClose={ () => setCreatingIdea(false) }
+						onUpload={ async (data) => (await ipfs.add({ content: JSON.stringify(data) })).cid.toString() }
+						onDeploy={ () => setCreatingIdea(false) }
+						ctx={ [web3, eth] }
+						ideasBuf={ userIdeasRecord }
+					/>
 				</div>
 				<div className={ styles.leftActionButton }>
 					<div className={ styles.zoomButtons }>

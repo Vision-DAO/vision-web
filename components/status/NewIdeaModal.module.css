@@ -44,6 +44,19 @@
 }
 
 .modalForm {
+	display: flex;
+
+	flex-flow: column nowrap;
+	justify-content: flex-start;
+	align-items: stretch;
+}
+
+.modalForm>* {
+	margin-top: 1.5rem;
+	margin-bottom: 1.5rem;
+}
+
+.modalFormTextDetails {
 	margin-top: 2rem;
 
 	display: flex;
@@ -53,8 +66,8 @@
 	align-items: flex-start;
 }
 
-.modalForm>* {
-	margin: 0.5rem;
+.modalFormTextDetails>* {
+	margin-right: 1rem;
 }
 
 .submitButton {

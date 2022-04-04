@@ -1,0 +1,20 @@
+.inputLabel {
+	margin: 0;
+}
+
+.inputItems {
+	margin-top: 1.5rem;
+
+	display: flex;
+
+	flex-flow: column nowrap;
+
+	justify-content: flex-start;
+	align-items: stretch;
+
+	transition: 0.3s;
+}
+
+.inputItems>*:last-child {
+	margin-top: 1rem;
+}

@@ -1,0 +1,53 @@
+.outlinedSelector {
+	border-radius: 5px;
+	border: 0.5px solid rgba(255, 255, 255, 0.5);
+
+	display: flex;
+
+	flex-flow: row nowrap;
+
+	justify-content: space-around;
+	align-items: center;
+}
+
+.outlinedSelector>* {
+	height: 100%;
+}
+
+.selectorItem {
+	display: flex;
+
+	flex-flow: row nowrap;
+
+	justify-content: center;
+	align-items: center;
+
+	flex-grow: 1;
+
+	transition: 0.3s;
+
+	cursor: pointer;
+}
+
+.selectorItem>p {
+	transition: 0.3s;
+
+	border-bottom: 0px solid rgba(0, 0, 0, 0);
+}
+
+.selectorItem:hover>p {
+	border-bottom: 0.5px solid white;
+}
+
+.selectorItem:hover {
+	background-color: #101010;
+}
+
+.middleItem {
+	border-right: 0.5px solid rgba(255, 255, 255, 0.5);
+}
+
+.selectedItem {
+	font-weight: bold;
+	background-color: black; 
+}
