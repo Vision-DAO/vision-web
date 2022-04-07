@@ -36,10 +36,16 @@ const networks = {
 	1: "ethereum",
 };
 
+export const explorers = {
+	"polygon-test": "https://mumbai.polygonscan.com",
+	"polygon": "https://polygonscan.com",
+	"ethereum": "https://etherscan.io",
+};
+
 /**
  * Generates a topic ID for the network currently connected.
  */
-export const networkIdeasTopic = (connStatus: ConnStatus) => `ideas_${connStatus.network}`;
+export const networkIdeasTopic = (connStatus: ConnStatus) => `vision_ideas_${connStatus.network}`;
 
 /**
  * Prompts the user to consent to sharing their list of accounts.

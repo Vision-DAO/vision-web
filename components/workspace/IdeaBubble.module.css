@@ -1,4 +1,6 @@
 .bubble {
+	position: relative;
+
 	border-radius: 100%;
 	border: 1px solid rgba(255, 255, 255, 0.5);
 
@@ -14,12 +16,57 @@
 	transition: 0.1s;
 
 	margin: 1rem;
+
+	overflow: clip;
+
+	cursor: pointer;
+}
+
+.bubble:hover {
+	border: 1px solid white;
 }
 
 .bubble>h1 {
-	width: 80%;
+	max-width: 80%;
 	text-align: center;
 
 	margin: 0;
 	line-height: 2.75rem;
+
+	transition: 0.3s;
+
+	border-bottom: 0px solid rgba(0, 0, 0, 0);
+}
+
+.bubbleBg {
+	position: absolute;
+
+	top: 0;
+	left: 0;
+
+	height: 100%;
+	width: 100%;
+
+	opacity: 0.5;
+	object-fit: cover;
+
+	z-index: -1;
+
+	transition: 0.3s;
+}
+
+.bubble:hover>.bubbleBg {
+	opacity: 0.6;
+}
+
+.bubble:hover>h1 {
+	border-bottom: 2px solid #5D5FEF;
+}
+
+.activeBubble {
+	border: 2px solid #5D5FEF;
+}
+
+.activeBubble:hover {
+	border: 3px solid #5D5FEF
 }

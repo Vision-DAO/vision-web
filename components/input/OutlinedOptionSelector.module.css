@@ -25,14 +25,27 @@
 	flex-grow: 1;
 
 	transition: 0.3s;
+}
+
+.selectorItem>svg {
+	margin-right: 0.5rem;
+	opacity: 0.5;
+
+	transition: 0.3s;
 
 	cursor: pointer;
+}
+
+.selectorItem>svg:hover {
+	opacity: 1;
 }
 
 .selectorItem>p {
 	transition: 0.3s;
 
 	border-bottom: 0px solid rgba(0, 0, 0, 0);
+
+	cursor: pointer;
 }
 
 .selectorItem:hover>p {

@@ -22,11 +22,12 @@ export interface NewIdeaSubmission {
  * A popup modal containing a form with fields for the necessary argumentst to
  * the Idea smart contract constructor.
  */
-export const NewIdeaModal = ({ active, onClose, onDeploy, onUpload, ctx, ideasBuf }: { active: boolean, onClose: () => void, onDeploy: (address: string) => void, onUpload: (ideaData: IdeaData[]) => Promise<string>, ctx: [Web3, any], ideasBuf: CryptoAccountsRecord }) => {
+export const NewIdeaModal = ({ active: isActive, onClose, onDeploy, onUpload, ctx, ideasBuf }: { active: boolean, onClose: () => void, onDeploy: (address: string) => void, onUpload: (ideaData: IdeaData[]) => Promise<string>, ctx: [Web3, any], ideasBuf: CryptoAccountsRecord }) => {
 	// Transition the opacity of the Idea Modal upon clicking the close button,
 	// prevent the modal from being rendered at all before its opacity goes 0->100
 	const [loaded, setLoaded] = useState(false);
 	const [errorMsg, setErrorMsg] = useState("");
+	const [active, setActive] = useState(isActive);
 
 	// Show a loading indicator while the user's transaction is being sent
 	const [deploying, setDeploying] = useState(false);
@@ -46,6 +47,7 @@ export const NewIdeaModal = ({ active, onClose, onDeploy, onUpload, ctx, ideasBu
 				setIdeaDetails({});
 
 				setLoaded(false);
+				onClose();
 			}, 300);
 		}
 	});
@@ -154,7 +156,7 @@ export const NewIdeaModal = ({ active, onClose, onDeploy, onUpload, ctx, ideasBu
 		<div className={ style }>
 			<div className={ styles.modalNav }>
 				<h1>Create New Idea</h1>
-				<div className={ styles.closeIcon } onClick={ onClose }>
+				<div className={ styles.closeIcon } onClick={ () => setActive(false) }>
 					<CloseIcon />
 				</div>
 			</div>

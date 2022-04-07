@@ -1,4 +1,5 @@
 import styles from "./IdeaBubble.module.css";
+
 export interface IdeaBubbleProps {
 	/* ERC-20 Details */
 	title: string;
@@ -7,20 +8,26 @@ export interface IdeaBubbleProps {
 
 	/* Metadata details */
 	image?: string;
-	description: string;
+	link?: string;
+	description?: string;
 
 	addr: string;
 
-	size: number,
+	size: number;
+
+	active: boolean;
+
+	onClick: () => void;
 }
 
 /**
  * A component that renders the details of a vision Idea on the mindmap.
  */
-export const IdeaBubble = ({ title, ticker, totalSupply, addr, size }: IdeaBubbleProps) => {
+export const IdeaBubble = ({ title, image, ticker, totalSupply, addr, size, active, onClick }: IdeaBubbleProps) => {
 	return (
-		<div key={ addr } className={ styles.bubble } style={{ transform: "scale(" + size + "," + size + ")" }}>
+		<div key={ addr } className={ styles.bubble + (active ? ` ${styles.activeBubble}` : "")} style={{ transform: "scale(" + size + "," + size + ")" }} onClick={ onClick }>
 			<h1>{ title }</h1>
+			{ image && <img className={ styles.bubbleBg } src={ image } /> }
 		</div>
 	);
 };

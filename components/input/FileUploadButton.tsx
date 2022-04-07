@@ -5,8 +5,9 @@ import styles from "./FileUploadButton.module.css";
 /**
  * A button that allows the user to upload a file, firing a callback.
  */
-export const FileUploadButton = ({ onChange }: { onChange: (f: File) => void }) => {
+export const FileUploadButton = ({ startingValue, onChange }: { startingValue?: string, onChange: (f: File) => void }) => {
 	const [currFile, setCurrFile] = useState<File>(null);
+	const [currFileName, setCurrFileName] = useState<string>(startingValue);
 
 	// We cannot trigger a file upload without a hidden input
 	const fileUploadInput = useRef<HTMLInputElement>(null);
@@ -16,6 +17,7 @@ export const FileUploadButton = ({ onChange }: { onChange: (f: File) => void }) 
 			return;
 
 		setCurrFile(f[0]);
+		setCurrFileName(f[0].name);
 		onChange(f[0]);
 	};
 
@@ -26,7 +28,7 @@ export const FileUploadButton = ({ onChange }: { onChange: (f: File) => void }) 
 				<UploadRounded /><p>Select a File</p>
 			</div>
 			<div className={ styles.fileUploadStatus }>
-				<p>{ currFile ? currFile.name : "No file selected." }</p>
+				<p>{ currFileName ?? "No file selected." }</p>
 			</div>
 		</div>
 	);

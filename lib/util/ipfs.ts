@@ -1,7 +1,11 @@
 import { create } from "ipfs-core";
 import { createContext, useContext, useEffect, useState } from "react";
-import { useConnStatus, networkIdeasTopic } from "./networks";
+import { useConnStatus, networkIdeasTopic, Network, explorers } from "./networks";
 import { Message } from "ipfs-core-types/src/pubsub";
+import { IdeaDetailProps, MarketMetrics, OnlyIdeaDetailProps } from "../../components/workspace/IdeaDetailCard";
+import { IdeaBubbleProps } from "../../components/workspace/IdeaBubble";
+import Idea from "../../value-tree/build/contracts/Idea.json";
+import Web3 from "web3";
 
 /**
  * A global context providing an instance of IPFS.
@@ -28,6 +32,50 @@ export interface IdeaData {
 	 */
 	data: Uint8Array;
 }
+
+/**
+ * Fills out an Idea's bubble info to load the idea's card display.
+ */
+export const loadExtendedIdeaInfo = async (network: Network, w: Web3, basicDetails: IdeaBubbleProps): Promise<IdeaDetailProps> => {
+	// TODO: Load market info from uniswap with The Graph,
+	// and use pubsub topics for individual contracts to aggregate info about
+	// market info (don't scan through history if it can be avoided)
+	const metrics: MarketMetrics = { newProposals: 0, deltaPrice: 0, finalizedProposals: 0 };
+
+	const contract = new w.eth.Contract(Idea.abi, basicDetails.addr);
+
+	// TODO: Cache using gossip information,
+	// 1000 blocks is not enough to load all info
+	const ideaLogs = await contract.getPastEvents("allEvents", { fromBlock: (await w.eth.getBlockNumber()) - 500, toBlock: "latest" });
+
+	let creationDate = new Date();
+
+	// The very first event from the contract indicates when it was created
+	for (const log of ideaLogs) {
+		creationDate = new Date((await w.eth.getBlock(log.blockNumber)).timestamp as number * 1000);
+
+		break;
+	}
+
+	const extendedInfo: OnlyIdeaDetailProps = {
+		marketCap: 0,
+		price: 0,
+		explorerURI: explorers[network],
+		createdAt: creationDate,
+		nChildren: await contract.methods.numChildren().call()
+	};
+
+	return { ...metrics, ...basicDetails, ...extendedInfo };
+};
+
+/**
+ * Decodes the indicated raw IPFS data as a UTF-8 string.
+ */
+export const decodeIdeaDataUTF8 = (d: Uint8Array): string => {
+	const dec = new TextDecoder("utf-8");
+
+	return dec.decode(d);
+};
 
 /**
  * A hook providing a component with an up-to-date list of the most popular root ideas on vision,
@@ -58,10 +106,6 @@ export const useParents = (defaults?: Map<string, string[]>): [string[], (ideaAd
 		const topic = networkIdeasTopic(connInfo);
 		ipfs.pubsub.subscribe(topic, handleIdea);
 
-		console.log(topic);
-		ipfs.swarm.peers().then((peers) => console.log(peers));
-		ipfs.pubsub.peers(topic).then((peers) => console.log(peers));
-
 		return () => {
 			ipfs.pubsub.unsubscribe(topic, handleIdea);
 		};
@@ -71,8 +115,6 @@ export const useParents = (defaults?: Map<string, string[]>): [string[], (ideaAd
 	return [[...ideas, ...defaults.get(connInfo.network)], (ideaAddr: string) => {
 		const enc = new TextEncoder();
 
-		ipfs.pubsub.peers(networkIdeasTopic(connInfo)).then((peers) => console.log(peers));
-
 		ipfs.pubsub.publish(networkIdeasTopic(connInfo), enc.encode(ideaAddr));
 	}];
 };
@@ -81,7 +123,7 @@ export const useParents = (defaults?: Map<string, string[]>): [string[], (ideaAd
  * Loads all available data at a given IPFS path.
  */
 export const getAll = async (ipfs: Awaited<ReturnType<typeof create>>, url: string): Promise<Uint8Array> => {
-	const stream = ipfs.get(url);
+	const stream = ipfs.cat(url);
 	let blob: Uint8Array = new Uint8Array();
 
 	for await (const chunk of stream) {

@@ -7,7 +7,7 @@ import { FileUploadButton } from "./FileUploadButton";
 
 export interface MultiTypeInputProps {
 	label?: string;
-	onChange?: (data: IdeaData) => void;
+	onChange?: (data: IdeaData[]) => void;
 }
 
 interface PartialIdeaData {
@@ -20,7 +20,11 @@ interface PartialIdeaData {
  * Currently supported types are documented in lib/util/ipfs.ts
  */
 export const MultiTypeInput = ({ label = "", onChange }: MultiTypeInputProps) => {
-	const [data, setData] = useState<PartialIdeaData>({});
+	const [data, setData] = useState<{ [kind: string]: PartialIdeaData }>({});
+	const [activeInput, setActiveInput] = useState<string>("");
+
+	// Unserialized, raw data presented to the user for feedback purposes
+	const [inputValues, setInputValues] = useState({});
 
 	const encStringData = async (val: string): Promise<Uint8Array> => {
 		const enc = new TextEncoder();
@@ -33,26 +37,49 @@ export const MultiTypeInput = ({ label = "", onChange }: MultiTypeInputProps) =>
 	// TODO: Support folder/directory uploads
 	const encFile = async (val: File): Promise<Uint8Array> => new Uint8Array(await val.arrayBuffer());
 
+	// Transforms the user's input update for text entries into a displayable text item
+	const cacheStringData = async (val: string): Promise<string> => val;
+
+	// Transforms the user's input update into a displayable text item
+	const cacheFile = async (val: File): Promise<string> => val.name;
+
 	// Generates a function that handles change events, updating the state
 	// with the result of the given encoder
-	const stateUpdater = <T,>(encoder: (val: T) => Promise<Uint8Array>): (val: T) => Promise<void> => async (val: T) => {
+	const stateUpdater = <T,>(kind: ItemDataKind, cacher: (val: T) => Promise<string>, encoder: (val: T) => Promise<Uint8Array>): (val: T) => Promise<void> => async (val: T) => {
 		const encoded = await encoder(val);
 
-		setData({ ...data, data: encoded });
+		const newData = { ...data, [kind]: { kind: kind, data: encoded } };
 
-		if (data.kind && data.data)
-			onChange(data as IdeaData);
+		setData(newData);
+		setInputValues({ ...inputValues, [kind]: await cacher(val) });
+		onChange(Object.values(newData).filter((d) => d != undefined && d.kind && d.data).map((d) => d as IdeaData));
 	};
-
-	// TODO: Support multiple files and multiple files types, check mark to show uploaded
-	const fileInput = <FileUploadButton onChange={ stateUpdater<File>(encFile) } />;
 
 	// Create input elements for each possible data submitted
 	const inputs: { [kind: string]: JSX.Element } = {
-		"utf-8": <UnderlinedInput multiline={ true } placeholder="Item description text" onChange={ stateUpdater<string>(encStringData) } />,
-		"image-blob": fileInput,
-		"file-blob": fileInput,
-		"url-link": <UnderlinedInput placeholder="Item data link" onChange={ stateUpdater<string>(encStringData) }/>,
+		"utf-8": <UnderlinedInput
+			startingValue={ inputValues["utf-8"] || undefined }
+			key="utf-8"
+			multiline={ true }
+			placeholder="Item description text"
+			onChange={ stateUpdater<string>("utf-8", cacheStringData, encStringData) }
+		/>,
+		"image-blob": <FileUploadButton
+			startingValue={ inputValues["image-blob"] || undefined }
+			key="image-blob"
+			onChange={ stateUpdater<File>("image-blob", cacheFile, encFile) }
+		/>,
+		"file-blob": <FileUploadButton
+			startingValue={ inputValues["file-blob"] || undefined }
+			key="file-blob"
+			onChange={ stateUpdater<File>("file-blob", cacheFile, encFile) }
+		/>,
+		"url-link": <UnderlinedInput
+			startingValue={ inputValues["url-link"] || undefined }
+			key="url-link"
+			placeholder="Item data link"
+			onChange={ stateUpdater<string>("url-link", cacheStringData, encStringData) }
+		/>,
 	};
 
 	const labelMeanings = {
@@ -62,15 +89,23 @@ export const MultiTypeInput = ({ label = "", onChange }: MultiTypeInputProps) =>
 		"URL Link": "url-link",
 	};
 
+	const clearInputs = (kind: string) => {
+		setData(data => { return { ...data, [labelMeanings[kind]]: undefined }; });
+		setInputValues(inputValues => { return { ...inputValues, [labelMeanings[kind]]: undefined }; });
+		setActiveInput("");
+	};
+
 	return (
 		<div>
 			<h2 className={ styles.inputLabel }>{ label }</h2>
 			<div className={ styles.inputItems }>
 				<OutlinedOptionSelector
 					options={ Object.keys(labelMeanings) }
-					onChange={ (kind) => setData({ kind: labelMeanings[kind] as ItemDataKind }) }
+					activeOptions={ new Set(Object.keys(labelMeanings).filter((inputType) => labelMeanings[inputType] in data && data[labelMeanings[inputType]] !== undefined)) }
+					onClear={ clearInputs }
+					onChange={ (kind) => setActiveInput(kind) }
 				/>
-				{ data.kind && inputs[data.kind] }
+				{ activeInput && inputs[labelMeanings[activeInput]] }
 			</div>
 		</div>
 	);

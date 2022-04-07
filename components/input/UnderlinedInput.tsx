@@ -6,8 +6,8 @@ import styles from "./UnderlinedInput.module.css";
  * optional placeholder text, and a grey/white underline, indicating focus
  * status.
  */
-export const UnderlinedInput = ({ placeholder = "", multiline = false, onChange }: { placeholder?: string, multiline?: boolean, onChange?: (val: string) => void }) => {
-	const [value, setValue] = useState("");
+export const UnderlinedInput = ({ placeholder = "", startingValue = "", multiline = false, onChange }: { placeholder?: string, startingValue?: string, multiline?: boolean, onChange?: (val: string) => void }) => {
+	const [value, setValue] = useState(startingValue || "");
 	const [editing, setEditing] = useState(false);
 
 	// Handles updates to the input field by using the user's callback,

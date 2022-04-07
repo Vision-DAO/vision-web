@@ -28,6 +28,8 @@
 .hud {
 	z-index: 2;
 
+	pointer-events: none;
+
 	grid-row-start: 1;
 	grid-row-end: 65;
 
@@ -50,6 +52,16 @@
 .hud>* {
 	-webkit-box-shadow: 3px 5px 11px 5px rgba(0,0,0,0.36); 
 	box-shadow: 3px 5px 11px 5px rgba(0,0,0,0.36);
+
+	pointer-events: auto;
+}
+
+.ideaDetailsPanel {
+	grid-column-start: 2;
+	grid-column-end: 3;
+
+	grid-row-start: 2;
+	grid-row-end: 3;
 }
 
 .leftActionButton {
