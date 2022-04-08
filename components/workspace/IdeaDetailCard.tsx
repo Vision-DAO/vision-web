@@ -77,17 +77,19 @@ export interface IdeaDetailProps {
  */
 export const IdeaDetailCard = ({ content, onClose }: IdeaDetailProps) => {
 	const [loaded, setLoaded] = useState(false);
-	const rootStyles = loaded ? styles.cardContainer : `${ styles.cardContainer } ${ styles.invisible }`;
-
+	const [closed, setClosed] = useState(false);
+	const rootStyles = loaded && !closed ? styles.cardContainer : `${ styles.cardContainer } ${ styles.invisible }`;
+	
 	useEffect(() => {
-		if (!loaded)
+		if (!loaded && !closed)
 			setLoaded(true);
 	});
 
 	const close = () => {
+		setClosed(true);
 		setLoaded(false);
 
-		//setTimeout(onClose, 300);
+		setTimeout(() => {onClose(); setClosed(false);}, 300);
 	};
 
 	// Display a loading indicator if the item hasn't loaded in yet
@@ -132,7 +134,7 @@ export const IdeaDetailCard = ({ content, onClose }: IdeaDetailProps) => {
 			<div className={ styles.cardTitleInfo }>
 				<div className={ styles.cardMainTitle }>
 					<h1 className={ styles.cardTitle }>Idea Details</h1>
-					<CloseRounded onClick={ onClose }/>
+					<CloseRounded onClick={ close }/>
 				</div>
 				<h2>{ title } ({ ticker })</h2>
 				{ description && <p>{ description }</p> }

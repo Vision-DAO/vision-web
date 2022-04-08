@@ -45,7 +45,7 @@ export const explorers = {
 /**
  * Generates a topic ID for the network currently connected.
  */
-export const networkIdeasTopic = (connStatus: ConnStatus) => `vision_ideas_${connStatus.network}`;
+export const networkIdeasTopic = (connStatus: ConnStatus) => `test_vision_ideas_${connStatus.network}`;
 
 /**
  * Prompts the user to consent to sharing their list of accounts.
