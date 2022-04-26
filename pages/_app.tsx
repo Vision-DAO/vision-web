@@ -1,5 +1,5 @@
 import React from "react";
-import { useEffect, useState, createContext } from "react";
+import { useEffect, useState, ReactElement, ReactNode } from "react";
 import { HomeRounded, MenuRounded, VisibilityRounded } from "@mui/icons-material";
 import { ThemeProvider } from "@mui/material";
 import { createTheme } from "@mui/material/styles";
@@ -14,18 +14,32 @@ import { create, multiaddr } from "ipfs-core";
 import type { AppProps } from "next/app";
 import Head from "next/head";
 import { useRouter } from "next/router";
+import { NextPage } from "next/page";
 
 import { NetworkedWorkspace } from "../components/workspace/Networked";
 import NavPanel from "../components/workspace/nav/NavPanel";
 import { NavItem } from "../components/workspace/nav/NavItem";
 import { guttered } from "../components/workspace/nav/NavPanel.module.css";
 import { Web3Context, provideWeb3 } from "../lib/util/web3";
-import { IpfsContext } from "../lib/util/ipfs";
+import { IpfsContext, ActiveIdeaContext } from "../lib/util/ipfs";
 import { ConnectionContext, provideConnStatus } from "../lib/util/networks";
 
 import styles from "./App.module.css";
 import "./App.css";
 import "./index.css";
+
+/**
+ * See nextjs documentation on layouts.
+ * Convenient type definitions for pages that have .getLayout methods for
+ * composition.
+ */
+type NextPageWithLayout = NextPage & {
+  getLayout?: (page: ReactElement) => ReactNode
+}
+
+type AppPropsWithLayout = AppProps & {
+  Component: NextPageWithLayout
+}
 
 /**
  * A page navigable in the application.
@@ -70,7 +84,7 @@ const theme = createTheme({
  * A component that shares a global navigation workspace layout between
  * active, routed pages.
  */
-const App = ({ Component, pageProps }: AppProps) => {
+const App = ({ Component, pageProps }: AppPropsWithLayout) => {
 	// For indicating the active page in the navbar
 	const router = useRouter();
 
@@ -79,6 +93,10 @@ const App = ({ Component, pageProps }: AppProps) => {
 
 	// Create a global connection status state
 	const connStatus = provideConnStatus(web3 ? web3[1] : undefined);
+
+	// Multiple pages share info about the currently expanded idea (i.e., the
+	// idea on the second figma page)
+	const [activeIdea, setActiveIdea] = useState(undefined);
 
 	// Keep the global IPFS intance up to date
 	const [ipfs, setIpfs] = useState(undefined);
@@ -131,6 +149,11 @@ const App = ({ Component, pageProps }: AppProps) => {
 		</div>
 	);
 
+	// Gets the layout of a component, or returns the component if it has no
+	// custom layout. See nextjs layout docs:
+	// https://nextjs.org/docs/basic-features/layouts
+	const getLayout = Component.getLayout ?? ((page: ReactElement) => page);
+
 	// TODO: Make ceramic modal smaller
 	return (
 		<>
@@ -155,24 +178,26 @@ const App = ({ Component, pageProps }: AppProps) => {
 					<Web3Context.Provider value={ web3 }>
 						<IpfsContext.Provider value={ ipfs }>
 							<ConnectionContext.Provider value={ connStatus }>
-								<div className={ `${styles.app} ${styles.root}${hasModal ? (" " + styles.hidden) : ""}` }>
-									<div className={ styles.navPanel }>
-										<NavPanel
-											items={navItems}
-											onProfileClicked={(selfId: string) => router.push({
-												pathname: "/profile/[id]",
-												query: { id: selfId } }
-											)}
-											onSettingsActive={() => router.push("/settings")}
-											ctx={web3}
-										/>
+								<ActiveIdeaContext.Provider value={ [activeIdea, setActiveIdea] }>
+									<div className={ `${styles.app} ${styles.root}${hasModal ? (" " + styles.hidden) : ""}` }>
+										<div className={ styles.navPanel }>
+											<NavPanel
+												items={navItems}
+												onProfileClicked={(selfId: string) => router.push({
+													pathname: "/profile/[id]",
+													query: { id: selfId } }
+												)}
+												onSettingsActive={() => router.push("/settings")}
+												ctx={web3}
+											/>
+										</div>
+										<div className={styles.workspace}>
+											<NetworkedWorkspace>
+												{ getLayout(<Component {...pageProps} />) }
+											</NetworkedWorkspace>
+										</div>
 									</div>
-									<div className={styles.workspace}>
-										<NetworkedWorkspace>
-											<Component {...pageProps} />
-										</NetworkedWorkspace>
-									</div>
-								</div>
+								</ActiveIdeaContext.Provider>
 							</ConnectionContext.Provider>
 						</IpfsContext.Provider>
 					</Web3Context.Provider>

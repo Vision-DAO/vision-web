@@ -249,7 +249,7 @@ export const Index = () => {
 
 	// The size of idea bubbles might change before the information in them does, or is loaded in
 	const ideaBubbles = Object.values(ideaDetails)
-		.map((details: IdeaBubbleProps) => IdeaBubble({ ...details, size: zoomFactor, active: activeIdea == details.addr, onClick: () => loadIdeaCard(details) }));
+		.map((details: IdeaBubbleProps) => IdeaBubble({ ...details, size: zoomFactor, active: activeIdea && activeIdea.addr == details.addr, onClick: () => loadIdeaCard(details) }));
 
 	return (
 		<div className={ styles.browser }>

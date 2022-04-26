@@ -1,16 +1,29 @@
 import { create } from "ipfs-core";
+import { serialize, deserialize } from "bson";
+import { blobify } from "./blobify";
 import { createContext, useContext, useEffect, useState } from "react";
 import { useConnStatus, networkIdeasTopic, Network, explorers } from "./networks";
 import { Message } from "ipfs-core-types/src/pubsub";
-import { IdeaDetailProps, MarketMetrics, OnlyIdeaDetailProps } from "../../components/workspace/IdeaDetailCard";
-import { IdeaBubbleProps } from "../../components/workspace/IdeaBubble";
+import { IdeaDetailProps, MarketMetrics, OnlyIdeaDetailProps, ExtendedIdeaInformation } from "../../components/workspace/IdeaDetailCard";
+import { BasicIdeaInformation } from "../../components/workspace/IdeaBubble";
 import Idea from "../../value-tree/build/contracts/Idea.json";
 import Web3 from "web3";
 
 /**
+ * An alias for the type of the IPFS constructor.
+ */
+export type IpfsClient = Awaited<ReturnType<typeof create>>;
+
+/**
  * A global context providing an instance of IPFS.
  */
-export const IpfsContext: React.Context<Awaited<ReturnType<typeof create>>> = createContext(undefined);
+export const IpfsContext: React.Context<IpfsClient> = createContext(undefined);
+
+/**
+ * A global instance of the currently loaded, expanded idea that is guaranteed
+ * to be loaded, if the child is rendered.
+ */
+export const ActiveIdeaContext: React.Context<[IdeaDetailProps, (details: IdeaDetailProps) => void]> = createContext(undefined);
 
 /**
  * Types of data recognizable and renderable on the Vision UI.
@@ -36,7 +49,7 @@ export interface IdeaData {
 /**
  * Fills out an Idea's bubble info to load the idea's card display.
  */
-export const loadExtendedIdeaInfo = async (network: Network, w: Web3, basicDetails: IdeaBubbleProps): Promise<IdeaDetailProps> => {
+export const loadExtendedIdeaInfo = async (ipfs: IpfsClient, network: Network, w: Web3, basicDetails: BasicIdeaInformation): Promise<ExtendedIdeaInformation> => {
 	// TODO: Load market info from uniswap with The Graph,
 	// and use pubsub topics for individual contracts to aggregate info about
 	// market info (don't scan through history if it can be avoided)
@@ -57,7 +70,15 @@ export const loadExtendedIdeaInfo = async (network: Network, w: Web3, basicDetai
 		break;
 	}
 
+	// All ideas have metadata stored on IPFS
+	const ipfsAddr = await contract.methods.ipfsAddr().call();
+	const data: IdeaData[] = await loadIdeaBinaryData(ipfs, ipfsAddr);
+
+	// TODO: Load market metrics with The Graph
 	const extendedInfo: OnlyIdeaDetailProps = {
+		data: data,
+		totalSupply: await contract.methods.totalSupply.call(),
+		ticker: await contract.methods.symbol().call(),
 		marketCap: 0,
 		price: 0,
 		explorerURI: explorers[network],
@@ -66,6 +87,58 @@ export const loadExtendedIdeaInfo = async (network: Network, w: Web3, basicDetai
 	};
 
 	return { ...metrics, ...basicDetails, ...extendedInfo };
+};
+
+/**
+ * Loads information from IPFS and Ethereum necessary to render a basic idea information bubble.
+ */
+export const loadBasicIdeaInfo = async (ipfs: IpfsClient, w: Web3, ideaAddr: string): Promise<BasicIdeaInformation> => {
+	const contract = new w.eth.Contract(Idea.abi, ideaAddr);
+
+	// Load the idea's image
+	let image = undefined;
+
+	// TODO: Abstract this out to prevent re-render
+	// (binary data is a dependency for both basic information and extended info yikes)
+	const allData = loadIdeaBinaryData(ipfs, await contract.methods.ipfsAddr.call());
+
+	// Find image data for the idea, and keep the most recently loaded one
+	for (const d of Object.values(allData)) {
+		if (d.kind === "image-blob") {
+			try {
+				image = blobify(window, d.data, null);
+			} catch (e) {
+				console.debug(e);
+			}
+		}
+	}
+
+	return {
+		title: await contract.methods.name().call(),
+		image: image,
+		addr: ideaAddr,
+	};
+};
+
+/**
+ * Loads all of the IPFS data entries available for an idea.
+ */
+export const loadIdeaBinaryData = async (ipfs: IpfsClient, ipfsAddr: string): Promise<IdeaData[]> => {
+	const rawData = await getAll(ipfs, ipfsAddr);
+
+	let data: IdeaData[] = [];
+
+	// Data fields are optional for all ideas
+	try {
+		data = deserialize(
+			rawData,
+			{ promoteBuffers: true },
+		) as IdeaData[];
+	} catch (e) {
+		console.warn(e);
+	}
+
+	return data;
 };
 
 /**

@@ -127,3 +127,36 @@
 	justify-content: center;
 	align-items: center;
 }
+
+.cardActions {
+	margin-top: 2rem;
+
+	display: flex;
+
+	flex-flow: row nowrap;
+
+	align-items: center;
+}
+
+.cardActions>* {
+	border-radius: 5px;
+
+	font-size: 1rem;
+	padding: 1rem;
+}
+
+.goButton {
+	width: 60%;
+}
+
+.buyButton {
+	background-color: #44BF39;
+
+	flex-grow: 1;
+
+	margin-left: 1rem;
+}
+
+.buyButton:hover {
+	background-color: rgba(68, 191, 57, 0.6);
+}

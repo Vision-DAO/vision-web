@@ -1,7 +1,10 @@
-import { IdeaBubbleProps } from "./IdeaBubble";
+import { IdeaBubbleProps, BasicIdeaInformation } from "./IdeaBubble";
 import styles from "./IdeaDetailCard.module.css";
 import CloseRounded from "@mui/icons-material/CloseRounded";
 import CircularProgress from "@mui/material/CircularProgress";
+import { FilledButton } from "../status/FilledButton";
+import { IdeaData } from "../../lib/util/ipfs";
+import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
 
 const InfoItem = ({ left, right, key = left }: { left: string, right: JSX.Element, key?: string }) => {
@@ -41,7 +44,10 @@ const Metric = ({ val, label, isPercent = false }: { val: number, label: string,
 };
 
 export interface OnlyIdeaDetailProps {
+	data: IdeaData[];
 	marketCap: number;
+	totalSupply: number;
+	ticker: string;
 	price: number;
 	explorerURI: string;
 	createdAt: Date;
@@ -60,12 +66,14 @@ export interface MarketMetrics {
 	finalizedProposals: number;
 }
 
+export type ExtendedIdeaInformation = BasicIdeaInformation & OnlyIdeaDetailProps & MarketMetrics;
+
 /**
  * Extended metadata required, and optional, for displaying an Idea's card
  * information.
  */
 export interface IdeaDetailProps {
-	content?: IdeaBubbleProps & OnlyIdeaDetailProps & MarketMetrics;
+	content?: ExtendedIdeaInformation;
 	onClose: () => void;
 }
 
@@ -79,6 +87,11 @@ export const IdeaDetailCard = ({ content, onClose }: IdeaDetailProps) => {
 	const [loaded, setLoaded] = useState(false);
 	const [closed, setClosed] = useState(false);
 	const rootStyles = loaded && !closed ? styles.cardContainer : `${ styles.cardContainer } ${ styles.invisible }`;
+
+	// An idea's basic information is shown on a card, but a card has a button
+	// "Enter Community" that opens a standalone page with information about the
+	// community
+	const router = useRouter();
 	
 	useEffect(() => {
 		if (!loaded && !closed)
@@ -89,7 +102,7 @@ export const IdeaDetailCard = ({ content, onClose }: IdeaDetailProps) => {
 		setClosed(true);
 		setLoaded(false);
 
-		setTimeout(() => {onClose(); setClosed(false);}, 300);
+		setTimeout(onClose, 300);
 	};
 
 	// Display a loading indicator if the item hasn't loaded in yet
@@ -116,7 +129,7 @@ export const IdeaDetailCard = ({ content, onClose }: IdeaDetailProps) => {
 		"Market cap": <p>{ `${marketCap.toLocaleString("en-US", { style: "currency", currency: "USD" })}` }</p>,
 		"Last price": <p>{ `${price.toLocaleString("en-US", { style: "currency", currency: "USD" })}` }</p>,
 		"Total supply": <p>{ totalSupply }</p>,
-		"Contract": <p><a href={ `${explorerURI}/address/${addr}` }>{ addr }</a></p>,
+		"Contract": <p><a href={ `${explorerURI}/address/${addr}` } target="_blank" rel="noopener noreferrer">{ addr }</a></p>,
 		"Child projects": <p>{ nChildren }</p>,
 		"Date created": <p>{ `${createdAt.getMonth()}/${createdAt.getDay()}/${createdAt.getFullYear()}` }</p>
 	};
@@ -148,6 +161,10 @@ export const IdeaDetailCard = ({ content, onClose }: IdeaDetailProps) => {
 				<div className={ styles.cardMetrics }>
 					{ Object.entries(metricsDay).map(([key, value]) => <Metric key={ key } val={ value } label={ key } isPercent={ key == "Last Price" }/> ) }
 				</div>
+			</div>
+			<div className={ styles.cardActions }>
+				<FilledButton label="Enter Community" className={ styles.goButton } onClick={ () => router.push(`/ideas/${ addr }/about`) } />
+				<FilledButton className={ styles.buyButton } label={ `Buy ${ title }` } />
 			</div>
 		</div>
 	);
