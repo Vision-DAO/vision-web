@@ -1,16 +1,15 @@
-import { useParents, getAll, loadExtendedIdeaInfo } from "../lib/util/ipfs";
+import { useParents, loadExtendedIdeaInfo, loadBasicIdeaInfo } from "../lib/util/ipfs";
 import { useOwnedIdeas, isIdeaContract } from "../lib/util/discovery";
 import { useWeb3 } from "../lib/util/web3";
-import { blobify } from "../lib/util/blobify";
-import { IpfsContext, ItemDataKind, IdeaData, decodeIdeaDataUTF8 } from "../lib/util/ipfs";
-import { serialize, deserialize } from "bson";
+import { IpfsContext } from "../lib/util/ipfs";
+import { serialize } from "bson";
 import { useConnection, useViewerRecord } from "@self.id/framework";
 import { useState, useEffect, useContext, Dispatch, SetStateAction } from "react";
 import { useConnStatus } from "../lib/util/networks";
 import Idea from "../value-tree/build/contracts/Idea.json";
-import { IdeaBubble, IdeaBubbleProps } from "../components/workspace/IdeaBubble";
+import { IdeaBubble, BasicIdeaInformation } from "../components/workspace/IdeaBubble";
 import { IdeaDetailCard } from "../components/workspace/IdeaDetailCard";
-import { NewIdeaModal, NewIdeaSubmission } from "../components/status/NewIdeaModal";
+import { NewIdeaModal } from "../components/status/NewIdeaModal";
 import { FilledButton } from "../components/status/FilledButton";
 import styles from "./index.module.css";
 
@@ -48,7 +47,7 @@ export const Index = () => {
 	// The IPFS context should always be available since we are inside the
 	// networked UI context. Render the list of parents from this context,
 	// and update it later if need be
-	const [ideaDetails, setIdeaDetails] = useState({});
+	const [ideaDetails, setIdeaDetails] = useState<{[ideaAddr: string]: BasicIdeaInformation}>({});
 	const [activeIdea, setActiveIdea] = useState(undefined);
 	const [blockedIdeas, setBlockedIdeas] = useState<Set<string>>(new Set());
 	const [ipfsCache, setIpfsCache] = useState({});
@@ -125,95 +124,29 @@ export const Index = () => {
 				}
 
 				// Extra props containing optional data for a bubble
-				// // All ideas have associated metadata of varying degrees of completion
-				const bubbleContent = ipfsCache[ipfsAddr] || {};
-
+				// All ideas have associated metadata of varying degrees of completion
 				if (!(ipfsAddr in ipfsCache)) {
-					let data: IdeaData[];
+					// Load the title, image, and address of the idea
+					const data = await loadBasicIdeaInfo(ipfs, web3, ideaAddr);
 
-					const rawData = await getAll(
-						ipfs,
-						ipfsAddr,
-					);
-
-					// Binary data, e.g., files and images associated with ideas cannot be
-					// sent as JSON strings. Use mongodb BSON to deserialize this binary
-					// data.
-					try {
-						data = deserialize(
-							rawData,
-							{ promoteBuffers: true },
-						) as IdeaData[];
-					} catch (e) {
+					// Make sure no errors occurred
+					if (!data) {
 						blockIdea(ideaAddr, setBlockedIdeas);
 
 						return;
 					}
 
-					if (!data)
-						return;
+					// Cache the content
+					setIpfsCache(cache => { return { ...cache, [ipfsAddr]: data }; });
 
-					// TODO: Handle arbitrary file blobs
-					// Used by the IdeaBubble component and the IdeaDescription component to
-					// render extended information about an idea
-					//
-					// Skip any metadata fields that fail to be parsed, since they aren't
-					// vital to rendering the idea
-					for (const d of Object.values(data)) {
-						switch (d.kind) {
-						case "utf-8":
-							try {
-								bubbleContent["description"] = decodeIdeaDataUTF8(d.data);
-							} catch (e) {
-								console.debug(e);
-
-								continue;
-							}
-
-							break;
-						case "image-blob":
-							try {
-								bubbleContent["image"] = blobify(window, d.data, null);
-							} catch (e) {
-								console.debug(e);
-
-								continue;
-							}
-
-							break;
-						case "url-link":
-							try {
-								bubbleContent["link"] = decodeIdeaDataUTF8(d.data);
-							} catch (e) {
-								console.debug(e);
-
-								continue;
-							}
-
-							break;
-						}
-					}
-
-					setIpfsCache(cache => { return { ...cache, [ipfsAddr]: bubbleContent }; });
+					return;
 				}
 
-				const bubble = {
-					title: await contract.methods.name().call(),
-					ticker: await contract.methods.symbol().call(),
-					totalSupply: await contract.methods.totalSupply().call(),
-
-					// TODO: Read these from IPFS
-					image: null,
-					description: "",
-
-					addr: ideaAddr,
-					size: zoomFactor,
-
-					...bubbleContent
-				};
+				// See IdeaBubble.tsx for prop documentation
+				const bubbleContent: BasicIdeaInformation = ipfsCache[ipfsAddr];
 
 				// Shallow comparison to check that the bubble info has already been cached
-				const bubblesEqual = (a: IdeaBubbleProps, b: IdeaBubbleProps): boolean => {
+				const bubblesEqual = (a: BasicIdeaInformation, b: BasicIdeaInformation): boolean => {
 					if (!a || !b)
 						return false;
 
@@ -226,8 +159,8 @@ export const Index = () => {
 				};
 
 				// Render the information of the bubble as a component on the mindmap
-				if (!bubblesEqual(ideaDetails[ideaAddr], bubble))
-					setIdeaDetails(ideas => { return {...ideas, [ideaAddr]: bubble}; });
+				if (!bubblesEqual(ideaDetails[ideaAddr], bubbleContent))
+					setIdeaDetails(ideas => { return {...ideas, [ideaAddr]: bubbleContent}; });
 			})();
 		}
 
@@ -239,17 +172,23 @@ export const Index = () => {
 		};
 	});
 
-	const loadIdeaCard = async (details: IdeaBubbleProps) => {
+	const loadIdeaCard = async (details: BasicIdeaInformation) => {
 		setActiveIdea(null);
 
-		const info = await loadExtendedIdeaInfo(connStatus.network, web3, details);
+		const info = await loadExtendedIdeaInfo(ipfs, connStatus.network, web3, details);
 
 		setActiveIdea(info);
 	};
 
 	// The size of idea bubbles might change before the information in them does, or is loaded in
 	const ideaBubbles = Object.values(ideaDetails)
-		.map((details: IdeaBubbleProps) => IdeaBubble({ ...details, size: zoomFactor, active: activeIdea && activeIdea.addr == details.addr, onClick: () => loadIdeaCard(details) }));
+		.map((details: BasicIdeaInformation) =>
+			IdeaBubble({
+				details: details,
+				size: zoomFactor,
+				active: activeIdea && activeIdea.addr == details.addr,
+				onClick: () => loadIdeaCard(details),
+			}));
 
 	return (
 		<div className={ styles.browser }>

@@ -1,4 +1,3 @@
-import { isIdeaContract } from "../lib/util/discovery";
 import { useRouter } from "next/router";
 import { ReactElement, useState, useEffect } from "react";
 import { IdeaDetailNavigatorLayout } from "../../../components/workspace/IdeaDetailNavigatorLayout";

@@ -100,7 +100,7 @@ export const loadBasicIdeaInfo = async (ipfs: IpfsClient, w: Web3, ideaAddr: str
 
 	// TODO: Abstract this out to prevent re-render
 	// (binary data is a dependency for both basic information and extended info yikes)
-	const allData = loadIdeaBinaryData(ipfs, await contract.methods.ipfsAddr.call());
+	const allData = await loadIdeaBinaryData(ipfs, await contract.methods.ipfsAddr().call());
 
 	// Find image data for the idea, and keep the most recently loaded one
 	for (const d of Object.values(allData)) {
