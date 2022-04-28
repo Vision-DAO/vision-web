@@ -1,0 +1,56 @@
+.infoWindow {
+	border: 0.5px solid rgba(255, 255, 255, 0.25);
+	border-radius: 5px;
+
+	display: flex;
+	height: 100%;
+
+	flex-flow: column nowrap;
+
+	justify-content: flex-start;
+	align-items: stretch;
+
+	overflow: clip;
+}
+
+.navBar {
+	border-top: 0.5px solid rgba(255, 255, 255, 0.5);
+
+	display: flex;
+
+	flex-flow: row nowrap;
+
+	justify-content: space-around;
+	align-items: center;
+}
+
+.navButton {
+	background-color: #1D1D1D;
+
+	padding: 1.5rem;
+	margin: 0;
+
+	display: flex;
+
+	flex-flow: column nowrap;
+	justify-content: center;
+	align-items: center;
+
+	cursor: pointer;
+
+	flex-grow: 1;
+
+	transition: 0.3s;
+}
+
+.navButton:hover {
+	background-color: rgba(29, 29, 29, 0.75);
+}
+
+.navButton.active {
+	background-color: #5D5FEF;
+}
+
+.navButton.active:hover {
+	background-color: rgba(93, 95, 239, 0.8);
+}

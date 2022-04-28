@@ -1,0 +1,68 @@
+.metaNodeContainer {
+	padding: 1rem;
+
+	margin: 0.5rem;
+
+	background-color: #1D1D1D;
+
+	transition: 0.3s;
+
+	border-radius: 5px;
+	border: 0.5px solid rgba(255, 255, 255, 0.5);
+
+	display: flex;
+
+	flex-flow: row nowrap;
+	justify-content: center;
+	align-items: center;
+
+	cursor: pointer;
+}
+
+.metaNodeContainer:hover {
+	background-color: rgba(29, 29, 29, 0.75);
+}
+
+.metaNodeContainer p {
+	margin: 0;
+
+	font-size: 0.75em;
+}
+
+.metaNodeContainer img {
+	height: 10vh;
+	object-fit: contain;
+
+	border-radius: 5px;
+}
+
+.fileNode {
+	display: flex;
+
+	flex-flow: row nowrap;
+
+	justify-content: center;
+	align-items: center;
+}
+
+.fileNode a {
+	margin-left: 1rem;
+	color: #5D5FEF;
+}
+
+.fileNameLabel {
+	font-family: "Roboto Mono", monospace;
+}
+
+.imageNode {
+	display: flex;
+
+	flex-flow: column nowrap;
+
+	justify-content: center;
+	align-items: center;
+}
+
+.imageNode img {
+	margin-bottom: 1rem;
+}

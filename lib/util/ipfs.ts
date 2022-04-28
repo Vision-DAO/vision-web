@@ -32,6 +32,14 @@ export const ActiveIdeaContext: React.Context<[ExtendedIdeaInformation, (details
 export type ItemDataKind = "utf-8" | "image-blob" | "file-blob" | "url-link";
 
 /**
+ * Data stored as a file as metadata for an idea.
+ */
+export interface FileData {
+	path: string;
+	contents: Uint8Array,
+}
+
+/**
  * Decoded data associated with an item on Vision.
  */
 export interface IdeaData {
@@ -116,9 +124,13 @@ export const loadBasicIdeaInfo = async (ipfs: IpfsClient, w: Web3, ideaAddr: str
 	for (const d of Object.values(allData)) {
 		if (d.kind === "image-blob") {
 			try {
-				image = blobify(window, d.data, null);
+				const f: FileData = deserialize(d.data, { promoteBuffers: true }) as FileData;
+
+				image = blobify(window, f.contents, null);
 			} catch (e) {
 				console.debug(e);
+
+				image = "";
 			}
 		}
 	}

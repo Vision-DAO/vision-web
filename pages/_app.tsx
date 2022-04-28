@@ -23,6 +23,7 @@ import { guttered } from "../components/workspace/nav/NavPanel.module.css";
 import { Web3Context, provideWeb3 } from "../lib/util/web3";
 import { IpfsContext, ActiveIdeaContext } from "../lib/util/ipfs";
 import { ConnectionContext, provideConnStatus } from "../lib/util/networks";
+import { ModalContext } from "../lib/util/modal";
 
 import styles from "./App.module.css";
 import "./App.css";
@@ -122,6 +123,7 @@ const App = ({ Component, pageProps }: AppPropsWithLayout) => {
 	});
 
 	const [hasModal, setHasModal] = useState(false);
+	const [modal, setModal] = useState<ReactElement>(undefined);
 
 	// Custom styles for the entire app
 	useEffect(() => {
@@ -179,24 +181,26 @@ const App = ({ Component, pageProps }: AppPropsWithLayout) => {
 						<IpfsContext.Provider value={ ipfs }>
 							<ConnectionContext.Provider value={ connStatus }>
 								<ActiveIdeaContext.Provider value={ [activeIdea, setActiveIdea] }>
-									<div className={ `${styles.app} ${styles.root}${hasModal ? (" " + styles.hidden) : ""}` }>
-										<div className={ styles.navPanel }>
-											<NavPanel
-												items={navItems}
-												onProfileClicked={(selfId: string) => router.push({
-													pathname: "/profile/[id]",
-													query: { id: selfId } }
-												)}
-												onSettingsActive={() => router.push("/settings")}
-												ctx={web3}
-											/>
+									<ModalContext.Provider value={ [modal, setModal] }>
+										<div className={ `${styles.app} ${styles.root}${hasModal ? (" " + styles.hidden) : ""}` }>
+											<div className={ styles.navPanel }>
+												<NavPanel
+													items={navItems}
+													onProfileClicked={(selfId: string) => router.push({
+														pathname: "/profile/[id]",
+														query: { id: selfId } }
+													)}
+													onSettingsActive={() => router.push("/settings")}
+													ctx={web3}
+												/>
+											</div>
+											<div className={styles.workspace}>
+												<NetworkedWorkspace>
+													{ getLayout(<Component {...pageProps} />) }
+												</NetworkedWorkspace>
+											</div>
 										</div>
-										<div className={styles.workspace}>
-											<NetworkedWorkspace>
-												{ getLayout(<Component {...pageProps} />) }
-											</NetworkedWorkspace>
-										</div>
-									</div>
+									</ModalContext.Provider>
 								</ActiveIdeaContext.Provider>
 							</ConnectionContext.Provider>
 						</IpfsContext.Provider>

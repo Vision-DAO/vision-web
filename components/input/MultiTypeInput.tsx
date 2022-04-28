@@ -1,9 +1,10 @@
-import { IdeaData, ItemDataKind } from "../../lib/util/ipfs";
+import { IdeaData, ItemDataKind, FileData } from "../../lib/util/ipfs";
 import { OutlinedOptionSelector } from "./OutlinedOptionSelector";
 import { UnderlinedInput } from "./UnderlinedInput";
 import { useState } from "react";
 import styles from "./MultiTypeInput.module.css";
 import { FileUploadButton } from "./FileUploadButton";
+import { serialize } from "bson";
 
 export interface MultiTypeInputProps {
 	label?: string;
@@ -35,7 +36,14 @@ export const MultiTypeInput = ({ label = "", onChange }: MultiTypeInputProps) =>
 	// Reads the contents of the file, and returns a byte array of its contents
 	//
 	// TODO: Support folder/directory uploads
-	const encFile = async (val: File): Promise<Uint8Array> => new Uint8Array(await val.arrayBuffer());
+	const encFile = async (val: File): Promise<Uint8Array> => {
+		const data: FileData = {
+			"path": val.name,
+			"contents": new Uint8Array(await val.arrayBuffer()),
+		};
+
+		return new Uint8Array(serialize(data));
+	};
 
 	// Transforms the user's input update for text entries into a displayable text item
 	const cacheStringData = async (val: string): Promise<string> => val;

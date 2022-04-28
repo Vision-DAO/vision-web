@@ -1,6 +1,8 @@
 import { ReactElement, useContext } from "react";
 import { IdeaDetailNavigatorLayout } from "../../../components/workspace/IdeaDetailNavigatorLayout";
 import { IdeaInfoPanel } from "../../../components/workspace/idea/IdeaInfoPanel";
+import { IdeaVisualInfoWindow } from "../../../components/workspace/idea/IdeaVisualInfoWindow";
+import { IdeaActivityPanel } from "../../../components/workspace/idea/IdeaActivityPanel";
 import { ExtendedIdeaInformation } from "../../../components/workspace/IdeaDetailCard";
 import { ActiveIdeaContext } from "../../../lib/util/ipfs";
 import styles from "./about.module.css";
@@ -18,7 +20,9 @@ export const About = () => {
 		<div className={ styles.infoContainers }>
 			<div className={ styles.splitPanel }>
 				<IdeaInfoPanel idea={ idea } />
+				<IdeaVisualInfoWindow idea={ idea } />
 			</div>
+			<IdeaActivityPanel />
 		</div>
 	);
 };

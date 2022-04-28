@@ -1,0 +1,20 @@
+.prevWindowHeader {
+	border-bottom: 1px solid #5D5FEF;
+
+	margin: 0;
+	padding-bottom: 0.5rem;
+}
+
+.prevWindow {
+	display: flex;
+
+	flex-flow: column nowrap;
+
+	justify-content: flex-start;
+	align-items: flex-start;
+
+	padding: 2rem;
+	overflow: hidden;
+
+	height: 100%;
+}

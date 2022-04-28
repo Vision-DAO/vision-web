@@ -5,7 +5,8 @@ import CircularProgress from "@mui/material/CircularProgress";
 import { ActiveIdeaContext, loadExtendedIdeaInfo, loadBasicIdeaInfo, IpfsContext } from "../../lib/util/ipfs";
 import { useConnStatus } from "../../lib/util/networks";
 import { useWeb3 } from "../../lib/util/web3";
-import { useContext, ReactElement, useEffect } from "react";
+import { ModalContext } from "../../lib/util/modal";
+import { ReactElement, useEffect, useContext } from "react";
 import { WarningMessage } from "../status/WarningMessage";
 
 // Names of subpages for an Idea -- how they should be rendered
@@ -38,6 +39,7 @@ export const IdeaDetailNavigatorLayout = ({ children }: { children: ReactElement
 		addr = addrs;
 
 	const [ideaInfo, setIdeaInfo] = useContext(ActiveIdeaContext);
+	const [modal, ] = useContext(ModalContext);
 
 	useEffect(() => {
 		// A render hasn't even been triggered if the active idea is undefined
@@ -84,6 +86,7 @@ export const IdeaDetailNavigatorLayout = ({ children }: { children: ReactElement
 
 	return (
 		<div className={ styles.ideaNavigationContainer }>
+			{ modal !== undefined && modal }
 			<div className={ styles.navigationBarContainer }>
 				<BackIcon sx={{ color: "#5D5FEF" }} fontSize="large" onClick={ () => router.back() } />
 				<h2>

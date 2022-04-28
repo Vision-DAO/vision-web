@@ -6,7 +6,9 @@
 	width: 100%;
 	height: 100%;
 
-	display: column nowrap;
+	display: flex;
+
+	flex-flow: column nowrap;
 
 	justify-content: space-between;
 	align-items: stretch;
@@ -18,9 +20,12 @@
 	flex-flow: row nowrap;
 
 	justify-content: space-between;
-	align-items: center;
+	align-items: stretch;
+
+	height: 50%;
 }
 
 .splitPanel>* {
 	width: 47%;
+	height: 100%;
 }

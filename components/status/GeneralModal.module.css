@@ -1,0 +1,57 @@
+.modalContainer {
+	position: absolute;
+
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+
+	opacity: 0;
+
+	transition: 0.3s;
+
+	background-color: rgba(0, 0, 0, 0.9);
+}
+
+.modalContainer.active {
+	opacity: 1;
+}
+
+.modalContent {
+	margin: 10%;
+
+	border: 0.5px solid rgba(255, 255, 255, 0.25);
+	border-radius: 5px;
+
+	background-color: black;
+
+	padding: 2rem;
+
+	display: flex;
+
+	flex-flow: column nowrap;
+
+	justify-content: center;
+	align-items: center;
+}
+
+.modalTitle {
+	display: flex;
+	
+	flex-flow: row nowrap;
+
+	justify-content: space-between;
+	align-items: center;
+
+	width: 100%;
+
+	margin-bottom: 2rem;
+}
+
+.modalTitle h1 {
+	margin: 0;
+}
+
+.modalTitle svg {
+	cursor: pointer;
+}

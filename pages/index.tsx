@@ -2,6 +2,7 @@ import { useParents, loadExtendedIdeaInfo, loadBasicIdeaInfo } from "../lib/util
 import { useOwnedIdeas, isIdeaContract } from "../lib/util/discovery";
 import { useWeb3 } from "../lib/util/web3";
 import { IpfsContext } from "../lib/util/ipfs";
+import { ModalContext } from "../lib/util/modal";
 import { serialize } from "bson";
 import { useConnection, useViewerRecord } from "@self.id/framework";
 import { useState, useEffect, useContext, Dispatch, SetStateAction } from "react";
@@ -53,6 +54,7 @@ export const Index = () => {
 	const [ipfsCache, setIpfsCache] = useState({});
 	const [web3, eth] = useWeb3();
 	const ipfs = useContext(IpfsContext);
+	const [modal, ] = useContext(ModalContext);
 	const [conn, ,] = useConnection();
 	const [connStatus, ,] = useConnStatus();
 
@@ -96,6 +98,10 @@ export const Index = () => {
 
 			// Skip all ideas that have been blocked
 			if (blockedIdeas.has(ideaAddr))
+				continue;
+
+			// TODO: Allow live updates for basic idea metadata once it is feasible
+			if (ideaAddr in ideaDetails)
 				continue;
 
 			// We cannot check that the given contract is an Idea without
@@ -206,6 +212,12 @@ export const Index = () => {
 							ideasBuf={ userIdeasRecord }
 						/>
 					</div>
+				}
+				{
+					modal !== undefined &&
+						<div className={ styles.hudModal }>
+							{ modal }
+						</div>
 				}
 				<div className={ styles.leftActionButton }>
 					<div className={ styles.zoomButtons }>

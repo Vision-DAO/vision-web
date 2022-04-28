@@ -67,6 +67,10 @@
 	padding-bottom: 1.5rem;
 }
 
+.cardTitle h2 {
+	margin: 0;
+}
+
 .infoLine {
 	display: flex;
 
