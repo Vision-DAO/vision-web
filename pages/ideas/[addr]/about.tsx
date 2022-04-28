@@ -5,6 +5,7 @@ import { IdeaVisualInfoWindow } from "../../../components/workspace/idea/IdeaVis
 import { IdeaActivityPanel } from "../../../components/workspace/idea/IdeaActivityPanel";
 import { ExtendedIdeaInformation } from "../../../components/workspace/IdeaDetailCard";
 import { ActiveIdeaContext } from "../../../lib/util/ipfs";
+import { useWeb3 } from "../../../lib/util/web3";
 import styles from "./about.module.css";
 
 /**
@@ -15,6 +16,7 @@ import styles from "./about.module.css";
 export const About = () => {
 	// See NavigatorLayout container. This will never be NULL
 	const [idea, ]: [ExtendedIdeaInformation, unknown] = useContext(ActiveIdeaContext);
+	const [web3, ] = useWeb3();
 
 	return (
 		<div className={ styles.infoContainers }>
@@ -22,7 +24,7 @@ export const About = () => {
 				<IdeaInfoPanel idea={ idea } />
 				<IdeaVisualInfoWindow idea={ idea } />
 			</div>
-			<IdeaActivityPanel />
+			<IdeaActivityPanel web3={ web3 } idea={ idea } />
 		</div>
 	);
 };

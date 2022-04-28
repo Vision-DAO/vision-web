@@ -88,7 +88,7 @@ export const IdeaDetailNavigatorLayout = ({ children }: { children: ReactElement
 		<div className={ styles.ideaNavigationContainer }>
 			{ modal !== undefined && modal }
 			<div className={ styles.navigationBarContainer }>
-				<BackIcon sx={{ color: "#5D5FEF" }} fontSize="large" onClick={ () => router.back() } />
+				<BackIcon sx={{ color: "#5D5FEF", cursor: "pointer" }} fontSize="large" onClick={ () => { setIdeaInfo(undefined); router.back(); } } />
 				<h2>
 					<b>Idea: </b>
 					<a href={ ideaURI } target="_blank" rel="noopener noreferrer">

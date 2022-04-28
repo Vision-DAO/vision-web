@@ -1,0 +1,39 @@
+.activityRow {
+	display: flex;
+
+	flex-flow: row nowrap;
+
+	justify-content: space-between;
+	align-items: center;
+
+	padding-top: 0.5rem;
+	padding-bottom: 0.5rem;
+
+	padding-left: 2rem;
+	padding-right: 2rem;
+
+	border-radius: 5px;
+
+	border: 0.5px solid rgba(255, 255, 255, 0.25);
+
+	background-color: #1D1D1D;
+
+	overflow: auto;
+}
+
+.eventKindLabel {
+	display: flex;
+
+	flex-flow: row nowrap;
+
+	justify-content: flex-start;
+	align-items: center;
+}
+
+.eventKindLabel>*:first-child {
+	margin-right: 2rem;
+}
+
+.eventKindLabel p {
+	font-weight: bold;
+}

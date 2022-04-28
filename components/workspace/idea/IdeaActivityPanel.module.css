@@ -1,0 +1,25 @@
+.activityPanelContainer {
+	margin-top: 2rem;
+
+	height: 100%;
+
+	display: flex;
+
+	flex-flow: column nowrap;
+
+	justify-content: flex-start;
+	align-items: stretch;
+}
+
+.panelHeader {
+	display: flex;
+
+	flex-flow: row nowrap;
+
+	justify-content: flex-start;
+	align-items: center;
+}
+
+.panelHeader>* {
+	margin-right: 1rem;
+}

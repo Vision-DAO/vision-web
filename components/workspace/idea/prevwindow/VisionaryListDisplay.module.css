@@ -51,6 +51,11 @@
 .bubblesPool {
 	display: flex;
 
+	flex-flow: row wrap;
+
+	justify-content: center;
+	align-items: center;
+
 	height: 100%;
 	width: 100%;
 
@@ -60,6 +65,8 @@
 }
 
 .visBubble {
+	margin: 0.5rem;
+
 	border-radius: 100%;
 	overflow: clip;
 
