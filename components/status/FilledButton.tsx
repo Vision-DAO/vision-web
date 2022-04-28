@@ -6,7 +6,7 @@ import styles from "./FilledButton.module.css";
  */
 export const FilledButton = ({ label, onClick, className = "" }: { label: string, onClick?: () => void, className?: string }) => {
 	return (
-		<div className={ className + " " + styles.filledButton } onClick={ onClick }>
+		<div className={ styles.filledButton + " " + className } onClick={ onClick }>
 			<h1>{ label }</h1>
 		</div>
 	);

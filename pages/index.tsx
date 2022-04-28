@@ -176,7 +176,6 @@ export const Index = () => {
 		setActiveIdea(null);
 
 		const info = await loadExtendedIdeaInfo(ipfs, connStatus.network, web3, details);
-
 		setActiveIdea(info);
 	};
 

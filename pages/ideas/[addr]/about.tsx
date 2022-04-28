@@ -1,7 +1,8 @@
-import { useRouter } from "next/router";
-import { ReactElement, useState, useEffect } from "react";
+import { ReactElement, useContext } from "react";
 import { IdeaDetailNavigatorLayout } from "../../../components/workspace/IdeaDetailNavigatorLayout";
-import CircularProgress from "@mui/material/CircularProgress";
+import { ExtendedIdeaInformation } from "../../../components/workspace/IdeaDetailCard";
+import { ActiveIdeaContext } from "../../../lib/util/ipfs";
+import styles from "./about.module.css";
 
 /**
  * A sub-navigation context that allows a user to view basic information about
@@ -9,12 +10,12 @@ import CircularProgress from "@mui/material/CircularProgress";
  * market metrics about the idea.
  */
 export const About = () => {
-	// The address of the Idea contract will be provided in the URL
-	const router = useRouter();
+	// See NavigatorLayout container. This will never be NULL
+	const [idea, ]: [ExtendedIdeaInformation, unknown] = useContext(ActiveIdeaContext);
 
 	return (
-		<>
-		</>
+		<div className={ styles.infoContainers }>
+		</div>
 	);
 };
 

@@ -146,17 +146,19 @@
 }
 
 .goButton {
-	width: 60%;
+	min-width: 50%;
 }
 
 .buyButton {
-	background-color: #44BF39;
+	background-color: #44BF39 !important;
 
 	flex-grow: 1;
 
 	margin-left: 1rem;
+
+	text-overflow: ellipsis;
 }
 
 .buyButton:hover {
-	background-color: rgba(68, 191, 57, 0.6);
+	background-color: rgba(68, 191, 57, 0.6) !important;
 }

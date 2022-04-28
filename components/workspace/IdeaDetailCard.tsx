@@ -1,4 +1,4 @@
-import { IdeaBubbleProps, BasicIdeaInformation } from "./IdeaBubble";
+import { BasicIdeaInformation } from "./IdeaBubble";
 import styles from "./IdeaDetailCard.module.css";
 import CloseRounded from "@mui/icons-material/CloseRounded";
 import CircularProgress from "@mui/material/CircularProgress";
@@ -44,6 +44,7 @@ const Metric = ({ val, label, isPercent = false }: { val: number, label: string,
 };
 
 export interface OnlyIdeaDetailProps {
+	description: string;
 	data: IdeaData[];
 	marketCap: number;
 	totalSupply: number;

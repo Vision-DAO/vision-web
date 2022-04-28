@@ -23,7 +23,7 @@ export const IpfsContext: React.Context<IpfsClient> = createContext(undefined);
  * A global instance of the currently loaded, expanded idea that is guaranteed
  * to be loaded, if the child is rendered.
  */
-export const ActiveIdeaContext: React.Context<[IdeaDetailProps, (details: IdeaDetailProps) => void]> = createContext(undefined);
+export const ActiveIdeaContext: React.Context<[ExtendedIdeaInformation, (details: ExtendedIdeaInformation) => void]> = createContext(undefined);
 
 /**
  * Types of data recognizable and renderable on the Vision UI.
@@ -74,10 +74,20 @@ export const loadExtendedIdeaInfo = async (ipfs: IpfsClient, network: Network, w
 	const ipfsAddr = await contract.methods.ipfsAddr().call();
 	const data: IdeaData[] = await loadIdeaBinaryData(ipfs, ipfsAddr);
 
+	// Render nothing if the user did not provide a description
+	let description = "";
+
+	for (const d of Object.values(data)) {
+		if (d.kind == "utf-8") {
+			description = decodeIdeaDataUTF8(d.data);
+		}
+	}
+
 	// TODO: Load market metrics with The Graph
 	const extendedInfo: OnlyIdeaDetailProps = {
+		description: description,
 		data: data,
-		totalSupply: await contract.methods.totalSupply.call(),
+		totalSupply: await contract.methods.totalSupply().call(),
 		ticker: await contract.methods.symbol().call(),
 		marketCap: 0,
 		price: 0,
