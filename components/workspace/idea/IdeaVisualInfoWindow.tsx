@@ -1,6 +1,7 @@
 import styles from "./IdeaVisualInfoWindow.module.css";
 import { useState } from "react";
 import { IdeaMetadataDisplay } from "./prevwindow/IdeaMetadataDisplay";
+import { VisionaryListDisplay } from "./prevwindow/VisionaryListDisplay";
 import { ExtendedIdeaInformation } from "../IdeaDetailCard";
 import InfoRounded from "@mui/icons-material/InfoRounded";
 import AccountCircleRounded from "@mui/icons-material/AccountCircleRounded";
@@ -13,7 +14,7 @@ export const IdeaVisualInfoWindow = ({ idea }: { idea: ExtendedIdeaInformation }
 			navIcon: <InfoRounded fontSize="large" />,
 		},
 		"Visionaries": {
-			content: null,
+			content: <VisionaryListDisplay idea={ idea } />,
 			navIcon: <AccountCircleRounded fontSize="large" />,
 		}
 	};

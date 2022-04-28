@@ -100,14 +100,14 @@ export const Index = () => {
 			if (blockedIdeas.has(ideaAddr))
 				continue;
 
-			// TODO: Allow live updates for basic idea metadata once it is feasible
-			if (ideaAddr in ideaDetails)
-				continue;
-
 			// We cannot check that the given contract is an Idea without
 			// an instance of the Idea contract to compare to
 			if (!ideaContractBytecode || ideaContractBytecode == "")
 				break;
+
+			// Mark the item as being loaded
+			if (!(ideaAddr in ideaDetails))
+				setIdeaDetails(ideas => { return { ...ideas, [ideaAddr]: null }; } );
 
 			// Fetch the basic information of the idea from Ethereum
 			// TODO: Loading of extended metadata from IPFS
@@ -129,15 +129,29 @@ export const Index = () => {
 					return;
 				}
 
+				// TODO: Allow live updates for basic idea metadata once it is feasible
+				if (ideaAddr in ideaDetails)
+					return;
+
+				// See IdeaBubble.tsx for prop documentation
+				let bubbleContent: BasicIdeaInformation = ipfsCache[ipfsAddr];
+
 				// Extra props containing optional data for a bubble
 				// All ideas have associated metadata of varying degrees of completion
 				if (!(ipfsAddr in ipfsCache)) {
+					// Mark the item as being loaded
+					setIpfsCache(cache => { return { ...cache, [ipfsAddr]: null }; });
+
 					// Load the title, image, and address of the idea
 					const data = await loadBasicIdeaInfo(ipfs, web3, ideaAddr);
 
 					// Make sure no errors occurred
 					if (!data) {
+						// Remove the idea from the list of viewable ideas
 						blockIdea(ideaAddr, setBlockedIdeas);
+
+						if (ideaAddr in ideaDetails)
+							setIdeaDetails(ideas => { const { [ideaAddr]: _, ...remaining } = ideas; return remaining; });
 
 						return;
 					}
@@ -145,11 +159,12 @@ export const Index = () => {
 					// Cache the content
 					setIpfsCache(cache => { return { ...cache, [ipfsAddr]: data }; });
 
-					return;
+					bubbleContent = data;
 				}
 
-				// See IdeaBubble.tsx for prop documentation
-				const bubbleContent: BasicIdeaInformation = ipfsCache[ipfsAddr];
+				// This item is still loading
+				if (!bubbleContent)
+					return;
 
 				// Shallow comparison to check that the bubble info has already been cached
 				const bubblesEqual = (a: BasicIdeaInformation, b: BasicIdeaInformation): boolean => {
@@ -187,6 +202,7 @@ export const Index = () => {
 
 	// The size of idea bubbles might change before the information in them does, or is loaded in
 	const ideaBubbles = Object.values(ideaDetails)
+		.filter((details) => details !== null)
 		.map((details: BasicIdeaInformation) =>
 			IdeaBubble({
 				details: details,

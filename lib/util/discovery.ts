@@ -41,6 +41,7 @@ export const useOwnedIdeas = (did: string, web3: Web3, filterInstanceOf: string)
 
 	// Cache items that have already been checked to be owned by the user
 	const [checked, setChecked] = useState<Set<string>>(new Set());
+	const [blocked, setBlocked] = useState<Set<string>>(new Set());
 	const [targetBytecode, setTargetBytecode] = useState<string>(null);
 
 	// Check ownership of any new contracts that appeared
@@ -69,14 +70,16 @@ export const useOwnedIdeas = (did: string, web3: Web3, filterInstanceOf: string)
 			const addr = possibleAddr[1];
 
 			// Skip cached items
-			if (checked.has(addr))
+			if (blocked.has(addr) || checked.has(addr))
 				continue;
 
 			isIdeaContract(web3, addr, targetBytecode)
 				.then((valid) => {
 					// The address is an instance of the Idea contract!
 					if (valid)
-						setChecked(new Set([...checked, addr]));
+						setChecked(checked => new Set([...checked, addr]));
+					else
+						setBlocked(blocked => new Set([...blocked, addr]));
 				});
 		}
 	});
