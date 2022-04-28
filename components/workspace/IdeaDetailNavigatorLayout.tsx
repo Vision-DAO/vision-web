@@ -67,6 +67,8 @@ export const IdeaDetailNavigatorLayout = ({ children }: { children: ReactElement
 
 	if (ideaInfo === null) {
 		toRender = <CircularProgress />;
+	} else if (ideaInfo === undefined) {
+		toRender = <WarningMessage title="Error 404" message="Idea Does Not Exist" />;
 	} else {
 		toRender = children;
 	}

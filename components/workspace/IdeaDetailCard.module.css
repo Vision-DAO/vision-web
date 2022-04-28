@@ -22,15 +22,19 @@
 	transition: 0.3s;
 }
 
-.cardContainer a {
+.cardInfo a {
 	color: #5D5FEF;
 }
 
-.cardContainer p {
+.cardInfo a:visited {
+	color: #5D5FEF;
+}
+
+.cardContainer p, .cardInfo p {
 	font-family: "Roboto", "Helvetica Neue", sans-serif;
 }
 
-.cardContainer h2 {
+.cardContainer h2, .cardInfo h2 {
 	margin-bottom: 0;
 }
 

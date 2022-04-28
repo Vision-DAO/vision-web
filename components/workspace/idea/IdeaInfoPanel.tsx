@@ -80,7 +80,7 @@ export const IdeaInfoPanel = ({ idea }: { idea: ExtendedIdeaInformation }) => {
 	};
 
 	return (
-		<div>
+		<div className={ styles.cardInfo }>
 			<div className={ styles.cardTitleInfo }>
 				<h2>{ title } ({ ticker })</h2>
 				{ description && <p>{ description }</p> }
