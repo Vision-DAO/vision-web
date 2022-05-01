@@ -1,0 +1,9 @@
+Vision:
+  - Testing proposal features
+  - Implementing voting
+    - Will require changing existing smart contracts
+      - Edit, redeploy, change address in bootstrap list (EZ)
+  - UI Changes
+    - Exit transition for the New Proposal modal
+    - Replace overflow with expandable containers
+    - Make margins, padding even in the New Proposal form
