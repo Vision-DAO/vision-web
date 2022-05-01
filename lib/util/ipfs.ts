@@ -119,7 +119,7 @@ export interface IdeaData {
 	data: Uint8Array;
 }
 
-export type RawEthPropRate = [];
+export type RawEthPropRate = [string, number, number, number, number, number];
 
 /**
  * Loads all information available about a proposal from IPFS and ethereum.
@@ -132,17 +132,33 @@ export const loadExtendedProposalInfo = async (ipfs: IpfsClient, network: Networ
 	const contract = new w.eth.Contract(Prop.abi, prop.addr);
 	const data = await loadIdeaBinaryData(ipfs, prop.addr);
 
+	// Ethereum stores structs as packed arrays. Further processing will be necessary
+	const [token, value, interval, expiry, lastClaimed, kind]: RawEthPropRate = await contract.methods.rate().call();
+	// Map ethereum-packed enum types to js enums
+	const fundingKinds = [FundingKind.Treasury, FundingKind.Mint];
+
+	const rate: FundingRate = {
+		token,
+		value,
+		interval,
+		expiry: new Date(expiry * 1000),
+		lastClaimed: new Date(lastClaimed * 1000),
+
+		// Enums are represented as indices in Ethereum
+		kind: fundingKinds[kind],
+	};
+
 	return {
 		data,
 		parentAddr: await contract.methods.governed().call(),
 		destAddr: await contract.methods.toFund().call(),
 
 		// Unix timestamps are / 10000
-		expiry: new Date(await contract.methods.expiresAt().call() * 1000)
+		expiry: new Date(await contract.methods.expiresAt().call() * 1000),
 
-		rate: 
+		rate,
 	};
-}
+};
 
 /**
  * Fills out an Idea's bubble info to load the idea's card display.

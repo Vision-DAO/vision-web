@@ -54,9 +54,12 @@ export const ProposalsList = ({ web3, ipfs, proposals }: { web3: Web3, ipfs: Ipf
 				}
 
 				const info: ExtendedProposalInformation = await loadExtendedProposalInfo(ipfs, conn.network, web3, prop);
+				setLoaded(loaded => { return { ...loaded, [prop.addr]: info }; });
 			})();
 		}
 	});
+
+	console.log(loaded);
 
 	return (
 		<div>
