@@ -28,4 +28,6 @@
 .splitPanel>* {
 	width: 47%;
 	height: 100%;
+
+	overflow: auto;
 }

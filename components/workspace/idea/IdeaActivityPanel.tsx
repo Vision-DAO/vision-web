@@ -70,7 +70,7 @@ export const IdeaActivityPanel = ({ web3, idea }: { web3: Web3, idea: ExtendedId
 				<TimelineIcon />
 				<h2>Activity</h2>
 			</div>
-			<div className={ styles.activityList }>
+			<div className={ events ? styles.activityList : styles.loadingContainer }>
 				{ events ?
 					events.map((e) => {
 						return ActivityEntry(e);
