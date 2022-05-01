@@ -1,3 +1,20 @@
-.infoContainers>* {
-	height: 50%;
+.infoContainers {
+	display: flex;
+
+	flex-flow: column nowrap;
+	justify-content: space-between;
+	align-items: stretch;
+}
+
+.newPropButton {
+	border-radius: 5px;
+}
+
+/* The item on the left on the proposals screen will be a list of proposals.
+ * However, a preview on the right of the proposal can also be activated.
+ * Leave roon for this. */
+.prioritySplit>*:first-child {
+	min-width: 50%;
+
+	transition: 0.3s width, min-width, max-width;
 }

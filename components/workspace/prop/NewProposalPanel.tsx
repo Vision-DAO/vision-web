@@ -130,7 +130,6 @@ export const NewProposalPanel = ({ web3, eth, ipfs, parentAddr, onSubmit }: { we
 
 	return (
 		<div className={ styles.formContainer }>
-			<h2>New Proposal</h2>
 			<div className={ styles.formItemList }>
 				<div className={ styles.formItem }>
 					<h2>Contract to Fund</h2>
@@ -155,7 +154,7 @@ export const NewProposalPanel = ({ web3, eth, ipfs, parentAddr, onSubmit }: { we
 			<div className={ styles.submitContainer }>
 				{ statusMessage && statusMessage !== "" && <p>{ statusMessage }</p> }
 				{ deploying && <LinearProgress color="inherit" /> }
-				<FilledButton className={ styles.submitButton } onClick={ () => deployContract() } label="Create Proposal" />
+				<FilledButton className={ styles.submitButton } onClick={ deployContract } label="Create Proposal" />
 			</div>
 		</div>
 	);

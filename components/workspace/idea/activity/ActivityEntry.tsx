@@ -23,7 +23,11 @@ export interface ActivityEntryProps {
 	timestamp: Date;
 }
 
-const formatTime12Hr = (time: Date): string => `${time.getHours() === 0 ? 12 : time.getHours() % 12}:${time.getMinutes()} ${time.getHours() < 12 ? "AM" : "PM"}`;
+const formatTime12Hr = (time: Date): string => {
+	const hoursPast = time.getHours() % 12;
+
+	return `${hoursPast === 0 ? 12 : hoursPast}:${time.getMinutes()} ${time.getHours() < 12 ? "AM" : "PM"}`;
+};
 
 /**
  * A row in the activity view for an Idea's about page.

@@ -7,6 +7,7 @@ import { Message } from "ipfs-core-types/src/pubsub";
 import { IdeaDetailProps, MarketMetrics, OnlyIdeaDetailProps, ExtendedIdeaInformation } from "../../components/workspace/IdeaDetailCard";
 import { BasicIdeaInformation } from "../../components/workspace/IdeaBubble";
 import Idea from "../../value-tree/build/contracts/Idea.json";
+import Prop from "../../value-tree/build/contracts/Prop.json";
 import Web3 from "web3";
 
 /**
@@ -116,6 +117,31 @@ export interface IdeaData {
 	 * The raw data associated with the item
 	 */
 	data: Uint8Array;
+}
+
+export type RawEthPropRate = [];
+
+/**
+ * Loads all information available about a proposal from IPFS and ethereum.
+ */
+export const loadExtendedProposalInfo = async (ipfs: IpfsClient, network: Network, w: Web3, prop: GossipProposalInformation): Promise<ExtendedProposalInformation> => {
+	// Details for a proposal are contained:
+	// - on ethereum
+	// - on IPFS
+	// Load both
+	const contract = new w.eth.Contract(Prop.abi, prop.addr);
+	const data = await loadIdeaBinaryData(ipfs, prop.addr);
+
+	return {
+		data,
+		parentAddr: await contract.methods.governed().call(),
+		destAddr: await contract.methods.toFund().call(),
+
+		// Unix timestamps are / 10000
+		expiry: new Date(await contract.methods.expiresAt().call() * 1000)
+
+		rate: 
+	};
 }
 
 /**

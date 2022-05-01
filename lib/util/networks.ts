@@ -3,6 +3,14 @@ import { useConnection } from "@self.id/framework";
 
 export type Network = "ethereum" | "polygon" | "polygon-test" | "unknown";
 
+/*
+ * Mappings from network names to addresses of statically deployed proposal
+ * contracts.
+ */
+export const staticProposals: { [net: string]: string } = {
+	"polygon-test": "0xf4ECC49F64F9589167Be069aE59B7FF583D8A654",
+};
+
 export const ConnectionContext: Context<[ConnStatus, () => void]> = createContext(
 	[
 		{

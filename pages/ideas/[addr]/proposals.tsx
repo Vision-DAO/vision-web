@@ -1,6 +1,9 @@
 import { ExtendedIdeaInformation } from "../../../components/workspace/IdeaDetailCard";
+import { FilledButton } from "../../../components/status/FilledButton";
+import { GeneralModal } from "../../../components/status/GeneralModal";
 import { ActiveIdeaContext, useProposals, IpfsContext, AllProposalInformation, GossipProposalInformation } from "../../../lib/util/ipfs";
 import { useWeb3 } from "../../../lib/util/web3";
+import { ModalContext } from "../../../lib/util/modal";
 import { IdeaDetailNavigatorLayout } from "../../../components/workspace/IdeaDetailNavigatorLayout";
 import { ProposalsList } from "../../../components/workspace/prop/ProposalsList";
 import { useContext, ReactElement } from "react";
@@ -18,6 +21,9 @@ export const Proposals = () => {
 	const [web3, eth] = useWeb3();
 	const ipfs = useContext(IpfsContext);
 
+	// When the user deploys a new proposal, this modal is used
+	const [, setModal] = useContext(ModalContext);
+
 	const pubProposal = (prop: AllProposalInformation) => {
 		const propData: GossipProposalInformation = {
 			dataIpfsAddr: prop.dataIpfsAddr,
@@ -25,12 +31,21 @@ export const Proposals = () => {
 		};
 
 		pub(propData);
+		setModal(null);
 	};
+
+	const newPropModalContent = (
+		<GeneralModal title="New Proposal">
+			<NewProposalPanel ipfs={ ipfs } web3={ web3 } eth={ eth } onSubmit={ pubProposal } parentAddr={ idea.addr } />
+		</GeneralModal>
+	);
 
 	return (
 		<div className={ `${dashStyles.infoContainers} ${styles.infoContainers}` }>
-			<ProposalsList proposals={ proposals } />
-			<NewProposalPanel ipfs={ ipfs } web3={ web3 } eth={ eth } onSubmit={ pubProposal } parentAddr={ idea.addr } />
+			<div className={ styles.prioritySplit }>
+				<ProposalsList proposals={ proposals } />
+			</div>
+			<FilledButton label="Create New Proposal" onClick={ () => setModal(newPropModalContent) } className={ styles.newPropButton } />
 		</div>
 	);
 };
