@@ -8,6 +8,7 @@ import { serialize } from "bson";
 
 export interface MultiTypeInputProps {
 	label?: string;
+	labelStyles?: string;
 	onChange?: (data: IdeaData[]) => void;
 }
 
@@ -20,7 +21,7 @@ interface PartialIdeaData {
  * A toggleable input that allows the user to input data of a variety of types.
  * Currently supported types are documented in lib/util/ipfs.ts
  */
-export const MultiTypeInput = ({ label = "", onChange }: MultiTypeInputProps) => {
+export const MultiTypeInput = ({ label = "", labelStyles, onChange }: MultiTypeInputProps) => {
 	const [data, setData] = useState<{ [kind: string]: PartialIdeaData }>({});
 	const [activeInput, setActiveInput] = useState<string>("");
 
@@ -105,7 +106,7 @@ export const MultiTypeInput = ({ label = "", onChange }: MultiTypeInputProps) =>
 
 	return (
 		<div>
-			<h2 className={ styles.inputLabel }>{ label }</h2>
+			<h2 className={ `${styles.inputLabel} ${labelStyles}` }>{ label }</h2>
 			<div className={ styles.inputItems }>
 				<OutlinedOptionSelector
 					options={ Object.keys(labelMeanings) }

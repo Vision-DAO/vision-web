@@ -20,6 +20,70 @@ export type IpfsClient = Awaited<ReturnType<typeof create>>;
 export const IpfsContext: React.Context<IpfsClient> = createContext(undefined);
 
 /**
+ * Available gossiped data about a proposal.
+ * Users shold manually load contract-related data. See
+ * ExtendedProposalInformation for that.
+ */
+export interface GossipProposalInformation {
+	/* Metadata attached to the proposal */
+	dataIpfsAddr: string,
+
+	/* The contract address of the proposal */
+	addr: string,
+}
+
+/**
+ * Ideas can be funded with new funds, or existing funds belonging to the
+ * controlling smart contract.
+ */
+export enum FundingKind {
+	Treasury,
+	Mint
+}
+
+/**
+ * Represents the details of how an Idea is funded.
+ */
+export interface FundingRate {
+	/* The token used for funding */
+	token: string;
+
+	/* The number of tokens left */
+	value: number;
+
+	/* How often the funds can be claimed */
+	interval: number;
+
+	/* When the funds expire */
+	expiry: Date;
+
+	/* When the funds were last claimed */
+	lastClaimed: Date;
+
+	/* Where the idea's funds should come from */
+	kind: FundingKind,
+}
+
+/* TODO: Display information regarding votes - counts, who voted for what */
+export interface ExtendedProposalInformation {
+	data: IdeaData[],
+
+	parentAddr: string;
+
+	/* The address of the thing being proposed */
+	destAddr: string;
+
+	rate: FundingRate;
+
+	/* When the proposal expires */
+	expiry: Date;
+}
+
+/* All available information from IPFS and smart contract storage about a
+ * Proposal */
+export type AllProposalInformation = GossipProposalInformation & ExtendedProposalInformation;
+
+/**
  * A global instance of the currently loaded, expanded idea that is guaranteed
  * to be loaded, if the child is rendered.
  */
@@ -212,6 +276,48 @@ export const useParents = (defaults?: Map<string, string[]>): [string[], (ideaAd
 
 		ipfs.pubsub.publish(networkIdeasTopic(connInfo), enc.encode(ideaAddr));
 	}];
+};
+
+/**
+ * Listens to the active proposals for an idea via IPFS, and generate a handler
+ * for publishing new proposals.
+ *
+ * TODO: Abstract Idea and Proposal pub/sub
+ */
+export const useProposals = (ideaAddr: string): [GossipProposalInformation[], (prop: GossipProposalInformation) => void] => {
+	const ipfs = useContext(IpfsContext);
+	const [proposals, setProposals] = useState<GossipProposalInformation[]>([]);
+
+	if (!ipfs)
+		return [[], () => ({})];
+
+	const handleProp = (msg: Message) => {
+		try {
+			const prop: GossipProposalInformation = deserialize(msg.data, { promoteBuffers: true }) as GossipProposalInformation;
+
+			if (proposals.includes(prop))
+				return;
+
+			// Append the proposal to the list of proposals
+			setProposals(proposals => [...proposals, prop]);
+		} catch (e) {
+			console.warn(e);
+		}
+	};
+
+	useEffect(() => {
+		ipfs.pubsub.subscribe(ideaAddr, handleProp);
+
+		return () => {
+			ipfs.pubsub.unsubscribe(ideaAddr, handleProp);
+		};
+	});
+
+	const pub = (prop: GossipProposalInformation) => {
+		ipfs.pubsub.publish(ideaAddr, serialize(prop));
+	};
+
+	return [proposals, pub];
 };
 
 /**

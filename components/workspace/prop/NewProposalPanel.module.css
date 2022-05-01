@@ -1,0 +1,49 @@
+.formContainer {
+	display: flex;
+
+	flex-flow: column nowrap;
+	justify-content: flex-start;
+	align-items: stretch;
+
+	overflow: auto;
+}
+
+.mediaInputLabel {
+	font-size: 1.125em;
+}
+
+.submitContainer {
+	flex-grow: 1;
+
+	display: flex;
+
+	flex-flow: column nowrap;
+
+	justify-content: flex-end;
+	align-items: stretch;
+}
+
+.submitButton {
+	margin-top: 2rem;
+
+	border-radius: 5px;
+}
+
+.formItem {
+	margin-top: 1rem;
+	margin-bottom: 1rem;
+	font-size: 1rem;
+}
+
+.formItemList {
+	display: flex;
+
+	flex-flow: row wrap;
+
+	justify-content: flex-start;
+	align-items: center;
+}
+
+.formItemList>*:not(:first-child) { 
+	margin-left: 2rem;
+}
