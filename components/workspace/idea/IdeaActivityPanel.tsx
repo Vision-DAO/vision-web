@@ -73,7 +73,7 @@ export const IdeaActivityPanel = ({ web3, idea }: { web3: Web3, idea: ExtendedId
 			<div className={ events ? styles.activityList : styles.loadingContainer }>
 				{ events ?
 					events.map((e) => {
-						return ActivityEntry(e);
+						return ActivityEntry({ key: e.label, ...e });
 					}) : <CircularProgress />
 				}
 			</div>

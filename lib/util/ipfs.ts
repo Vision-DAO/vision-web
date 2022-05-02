@@ -4,7 +4,7 @@ import { blobify } from "./blobify";
 import { createContext, useContext, useEffect, useState } from "react";
 import { useConnStatus, networkIdeasTopic, Network, explorers } from "./networks";
 import { Message } from "ipfs-core-types/src/pubsub";
-import { IdeaDetailProps, MarketMetrics, OnlyIdeaDetailProps, ExtendedIdeaInformation } from "../../components/workspace/IdeaDetailCard";
+import { MarketMetrics, OnlyIdeaDetailProps, ExtendedIdeaInformation } from "../../components/workspace/IdeaDetailCard";
 import { BasicIdeaInformation } from "../../components/workspace/IdeaBubble";
 import Idea from "../../value-tree/build/contracts/Idea.json";
 import Prop from "../../value-tree/build/contracts/Prop.json";
@@ -76,6 +76,8 @@ export interface ExtendedProposalInformation {
 
 	rate: FundingRate;
 
+	nVoters: number,
+
 	/* When the proposal expires */
 	expiry: Date;
 }
@@ -119,7 +121,14 @@ export interface IdeaData {
 	data: Uint8Array;
 }
 
-export type RawEthPropRate = [string, number, number, number, number, number];
+export type RawEthPropRate = {
+	token: string,
+	value: number,
+	intervalLength: number,
+	expiry: number,
+	lastClaimed: number,
+	kind: number
+};
 
 /**
  * Loads all information available about a proposal from IPFS and ethereum.
@@ -130,10 +139,10 @@ export const loadExtendedProposalInfo = async (ipfs: IpfsClient, network: Networ
 	// - on IPFS
 	// Load both
 	const contract = new w.eth.Contract(Prop.abi, prop.addr);
-	const data = await loadIdeaBinaryData(ipfs, prop.addr);
+	const data = await loadIdeaBinaryData(ipfs, await contract.methods.ipfsAddr().call());
 
 	// Ethereum stores structs as packed arrays. Further processing will be necessary
-	const [token, value, interval, expiry, lastClaimed, kind]: RawEthPropRate = await contract.methods.rate().call();
+	const { token, value, intervalLength: interval, expiry, lastClaimed, kind }: RawEthPropRate = await contract.methods.rate().call();
 	// Map ethereum-packed enum types to js enums
 	const fundingKinds = [FundingKind.Treasury, FundingKind.Mint];
 
@@ -152,6 +161,7 @@ export const loadExtendedProposalInfo = async (ipfs: IpfsClient, network: Networ
 		data,
 		parentAddr: await contract.methods.governed().call(),
 		destAddr: await contract.methods.toFund().call(),
+		nVoters: await contract.methods.nVoters().call(),
 
 		// Unix timestamps are / 10000
 		expiry: new Date(await contract.methods.expiresAt().call() * 1000),

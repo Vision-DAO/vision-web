@@ -22,7 +22,8 @@
 
 	transition: 0.3s;
 
-	overflow: hidden;
+	overflow: auto;
+	cursor: grab;
 }
 
 .hud {

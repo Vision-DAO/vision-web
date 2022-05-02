@@ -3,6 +3,7 @@ import { ReactElement } from "react";
 import SaveIcon from "@mui/icons-material/Save";
 import MoneyIcon from "@mui/icons-material/AttachMoney";
 import PriceCheckIcon from "@mui/icons-material/PriceCheck";
+import { OutlinedListEntry } from "../../../status/OutlinedListEntry";
 
 // Icons to render for each kind of event
 export const icons: { [kind: string]: ReactElement } = {
@@ -32,15 +33,15 @@ const formatTime12Hr = (time: Date): string => {
 /**
  * A row in the activity view for an Idea's about page.
  */
-export const ActivityEntry = ({ kind, label, timestamp }: { kind: string, label: string, timestamp: Date }) => {
+export const ActivityEntry = ({ key, kind, label, timestamp }: { key?: string, kind: string, label: string, timestamp: Date }) => {
 	return (
-		<div className={ styles.activityRow }>
+		<OutlinedListEntry key={ key }>
 			<div className= {styles.eventKindLabel }>
 				{ icons[kind] }
 				<p>{ properLabels[kind] }</p>
 			</div>
 			<p>&quot;{ label }&quot;</p>
 			<p>{ formatTime12Hr(timestamp) }</p>
-		</div>
+		</OutlinedListEntry>
 	);
 };

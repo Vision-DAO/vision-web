@@ -47,3 +47,21 @@
 .formItemList>*:not(:first-child) { 
 	margin-left: 2rem;
 }
+
+.dateUnitSelector {
+	margin-top: 1em;
+}
+
+.formLine {
+	display: flex;
+
+	flex-flow: row nowrap;
+
+	justify-content: space-between;
+	align-items: baseline;
+}
+
+.formLine>*:last-child {
+	flex-grow: 1;
+	margin-left: 1em;
+}

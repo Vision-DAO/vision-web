@@ -1,0 +1,42 @@
+.activityRow {
+	display: flex;
+
+	flex-flow: row nowrap;
+
+	justify-content: space-between;
+	align-items: center;
+
+	padding-top: 0.5rem;
+	padding-bottom: 0.5rem;
+
+	padding-left: 2rem;
+	padding-right: 2rem;
+
+	border: 0.5px solid rgba(255, 255, 255, 0.25);
+
+	background-color: #1D1D1D;
+
+	overflow: auto;
+}
+
+.activityRow.clickable {
+	cursor: pointer;
+}
+
+.inline {
+	border-radius: 0px;
+}
+
+.darkerBg {
+	background-color: #121212;
+}
+
+.roundedTop {
+	border-top-left-radius: 5px;
+	border-top-right-radius: 5px;
+}
+
+.roundedBottom {
+	border-bottom-left-radius: 5px;
+	border-bottom-right-radius: 5px;
+}

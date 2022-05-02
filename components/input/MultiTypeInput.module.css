@@ -18,3 +18,7 @@
 .inputItems>*:last-child {
 	margin-top: 1rem;
 }
+
+.inputItems>*:only-child {
+	margin-top: 0;
+}

@@ -10,6 +10,7 @@ export interface MultiTypeInputProps {
 	label?: string;
 	labelStyles?: string;
 	onChange?: (data: IdeaData[]) => void;
+	headless?: boolean;
 }
 
 interface PartialIdeaData {
@@ -21,7 +22,7 @@ interface PartialIdeaData {
  * A toggleable input that allows the user to input data of a variety of types.
  * Currently supported types are documented in lib/util/ipfs.ts
  */
-export const MultiTypeInput = ({ label = "", labelStyles, onChange }: MultiTypeInputProps) => {
+export const MultiTypeInput = ({ label = "", labelStyles, onChange, headless = false }: MultiTypeInputProps) => {
 	const [data, setData] = useState<{ [kind: string]: PartialIdeaData }>({});
 	const [activeInput, setActiveInput] = useState<string>("");
 
@@ -107,7 +108,7 @@ export const MultiTypeInput = ({ label = "", labelStyles, onChange }: MultiTypeI
 	return (
 		<div>
 			<h2 className={ `${styles.inputLabel} ${labelStyles}` }>{ label }</h2>
-			<div className={ styles.inputItems }>
+			<div className={ `${styles.inputItems} ${headless ? styles.headless : ""}` }>
 				<OutlinedOptionSelector
 					options={ Object.keys(labelMeanings) }
 					activeOptions={ new Set(Object.keys(labelMeanings).filter((inputType) => labelMeanings[inputType] in data && data[labelMeanings[inputType]] !== undefined)) }

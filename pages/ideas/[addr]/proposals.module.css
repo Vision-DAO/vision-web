@@ -6,6 +6,13 @@
 	align-items: stretch;
 }
 
+.infoContainers>*:first-child {
+	overflow: auto;
+	height: 100%;
+
+	margin-bottom: 1em;
+}
+
 .newPropButton {
 	border-radius: 5px;
 }

@@ -1,27 +1,31 @@
-import styles from "./IdeaDetailNavigatorLayout.module.css";
+import styles from "./DetailNavigatorLayout.module.css";
 import { useRouter } from "next/router";
 import BackIcon from "@mui/icons-material/ArrowBackIosRounded";
 import CircularProgress from "@mui/material/CircularProgress";
 import { ActiveIdeaContext, loadExtendedIdeaInfo, loadBasicIdeaInfo, IpfsContext } from "../../lib/util/ipfs";
-import { useConnStatus } from "../../lib/util/networks";
+import { IpfsClient } from "../../lib/util/ipfs";
+import { useConnStatus, ConnStatus } from "../../lib/util/networks";
 import { useWeb3 } from "../../lib/util/web3";
+import Web3 from "web3";
 import { ModalContext } from "../../lib/util/modal";
-import { ReactElement, useEffect, useContext } from "react";
+import { ReactElement, useEffect, useContext, Context } from "react";
 import { WarningMessage } from "../status/WarningMessage";
 
-// Names of subpages for an Idea -- how they should be rendered
-const pages = ["About", "Proposals", "Discussion", "Market"];
+export interface Detailable {
+	title?: string;
+	explorerURI?: string;
+}
 
 /**
- * See nextjs documentation on layouts: a wrapper for all pages on the Idea
+ * See nextjs documentation on layouts: a wrapper for all pages on an
  * info detail screen that ensures all rendered children have a loaded, cached
  * Idea context available.
  */
-export const IdeaDetailNavigatorLayout = ({ children }: { children: ReactElement }) => {
+export const DetailNavigatorLayout = <T extends Detailable,>({ title, pages, children, ctx, loader }: { title: string, pages: string[], children: ReactElement, ctx: Context<[T, (v: T) => void]>, loader: (ipfs: IpfsClient, web3: Web3, eth: any, conn: ConnStatus, addr: string) => Promise<T> }) => {
 	const router = useRouter();
 	const ipfs = useContext(IpfsContext);
-	const [connStatus, ,] = useConnStatus();
-	const [web3, ] = useWeb3();
+	const [conn,] = useConnStatus();
+	const [web3, eth] = useWeb3();
 
 	// The address of the currently loaded idea should be used as a temporary
 	// label, but will be replaced by the proper name of the idea
@@ -38,27 +42,22 @@ export const IdeaDetailNavigatorLayout = ({ children }: { children: ReactElement
 	else
 		addr = addrs;
 
-	const [ideaInfo, setIdeaInfo] = useContext(ActiveIdeaContext);
+	const [ideaInfo, setIdeaInfo] = useContext(ctx);
 	const [modal, ] = useContext(ModalContext);
 
 	useEffect(() => {
 		// A render hasn't even been triggered if the active idea is undefined
 		// Note: the ideaInfo should be set back to undefined after it is unloaded
 		if (ideaInfo === undefined) {
-			// TODO: Write a loader for this, retard
-			(async () => {
-				const basicInfo = await loadBasicIdeaInfo(ipfs, web3, addr);
+			setIdeaInfo(null);
 
-				if (!basicInfo)
-					return;
-
-				// Note for in the morning:
-				// - You were going to work on the idea detail pages, and finish
-				// the loader for the idea context
-				setIdeaInfo(null);
-
-				setIdeaInfo(await loadExtendedIdeaInfo(ipfs, connStatus.network, web3, basicInfo));
-			})();
+			loader(ipfs, web3, eth, conn, addr)
+				.then((v) => {
+					if (!v)
+						return;
+					
+					setIdeaInfo(v);
+				});
 		}
 	});
 
@@ -90,7 +89,7 @@ export const IdeaDetailNavigatorLayout = ({ children }: { children: ReactElement
 			<div className={ styles.navigationBarContainer }>
 				<BackIcon sx={{ color: "#5D5FEF", cursor: "pointer" }} fontSize="large" onClick={ () => { setIdeaInfo(undefined); router.back(); } } />
 				<h2>
-					<b>Idea: </b>
+					<b>{title}: </b>
 					<a href={ ideaURI } target="_blank" rel="noopener noreferrer">
 						{ ideaInfo && ideaInfo.title || addr }
 					</a>

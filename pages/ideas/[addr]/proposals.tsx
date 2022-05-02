@@ -4,12 +4,14 @@ import { GeneralModal } from "../../../components/status/GeneralModal";
 import { ActiveIdeaContext, useProposals, IpfsContext, AllProposalInformation, GossipProposalInformation } from "../../../lib/util/ipfs";
 import { useWeb3 } from "../../../lib/util/web3";
 import { ModalContext } from "../../../lib/util/modal";
-import { IdeaDetailNavigatorLayout } from "../../../components/workspace/IdeaDetailNavigatorLayout";
+import { DetailNavigatorLayout } from "../../../components/workspace/DetailNavigatorLayout";
 import { ProposalsList } from "../../../components/workspace/prop/ProposalsList";
 import { useContext, ReactElement } from "react";
 import { NewProposalPanel } from "../../../components/workspace/prop/NewProposalPanel";
 import dashStyles from "./about.module.css";
 import styles from "./proposals.module.css";
+import { useRouter } from "next/router";
+import { pages, loader } from "./module";
 
 /**
  * Renders a list of the current proposals active on IPFS.
@@ -20,6 +22,7 @@ export const Proposals = () => {
 	const [proposals, pub] = useProposals(idea.addr);
 	const [web3, eth] = useWeb3();
 	const ipfs = useContext(IpfsContext);
+	const router = useRouter();
 
 	// When the user deploys a new proposal, this modal is used
 	const [, setModal] = useContext(ModalContext);
@@ -42,9 +45,7 @@ export const Proposals = () => {
 
 	return (
 		<div className={ `${dashStyles.infoContainers} ${styles.infoContainers}` }>
-			<div className={ styles.prioritySplit }>
-				<ProposalsList proposals={ proposals } />
-			</div>
+			<ProposalsList ipfs={ ipfs } web3={ web3 } proposals={ proposals } onSelectProp={ ([addr,]) => router.push(`/proposals/${addr}/about`) } />
 			<FilledButton label="Create New Proposal" onClick={ () => setModal(newPropModalContent) } className={ styles.newPropButton } />
 		</div>
 	);
@@ -52,6 +53,6 @@ export const Proposals = () => {
 
 // Using a wrapper guarantees that access to the currently selected idea's
 // information will succeed
-Proposals.getLayout = (page: ReactElement) => <IdeaDetailNavigatorLayout>{ page }</IdeaDetailNavigatorLayout>;
+Proposals.getLayout = (page: ReactElement) => <DetailNavigatorLayout title="Idea" pages={ pages } loader={ loader } ctx={ ActiveIdeaContext }>{ page }</DetailNavigatorLayout>;
 
 export default Proposals;

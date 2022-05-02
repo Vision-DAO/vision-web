@@ -1,5 +1,5 @@
 import { ReactElement, useContext } from "react";
-import { IdeaDetailNavigatorLayout } from "../../../components/workspace/IdeaDetailNavigatorLayout";
+import { DetailNavigatorLayout } from "../../../components/workspace/DetailNavigatorLayout";
 import { IdeaInfoPanel } from "../../../components/workspace/idea/IdeaInfoPanel";
 import { IdeaVisualInfoWindow } from "../../../components/workspace/idea/IdeaVisualInfoWindow";
 import { IdeaActivityPanel } from "../../../components/workspace/idea/IdeaActivityPanel";
@@ -7,6 +7,7 @@ import { ExtendedIdeaInformation } from "../../../components/workspace/IdeaDetai
 import { ActiveIdeaContext } from "../../../lib/util/ipfs";
 import { useWeb3 } from "../../../lib/util/web3";
 import styles from "./about.module.css";
+import { pages, loader } from "./module";
 
 /**
  * A sub-navigation context that allows a user to view basic information about
@@ -31,6 +32,6 @@ export const About = () => {
 
 // Using a wrapper guarantees that access to the currently selected idea's
 // information will succeed
-About.getLayout = (page: ReactElement) => <IdeaDetailNavigatorLayout>{ page }</IdeaDetailNavigatorLayout>;
+About.getLayout = (page: ReactElement) => <DetailNavigatorLayout title="Idea" pages={ pages } loader={ loader } ctx={ ActiveIdeaContext }>{ page }</DetailNavigatorLayout>;
 
 export default About;

@@ -2,12 +2,15 @@ import { GossipProposalInformation, ExtendedProposalInformation, IpfsClient, loa
 import { isIdeaContract } from "../../../lib/util/discovery";
 import { staticProposals, useConnStatus } from "../../../lib/util/networks";
 import { useState, useEffect } from "react";
+import { ProposalLine } from "./ProposalLine";
+import { OutlinedListEntry } from "../../status/OutlinedListEntry";
+import styles from "./ProposalsList.module.css";
 import Web3 from "web3";
 
 /**
  * Renders a list of gossiped proposals.
  */
-export const ProposalsList = ({ web3, ipfs, proposals }: { web3: Web3, ipfs: IpfsClient, proposals: GossipProposalInformation[] }) => {
+export const ProposalsList = ({ web3, ipfs, proposals, onSelectProp }: { web3: Web3, ipfs: IpfsClient, proposals: GossipProposalInformation[], onSelectProp?: (addr: string, prop: ExtendedProposalInformation) => void }) => {
 	// Essentially Promise.all proposals
 	const [loaded, setLoaded] = useState<{ [prop: string]: ExtendedProposalInformation }>({});
 	const [blocked, setBlocked] = useState<Set<string>>(new Set());
@@ -59,10 +62,27 @@ export const ProposalsList = ({ web3, ipfs, proposals }: { web3: Web3, ipfs: Ipf
 		}
 	});
 
-	console.log(loaded);
+	const items = Object.entries(loaded);
 
 	return (
 		<div>
+			<OutlinedListEntry styles={{ className: styles.spacedList, roundTop: true, roundBottom: false, altColor: true }}>
+				<p><b>To Fund</b></p>
+				<p><b>Description</b></p>
+				<p><b>Total Votes</b></p>
+				<p><b>Status</b></p>
+				<p></p>
+			</OutlinedListEntry>
+			{
+				items.length > 0 ?
+					items
+						.map(([addr, prop], i) =>
+							<ProposalLine key={ addr } addr={ addr } prop={ prop } props={{ roundTop: false, roundBottom: i === items.length - 1 }} onExpand={ () => onSelectProp(addr, prop) } />
+						) :
+					<OutlinedListEntry styles={{ className: styles.spacedList, roundTop: false }}>
+						<p>No proposals found.</p>
+					</OutlinedListEntry>
+			}
 		</div>
 	);
 };

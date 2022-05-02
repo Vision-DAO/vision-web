@@ -1,0 +1,35 @@
+.rowLabelItem {
+	display: flex;
+
+	flex-flow: row nowrap;
+
+	justify-content: center;
+	align-items: center;
+}
+
+.rowLabelItem>*:first-child {
+	margin-right: 0.75em;
+}
+
+.expandIcon {
+	opacity: 1;
+
+	cursor: pointer;
+
+	transition: 0.3s;
+}
+
+.expandIcon:hover {
+	opacity: 0.7;
+}
+
+.expandButton {
+	display: flex;
+
+	justify-content: center;
+	align-items: center;
+}
+
+.labelDone {
+	color: #44BF39;
+}

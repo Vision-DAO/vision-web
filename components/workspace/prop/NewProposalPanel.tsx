@@ -15,11 +15,25 @@ import Web3 from "web3";
 const requiredFields = ["parentAddr", "destAddr", "rate", "expiry", "dataIpfsAddr", "data"];
 
 /**
+ * Inputs for expiry times are scaled to a unit of time.
+ */
+const timeMultipliers = {
+	"Days": 86400,
+	"Hours": 3600,
+	"Minutes": 60,
+	"Seconds": 1,
+};
+
+/**
  * A section of the proposals page that allows a user to deploy new proposals.
  */
 export const NewProposalPanel = ({ web3, eth, ipfs, parentAddr, onSubmit }: { web3: Web3, eth: any, ipfs: IpfsClient, parentAddr: string, onSubmit: (prop: AllProposalInformation) => void }) => {
 	const [statusMessage, setStatusMessage] = useState<string>("");
 	const [deploying, setDeploying] = useState<boolean>(false);
+
+	// The number of seconds to multiply the input by (e.g., days, hours, minutes)
+	const [timeMultiplier, setTimeMultiplier] = useState<number>(86400);
+	const [expiry, setParsedExpiry] = useState<number>(0);
 
 	// Default form values. ALL are required
 	const [propDetails, setPropDetails] = useState<AllProposalInformation>({
@@ -34,6 +48,7 @@ export const NewProposalPanel = ({ web3, eth, ipfs, parentAddr, onSubmit }: { we
 			lastClaimed: null,
 		},
 		expiry: null,
+		nVoters: 0,
 		dataIpfsAddr: "",
 		data: [],
 		addr: ""
@@ -51,11 +66,27 @@ export const NewProposalPanel = ({ web3, eth, ipfs, parentAddr, onSubmit }: { we
 	 */
 	const deployContract = async () => {
 		for (const key of requiredFields) {
+			if (key === "expiry") {
+				if (expiry === 0) {
+					setStatusMessage(() => "Invalid expiry date.");
+
+					return;
+				}
+
+				continue;
+			}
+
 			if (propDetails[key] === null || !propDetails[key]) {
 				setStatusMessage(() => "Missing required proposal fields.");
 
 				return;
 			}
+		}
+
+		if (propDetails.rate.kind === null) {
+			setStatusMessage(() => "Missing required proposal fields.");
+
+			return;
 		}
 
 		const contract = new web3.eth.Contract(Proposal.abi);
@@ -68,7 +99,7 @@ export const NewProposalPanel = ({ web3, eth, ipfs, parentAddr, onSubmit }: { we
 				propDetails.rate.token,
 				propDetails.rate.kind,
 				propDetails.dataIpfsAddr,
-				propDetails.expiry.getDay() - (new Date()).getDay(),
+				expiry * timeMultiplier,
 			]
 		})
 			.send({
@@ -117,15 +148,7 @@ export const NewProposalPanel = ({ web3, eth, ipfs, parentAddr, onSubmit }: { we
 			return;
 		}
 
-		const expiryDate = new Date();
-		expiryDate.setDate(expiryDate.getDate() + num);
-
-		setPropDetails(details => {
-			return {
-				...details,
-				expiry: expiryDate,
-			};
-		});
+		setParsedExpiry(num);
 	};
 
 	return (
@@ -139,9 +162,12 @@ export const NewProposalPanel = ({ web3, eth, ipfs, parentAddr, onSubmit }: { we
 					<h2>Funding Token (ERC20)</h2>
 					<UnderlinedInput placeholder="0xABCDEFG" startingValue="" onChange={ (token) => setPropDetails(details => { return {...details, rate: { ...details.rate, token: token }}; }) } />
 				</div>
-				<div className={ styles.formItem }>
-					<h2>Expires In (days)</h2>
+			</div>
+			<div className={ `${styles.formItem}` }>
+				<h2>Expires In</h2>
+				<div className={ styles.formLine }>
 					<UnderlinedInput placeholder="1" startingValue="" onChange={ setExpiry } />
+					<OutlinedOptionSelector options={ Object.keys(timeMultipliers) } onChange={ (unit) => { setTimeMultiplier(timeMultipliers[unit]); } } onClear={ () => setTimeMultiplier(1) } />
 				</div>
 			</div>
 			<div className={ styles.formItem }>
