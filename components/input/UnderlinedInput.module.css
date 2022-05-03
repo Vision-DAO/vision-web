@@ -17,6 +17,9 @@
 	font-family: "Roboto", "Helvetica Neue", sans-serif;
 
 	transition: 0.3s;
+
+	padding-left: 0;
+	padding-right: 0;
 }
 
 .underlinedInput:focus {

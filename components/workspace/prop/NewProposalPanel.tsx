@@ -12,7 +12,7 @@ import LinearProgress from "@mui/material/LinearProgress";
 import Web3 from "web3";
 
 // Fields that must not be null on submission
-const requiredFields = ["parentAddr", "destAddr", "rate", "expiry", "dataIpfsAddr", "data"];
+const requiredFields = ["title", "parentAddr", "destAddr", "rate", "expiry", "dataIpfsAddr", "data"];
 
 /**
  * Inputs for expiry times are scaled to a unit of time.
@@ -50,6 +50,7 @@ export const NewProposalPanel = ({ web3, eth, ipfs, parentAddr, onSubmit }: { we
 		expiry: null,
 		nVoters: 0,
 		dataIpfsAddr: "",
+		title: "",
 		data: [],
 		addr: ""
 	});
@@ -94,6 +95,7 @@ export const NewProposalPanel = ({ web3, eth, ipfs, parentAddr, onSubmit }: { we
 		contract.deploy({
 			data: Proposal.bytecode,
 			arguments: [
+				propDetails.title,
 				propDetails.parentAddr,
 				propDetails.destAddr,
 				propDetails.rate.token,
@@ -153,6 +155,10 @@ export const NewProposalPanel = ({ web3, eth, ipfs, parentAddr, onSubmit }: { we
 
 	return (
 		<div className={ styles.formContainer }>
+			<div className={ `${styles.formItem} ${styles.fullFormItem}` }>
+				<h1>Title</h1>
+				<UnderlinedInput placeholder="Give Jane Money for Lemons" startingValue="" onChange={ (val) => setPropDetails(details => { return {...details, title: val}; }) } />
+			</div>
 			<div className={ styles.formItemList }>
 				<div className={ styles.formItem }>
 					<h2>Contract to Fund</h2>

@@ -21,7 +21,7 @@ import NavPanel from "../components/workspace/nav/NavPanel";
 import { NavItem } from "../components/workspace/nav/NavItem";
 import { guttered } from "../components/workspace/nav/NavPanel.module.css";
 import { Web3Context, provideWeb3 } from "../lib/util/web3";
-import { IpfsContext, ActiveIdeaContext } from "../lib/util/ipfs";
+import { IpfsContext, ActiveIdeaContext, ActiveProposalContext } from "../lib/util/ipfs";
 import { ConnectionContext, provideConnStatus } from "../lib/util/networks";
 import { ModalContext } from "../lib/util/modal";
 
@@ -98,6 +98,7 @@ const App = ({ Component, pageProps }: AppPropsWithLayout) => {
 	// Multiple pages share info about the currently expanded idea (i.e., the
 	// idea on the second figma page)
 	const [activeIdea, setActiveIdea] = useState(undefined);
+	const [activeProposal, setActiveProposal] = useState(undefined);
 
 	// Keep the global IPFS intance up to date
 	const [ipfs, setIpfs] = useState(undefined);
@@ -181,26 +182,28 @@ const App = ({ Component, pageProps }: AppPropsWithLayout) => {
 						<IpfsContext.Provider value={ ipfs }>
 							<ConnectionContext.Provider value={ connStatus }>
 								<ActiveIdeaContext.Provider value={ [activeIdea, setActiveIdea] }>
-									<ModalContext.Provider value={ [modal, setModal] }>
-										<div className={ `${styles.app} ${styles.root}${hasModal ? (" " + styles.hidden) : ""}` }>
-											<div className={ styles.navPanel }>
-												<NavPanel
-													items={navItems}
-													onProfileClicked={(selfId: string) => router.push({
-														pathname: "/profile/[id]",
-														query: { id: selfId } }
-													)}
-													onSettingsActive={() => router.push("/settings")}
-													ctx={web3}
-												/>
+									<ActiveProposalContext.Provider value={ [activeProposal, setActiveProposal] }>
+										<ModalContext.Provider value={ [modal, setModal] }>
+											<div className={ `${styles.app} ${styles.root}${hasModal ? (" " + styles.hidden) : ""}` }>
+												<div className={ styles.navPanel }>
+													<NavPanel
+														items={navItems}
+														onProfileClicked={(selfId: string) => router.push({
+															pathname: "/profile/[id]",
+															query: { id: selfId } }
+														)}
+														onSettingsActive={() => router.push("/settings")}
+														ctx={web3}
+													/>
+												</div>
+												<div className={styles.workspace}>
+													<NetworkedWorkspace>
+														{ getLayout(<Component {...pageProps} />) }
+													</NetworkedWorkspace>
+												</div>
 											</div>
-											<div className={styles.workspace}>
-												<NetworkedWorkspace>
-													{ getLayout(<Component {...pageProps} />) }
-												</NetworkedWorkspace>
-											</div>
-										</div>
-									</ModalContext.Provider>
+										</ModalContext.Provider>
+									</ActiveProposalContext.Provider>
 								</ActiveIdeaContext.Provider>
 							</ConnectionContext.Provider>
 						</IpfsContext.Provider>

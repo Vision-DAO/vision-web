@@ -29,7 +29,7 @@ export const MetadataDisplayNode = ({ children }: { children: IdeaData }) => {
 
 		callback = () => {
 			setModal(
-				<GeneralModal title="Idea Description">
+				<GeneralModal title="Idea Text">
 					<p>{ decodeIdeaDataUTF8(children.data) }</p>
 				</GeneralModal>
 			);

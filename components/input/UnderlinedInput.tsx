@@ -6,7 +6,7 @@ import styles from "./UnderlinedInput.module.css";
  * optional placeholder text, and a grey/white underline, indicating focus
  * status.
  */
-export const UnderlinedInput = ({ placeholder = "", startingValue = "", multiline = false, onChange }: { placeholder?: string, startingValue?: string, multiline?: boolean, onChange?: (val: string) => void }) => {
+export const UnderlinedInput = ({ placeholder = "", startingValue = "", multiline = false, onChange, className = "" }: { placeholder?: string, startingValue?: string, multiline?: boolean, onChange?: (val: string) => void, className?: string }) => {
 	const [value, setValue] = useState(startingValue || "");
 	const [editing, setEditing] = useState(false);
 
@@ -19,7 +19,7 @@ export const UnderlinedInput = ({ placeholder = "", startingValue = "", multilin
 	};
 
 	const props = {
-		className: styles.underlinedInput,
+		className: styles.underlinedInput + (className ? ` ${className}` : ""),
 		value: value == "" && !editing ? placeholder : value,
 		onChange: onEdit,
 		onFocus: () => setEditing(true),

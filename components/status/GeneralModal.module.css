@@ -13,6 +13,11 @@
 	transition: 0.3s;
 
 	background-color: rgba(0, 0, 0, 0.9);
+
+	display: flex;
+
+	justify-content: center;
+	align-items: center;
 }
 
 .modalContainer.active {
@@ -20,6 +25,7 @@
 }
 
 .modalContent {
+	width: 80%;
 	margin: 10%;
 
 	border: 0.5px solid rgba(255, 255, 255, 0.25);

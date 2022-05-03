@@ -45,7 +45,7 @@ export const Proposals = () => {
 
 	return (
 		<div className={ `${dashStyles.infoContainers} ${styles.infoContainers}` }>
-			<ProposalsList ipfs={ ipfs } web3={ web3 } proposals={ proposals } onSelectProp={ ([addr,]) => router.push(`/proposals/${addr}/about`) } />
+			<ProposalsList ipfs={ ipfs } web3={ web3 } proposals={ proposals } onSelectProp={ (addr) => router.push(`/proposals/${addr}/about`) } />
 			<FilledButton label="Create New Proposal" onClick={ () => setModal(newPropModalContent) } className={ styles.newPropButton } />
 		</div>
 	);

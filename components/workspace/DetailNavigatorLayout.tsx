@@ -2,7 +2,7 @@ import styles from "./DetailNavigatorLayout.module.css";
 import { useRouter } from "next/router";
 import BackIcon from "@mui/icons-material/ArrowBackIosRounded";
 import CircularProgress from "@mui/material/CircularProgress";
-import { ActiveIdeaContext, loadExtendedIdeaInfo, loadBasicIdeaInfo, IpfsContext } from "../../lib/util/ipfs";
+import { IpfsContext } from "../../lib/util/ipfs";
 import { IpfsClient } from "../../lib/util/ipfs";
 import { useConnStatus, ConnStatus } from "../../lib/util/networks";
 import { useWeb3 } from "../../lib/util/web3";
@@ -64,7 +64,7 @@ export const DetailNavigatorLayout = <T extends Detailable,>({ title, pages, chi
 	// If IdeaInfo is undefined, a load hasn't even been attempted, which
 	// indicates that it could not be loaded for some reason, presumably because
 	// it is not a valid idea
-	let toRender: ReactElement = <WarningMessage title="Invalid Idea" message="The selected idea cannot be loaded. Check the address, or try again later." />;
+	let toRender: ReactElement = <WarningMessage title={`Invalid ${title}`} message={`The selected ${title.toLowerCase()} cannot be loaded. Check the address, or try again later.`} />;
 
 	if (ideaInfo === null) {
 		toRender = <CircularProgress />;

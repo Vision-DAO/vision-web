@@ -70,6 +70,7 @@ export interface ExtendedProposalInformation {
 	data: IdeaData[],
 
 	parentAddr: string;
+	title: string;
 
 	/* The address of the thing being proposed */
 	destAddr: string;
@@ -91,6 +92,12 @@ export type AllProposalInformation = GossipProposalInformation & ExtendedProposa
  * to be loaded, if the child is rendered.
  */
 export const ActiveIdeaContext: React.Context<[ExtendedIdeaInformation, (details: ExtendedIdeaInformation) => void]> = createContext(undefined);
+
+/**
+ * A global instance of the currently loaded, expanded proposal that is
+ * guaranteed to be loaded, i fthe child is rendered.
+ */
+export const ActiveProposalContext: React.Context<[ExtendedProposalInformation, (details: ExtendedProposalInformation) => void]> = createContext(undefined);
 
 /**
  * Types of data recognizable and renderable on the Vision UI.
@@ -162,6 +169,7 @@ export const loadExtendedProposalInfo = async (ipfs: IpfsClient, network: Networ
 		parentAddr: await contract.methods.governed().call(),
 		destAddr: await contract.methods.toFund().call(),
 		nVoters: await contract.methods.nVoters().call(),
+		title: await contract.methods.title().call(),
 
 		// Unix timestamps are / 10000
 		expiry: new Date(await contract.methods.expiresAt().call() * 1000),
