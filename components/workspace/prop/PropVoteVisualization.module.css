@@ -1,4 +1,125 @@
-.voteGraph {
+.voteGraphContainer {
 	height: 100%;
 	width: 100%;
+	margin-top: 3em;
+
+	display: flex;
+
+	flex-flow: row nowrap;
+
+	justify-content: space-between;
+	align-items: stretch;
+}
+
+.voteGraph {
+	display: flex;
+
+	height: 100%;
+	width: 100%;
+
+	flex-flow: row nowrap;
+
+	justify-content: center;
+	align-items: stretch;
+}
+
+.voteGraph>* {
+	flex: 1 1 0;
+}
+
+.voteGraph>*:not(:first-child) {
+	margin-left: 1em;
+}
+
+.barChart {
+	display: flex;
+
+	flex-flow: row nowrap;
+
+	justify-content: flex-start;
+	align-items: flex-end;
+
+	height: 100%;
+}
+
+.barChart>* {
+	flex-grow: 1;
+
+	background: linear-gradient(180deg, rgba(93,95,239,1) 18%, rgba(93,95,239,0.5) 100%);
+	opacity: 0.7;
+
+	border-top-right-radius: 5px;
+	border-top-left-radius: 5px;
+
+	border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+
+	transition: 0.3s;
+	cursor: pointer;
+}
+
+.barChart>*:hover {
+	opacity: 1;
+}
+
+.graphYLabels p {
+	padding: 0;
+	margin: 0;
+
+	opacity: 0.7;
+
+	transition: 0.3s;
+}
+
+.graphYLabels p:hover {
+	opacity: 1;
+}
+
+.graphYLabels {
+	display: flex;
+
+	flex-flow: column nowrap;
+	justify-content: space-between;
+	align-items: flex-end;
+
+	margin-right: 0.5em;
+
+	font-size: 1.25rem;
+}
+
+.graphYText {
+	flex: none;
+	display: flex;
+
+	flex-flow: row nowrap;
+
+	justify-content: space-between;
+	align-items: stretch;
+}
+
+.yAxisTitle {
+	writing-mode: sideways-lr;
+	text-align: center;
+
+	padding: 0;
+	margin: 0;
+}
+
+.titledBarChart {
+	display: flex;
+
+	flex-flow: column nowrap;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.titledBarChart p {
+	margin: 0;
+	padding: 0;
+}
+
+.titledBarChart .barChart {
+	flex-grow: 1;
+	width: 100%;
+
+	margin-bottom: 0.5em;
 }

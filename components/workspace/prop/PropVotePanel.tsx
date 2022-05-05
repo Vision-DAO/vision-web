@@ -209,13 +209,13 @@ export const PropVotePanel = ({ prop, web3, eth }: { prop: ExtendedProposalInfor
 		// Serialize structured JS data to an intermediary ABI format
 		const rawRate: RawEthPropRate = {
 			token: prop.rate.token,
-			value: Math.floor(rate.value * (10 ** fundingTokenDecimals)),
-			intervalLength: rate.interval * intervalMultiplier,
+			value: Math.floor(rate.value * (10 ** fundingTokenDecimals)).toString(0),
+			intervalLength: (rate.interval * intervalMultiplier).toString(),
 
 			// Convert Date to a unix timestamp
-			expiry: Math.floor(rate.expiry.getTime() / 1000),
-			lastClaimed: Math.floor(prop.rate.lastClaimed.getTime() / 1000),
-			kind: prop.rate.kind,
+			expiry: (Math.floor(rate.expiry.getTime() / 1000)).toString(),
+			lastClaimed: (Math.floor(prop.rate.lastClaimed.getTime() / 1000)).toString(),
+			kind: (prop.rate.kind as number).toString(),
 		};
 
 		// Use the first available ethereum account for all transactions

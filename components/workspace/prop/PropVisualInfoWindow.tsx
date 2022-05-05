@@ -4,6 +4,7 @@ import { ImageRounded, InfoRounded } from "@mui/icons-material";
 import { IdeaMetadataDisplay } from "../idea/prevwindow/IdeaMetadataDisplay";
 import { PropVoteVisualization } from "./PropVoteVisualization";
 import { useState, useEffect } from "react";
+import { AbiItem } from "web3-utils";
 import Web3 from "web3";
 
 /**
@@ -13,9 +14,12 @@ import Web3 from "web3";
 export const PropVisualInfoWindow = ({ prop, web3 }: { prop: ExtendedProposalInformation, web3: Web3 }) => {
 	const [votes, setVotes] = useState<ProposalVote[]>(undefined);
 
+	// Decimals are needed to show non-gigantic (wei) token values
+	const [tokenDecimals, setTokenDecimals] = useState<number>(undefined);
+
 	const availableViews = {
 		"Info": {
-			content: <PropVoteVisualization votes={ votes } />,
+			content: <PropVoteVisualization decimals={ tokenDecimals ?? 0 } votes={ votes } />,
 			navIcon: <InfoRounded fontSize="large" />,
 		},
 		"Details": {
@@ -24,7 +28,32 @@ export const PropVisualInfoWindow = ({ prop, web3 }: { prop: ExtendedProposalInf
 		},
 	};
 
+	// We only need the number of decimals for the token funding the proposal
+	// TODO: Abstract this ABI out, since it's being reused a lot
+	const erc20Abi: AbiItem[] = [
+		{
+			"constant": true,
+			"inputs": [],
+			"name": "decimals",
+			"outputs": [
+				{ "name": "", "type": "uint8" }
+			],
+			"payable": false,
+			"stateMutability": "view",
+			"type": "function"
+		},
+	];
+
 	useEffect(() => {
+		if (tokenDecimals === undefined) {
+			setTokenDecimals(0);
+
+			(async () => {
+				const tokenContract = new web3.eth.Contract(erc20Abi, prop.rate.token);
+				setTokenDecimals(await tokenContract.methods.decimals().call());
+			})();
+		}
+
 		if (votes === undefined) {
 			setVotes([]);
 
