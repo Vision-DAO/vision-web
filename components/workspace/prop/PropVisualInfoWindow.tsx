@@ -42,8 +42,6 @@ export const PropVisualInfoWindow = ({ prop, web3 }: { prop: ExtendedProposalInf
 				if (!votes)
 					return;
 
-				console.log(voters, votes);
-
 				setVotes(votes);
 			})();
 		}

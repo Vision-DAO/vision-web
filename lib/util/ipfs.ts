@@ -143,16 +143,16 @@ export interface IdeaData {
 
 export type RawEthPropRate = {
 	token: string,
-	value: number,
-	intervalLength: number,
-	expiry: number,
-	lastClaimed: number,
-	kind: number
+	value: string,
+	intervalLength: string,
+	expiry: string,
+	lastClaimed: string,
+	kind: string
 };
 
 export type RawEthPropVote = {
 	rate: RawEthPropRate,
-	votes: number,
+	votes: string,
 };
 
 // Map ethereum-packed enum types to js enums
@@ -170,14 +170,17 @@ export const loadExtendedProposalInfo = async (ipfs: IpfsClient, network: Networ
 	const data = await loadIdeaBinaryData(ipfs, await contract.methods.ipfsAddr().call());
 
 	// Ethereum stores structs as packed arrays. Further processing will be necessary
-	const { token, value, intervalLength: interval, expiry, lastClaimed, kind }: RawEthPropRate = await contract.methods.rate().call();
+	const nVoters = await contract.methods.nVoters().call();
+
+	// Calculate the final rate, or the null rate, depending on if any users voted
+	const { token, value, intervalLength: interval, expiry, lastClaimed, kind }: RawEthPropRate = nVoters > 0 ? await contract.methods.finalFundsRate().call() : await contract.methods.rate().call();
 
 	const rate: FundingRate = {
 		token,
-		value,
-		interval,
-		expiry: new Date(expiry * 1000),
-		lastClaimed: new Date(lastClaimed * 1000),
+		value: parseInt(value) || 0,
+		interval: parseInt(interval) || 0,
+		expiry: new Date(parseInt(expiry) || 0 * 1000),
+		lastClaimed: new Date(parseInt(lastClaimed) || 0 * 1000),
 
 		// Enums are represented as indices in Ethereum
 		kind: fundingKinds[kind],
@@ -188,7 +191,7 @@ export const loadExtendedProposalInfo = async (ipfs: IpfsClient, network: Networ
 		address: prop.addr,
 		parentAddr: await contract.methods.governed().call(),
 		destAddr: await contract.methods.toFund().call(),
-		nVoters: await contract.methods.nVoters().call(),
+		nVoters,
 		title: await contract.methods.title().call(),
 
 		// Unix timestamps are / 10000
@@ -225,13 +228,13 @@ export const loadProposalVote = async (web3: Web3, propAddr: string, voterAddr: 
 		return {
 			contents: {
 				token: rawVote.rate.token,
-				value: rawVote.rate.value,
-				interval: rawVote.rate.intervalLength,
-				expiry: new Date(rawVote.rate.expiry * 1000),
-				lastClaimed: new Date(rawVote.rate.lastClaimed * 1000),
-				kind: fundingKinds[rawVote.rate.kind],
+				value: parseInt(rawVote.rate.value) || 0,
+				interval: parseInt(rawVote.rate.intervalLength) || 0,
+				expiry: new Date(parseInt(rawVote.rate.expiry) || 0 * 1000),
+				lastClaimed: new Date(parseInt(rawVote.rate.lastClaimed) || 0 * 1000),
+				kind: fundingKinds[parseInt(rawVote.rate.kind) || 0],
 			},
-			weight: rawVote.votes,
+			weight: parseInt(rawVote.votes) || 0,
 		};
 	} catch (e) {
 		console.warn(e);

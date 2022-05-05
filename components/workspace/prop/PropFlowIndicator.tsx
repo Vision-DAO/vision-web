@@ -140,7 +140,7 @@ export const PropFlowIndicator = ({ prop, dest, web3, ipfs, conn }: { prop: Exte
 			<div className={ styles.flowValue }>
 				<div className={ styles.flowValueText }>
 					<CurrencyExchange />
-					<a href={ tokenInfo ? tokenInfo.url : "" }>{ formatBig(prop.rate.value / (tokenInfo ? 10 ** tokenInfo.decimals : 10 ** 18)) }<b>{ tokenInfo ? ` ${tokenInfo.ticker}` : "" }</b></a>
+					<a href={ tokenInfo ? tokenInfo.url : "" }>{ formatBig(prop.rate.value / (tokenInfo ? 10 ** tokenInfo.decimals : 10 ** 18), 2) }<b>{ tokenInfo ? ` ${tokenInfo.ticker}` : "" }</b></a>
 				</div>
 				<div ref={ arrowContainer } className={ styles.arrow }>
 					<ArrowRight ref={ arrow } sx={{ color: "#5D5FEF", opacity: 0.8 }} fontSize="large" />

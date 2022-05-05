@@ -22,7 +22,7 @@ export const staticIdeas: Map<string, string[]> = new Map([
 	["ethereum", [] as string[]],
 	["polygon", [] as string[]],
 	["polygon-test", [
-		"0x260e86004964E444b4eEe7Eb69F734DD3C9bE383",
+		"0x5c1E65dec0d758c38c7960b103001092dB64432f",
 	]],
 ]);
 

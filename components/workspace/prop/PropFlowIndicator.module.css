@@ -11,6 +11,8 @@
 
 	justify-content: space-between;
 	align-items: center;
+
+	max-width: 100%;
 }
 
 .flowIndicatorContainer p {
@@ -46,6 +48,14 @@
 	flex-flow: row nowrap;
 	justify-content: center;
 	align-items: center;
+
+	overflow: hidden;
+}
+
+.flowAddr>a {
+	text-overflow: ellipsis;
+	overflow: hidden;
+	white-space: nowrap;
 }
 
 .flowAddr>*:first-child:not(:only-child) {
@@ -62,6 +72,11 @@
 	flex-grow: 1;
 
 	transition: 0.3s;
+
+	margin-right: 1em;
+	margin-left: 1em;
+
+	white-space: nowrap;
 }
 
 .flowValue>.arrow {
