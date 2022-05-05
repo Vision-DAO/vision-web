@@ -1,0 +1,65 @@
+.infoContainer {
+	height: 100%;
+
+	display: flex;
+
+	flex-flow: column nowrap;
+
+	justify-content: space-between;
+	align-items: stretch;
+
+	overflow: clip;
+}
+
+.propDescription {
+	overflow: auto;
+}
+
+.basicText {
+	border-bottom: solid 0.5px rgba(255, 255, 255, 0.25);
+
+	height: 100%;
+
+	flex-shrink: 1;
+
+	overflow: auto;
+
+	margin-bottom: 0.75em;
+}
+
+.metricList {
+	display: flex;
+
+	flex-flow: column nowrap;
+
+	justify-content: flex-start;
+	align-items: stretch;
+
+	margin-bottom: 0.75em;
+}
+
+.metricLine {
+	display: flex;
+
+	flex-flow: row nowrap;
+
+	justify-content: space-between;
+	align-items: center;
+
+	opacity: 0.7;
+
+	transition: 0.3s;
+}
+
+.metricLine:hover {
+	opacity: 1;
+}
+
+.metricList>*:not(:first-child):not(:last-child) {
+	margin-top: 0.125em;
+	margin-bottom: 0.125em;
+}
+
+.metricLine>p {
+	margin: 0;
+}

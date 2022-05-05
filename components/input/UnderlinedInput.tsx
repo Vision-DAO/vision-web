@@ -1,4 +1,4 @@
-import { useState, ChangeEvent } from "react";
+import { useState, ChangeEvent, MouseEvent } from "react";
 import styles from "./UnderlinedInput.module.css";
 
 /**
@@ -6,7 +6,7 @@ import styles from "./UnderlinedInput.module.css";
  * optional placeholder text, and a grey/white underline, indicating focus
  * status.
  */
-export const UnderlinedInput = ({ placeholder = "", startingValue = "", multiline = false, onChange, className = "" }: { placeholder?: string, startingValue?: string, multiline?: boolean, onChange?: (val: string) => void, className?: string }) => {
+export const UnderlinedInput = ({ placeholder = "", startingValue = "", multiline = false, onChange, onClick, className = "" }: { placeholder?: string, startingValue?: string, multiline?: boolean, onChange?: (val: string) => void, onClick?: (e: MouseEvent<HTMLInputElement | HTMLTextAreaElement>) => void, className?: string }) => {
 	const [value, setValue] = useState(startingValue || "");
 	const [editing, setEditing] = useState(false);
 
@@ -35,6 +35,7 @@ export const UnderlinedInput = ({ placeholder = "", startingValue = "", multilin
 
 	return (
 		<input
+			onClick={ onClick }
 			{ ...props }
 		/>
 	);

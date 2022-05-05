@@ -7,7 +7,7 @@
 
 	flex-flow: column nowrap;
 
-	justify-content: flex-start;
+	justify-content: space-between;
 	align-items: stretch;
 
 	overflow: clip;

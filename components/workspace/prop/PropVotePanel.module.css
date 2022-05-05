@@ -1,0 +1,89 @@
+.votePanelContainer {
+	margin-top: 2em;
+
+	background-color: #1D1D1D;
+
+	border: 0.5px solid rgba(255, 255, 255, 0.25);
+	border-radius: 5px;
+
+	padding-left: 2em;
+	padding-right: 2em;
+
+	padding-bottom: 1.5em;
+	padding-top: 1.5em;
+
+	display: flex;
+
+	flex-flow: column nowrap;
+	justify-content: center;
+	align-items: stretch;
+}
+
+.votePanelSlider {
+	padding-left: 1em;
+	padding-right: 1em;
+}
+
+.votePanelSlider span {
+	color: white;
+	font-weight: bold;
+}
+
+.votePanelSlider .sliderThumb.MuiSlider-thumb {
+	background-color: #5D5FEF;
+}
+
+.votePanelTextLine {
+	display: flex;
+
+	flex-flow: row nowrap;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.panelHeader {
+	display: flex;
+
+	flex-flow: row nowrap;
+	justify-content: flex-start;
+	align-items: baseline;
+}
+
+.panelHeader>*:first-child {
+	margin-right: 0.5em;
+	cursor: pointer;
+
+	transition: 0.3s;
+}
+
+.panelHeader h2 {
+	margin: 0;
+}
+
+.contentContainer {
+	height: 0;
+	opacity: 0;
+
+	transition: 0.3s;
+
+	overflow-x: visible;
+}
+
+.contentContainer.expanded {
+	opacity: 1;
+	height: auto;
+	max-height: 100%;
+}
+
+.fullWidthInput {
+	width: 100%;
+}
+
+.multiChildItem {
+	display: flex;
+
+	flex-flow: row nowrap;
+
+	justify-content: flex-start;
+	align-items: center;
+}

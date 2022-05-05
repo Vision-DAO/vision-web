@@ -18,11 +18,11 @@ import styles from "./index.module.css";
  * Ideas deployed by Vision eco for different networks.
  * Bootstraps for subsequent children.
  */
-const staticIdeas: Map<string, string[]> = new Map([
+export const staticIdeas: Map<string, string[]> = new Map([
 	["ethereum", [] as string[]],
 	["polygon", [] as string[]],
 	["polygon-test", [
-		"0xCFdD15C82D491ff8D69Ba698DfaA105ff3DbC8C9",
+		"0x260e86004964E444b4eEe7Eb69F734DD3C9bE383",
 	]],
 ]);
 

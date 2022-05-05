@@ -3,6 +3,7 @@ import { ReactElement } from "react";
 import SaveIcon from "@mui/icons-material/Save";
 import MoneyIcon from "@mui/icons-material/AttachMoney";
 import PriceCheckIcon from "@mui/icons-material/PriceCheck";
+import CampaignRoundedIcon from "@mui/icons-material/CampaignRounded";
 import { OutlinedListEntry } from "../../../status/OutlinedListEntry";
 
 // Icons to render for each kind of event
@@ -10,12 +11,14 @@ export const icons: { [kind: string]: ReactElement } = {
 	"IdeaRecorded": <SaveIcon fontSize="large" sx={{ opacity: 0.7, zIndex: 1 }} />,
 	"IdeaFunded": <MoneyIcon fontSize="large" sx={{ opacity: 0.7, zIndex: 1 }} />,
 	"FundingDispersed": <PriceCheckIcon fontSize="large" sx={{ opacity: 0.7, zIndex: 1 }} />,
+	"NewProposal": <CampaignRoundedIcon fontSize="large" sx={{ opacity: 0.7, zIndex: 1 }} />,
 };
 
 const properLabels = {
 	"IdeaRecorded": "Idea Recorded",
 	"IdeaFunded": "Idea Funded",
 	"FundingDispersed": "Funding Dispersed",
+	"NewProposal": "New Proposal",
 };
 
 export interface ActivityEntryProps {
@@ -27,7 +30,7 @@ export interface ActivityEntryProps {
 const formatTime12Hr = (time: Date): string => {
 	const hoursPast = time.getHours() % 12;
 
-	return `${hoursPast === 0 ? 12 : hoursPast}:${time.getMinutes()} ${time.getHours() < 12 ? "AM" : "PM"}`;
+	return `${hoursPast === 0 ? 12 : hoursPast}:${time.getMinutes() < 10 ? ("0" + time.getMinutes()) : time.getMinutes()} ${time.getHours() < 12 ? "AM" : "PM"}`;
 };
 
 /**

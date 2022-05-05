@@ -172,6 +172,7 @@ export const NavPanel = ({ items, onProfileClicked, ctx }: NavProps) => {
 			<ul className={styles.navItems}>
 				{ items.map((item, i) => <li key={i}>{ item }</li>) }
 			</ul>
+			<img className={ styles.logo } src="/Vision_Eye_Transparent.png" />
 		</div>
 	);
 };

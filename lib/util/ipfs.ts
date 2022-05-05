@@ -69,6 +69,8 @@ export interface FundingRate {
 export interface ExtendedProposalInformation {
 	data: IdeaData[],
 
+	address: string;
+
 	parentAddr: string;
 	title: string;
 
@@ -81,6 +83,17 @@ export interface ExtendedProposalInformation {
 
 	/* When the proposal expires */
 	expiry: Date;
+}
+
+/**
+ * A parsed vote for a proposal.
+ */
+export interface ProposalVote {
+	/* The voter's decision */
+	contents: FundingRate,
+
+	/* The nmber of tokens committed to this voted value */
+	weight: number,
 }
 
 /* All available information from IPFS and smart contract storage about a
@@ -137,6 +150,14 @@ export type RawEthPropRate = {
 	kind: number
 };
 
+export type RawEthPropVote = {
+	rate: RawEthPropRate,
+	votes: number,
+};
+
+// Map ethereum-packed enum types to js enums
+const fundingKinds = [FundingKind.Treasury, FundingKind.Mint];
+
 /**
  * Loads all information available about a proposal from IPFS and ethereum.
  */
@@ -150,8 +171,6 @@ export const loadExtendedProposalInfo = async (ipfs: IpfsClient, network: Networ
 
 	// Ethereum stores structs as packed arrays. Further processing will be necessary
 	const { token, value, intervalLength: interval, expiry, lastClaimed, kind }: RawEthPropRate = await contract.methods.rate().call();
-	// Map ethereum-packed enum types to js enums
-	const fundingKinds = [FundingKind.Treasury, FundingKind.Mint];
 
 	const rate: FundingRate = {
 		token,
@@ -166,6 +185,7 @@ export const loadExtendedProposalInfo = async (ipfs: IpfsClient, network: Networ
 
 	return {
 		data,
+		address: prop.addr,
 		parentAddr: await contract.methods.governed().call(),
 		destAddr: await contract.methods.toFund().call(),
 		nVoters: await contract.methods.nVoters().call(),
@@ -176,6 +196,48 @@ export const loadExtendedProposalInfo = async (ipfs: IpfsClient, network: Networ
 
 		rate,
 	};
+};
+
+/**
+ * Gets all of the addresses that voted on a proposal.
+ */
+export const loadAllProposalVoters = async (web3: Web3, propAddr: string): Promise<string[]> => {
+	const contract = new web3.eth.Contract(Prop.abi, propAddr);
+	const nVoters = parseInt(await contract.methods.nVoters().call());
+
+	// Collect all addresses that voted
+	return await Promise.all(Array.from(Array(nVoters).keys()).map((i: number) => contract.methods.voters(i).call()));
+};
+
+/**
+ * Loads and parses a vote for a voter for a proposal, or returns NULL if no such
+ * vote exists.
+ */
+export const loadProposalVote = async (web3: Web3, propAddr: string, voterAddr: string): Promise<ProposalVote> => {
+	const contract = new web3.eth.Contract(Prop.abi, propAddr);
+
+	try {
+		const rawVote: RawEthPropVote = await contract.methods.refunds().call(voterAddr);
+
+		if (!rawVote)
+			return null;
+
+		return {
+			contents: {
+				token: rawVote.rate.token,
+				value: rawVote.rate.value,
+				interval: rawVote.rate.intervalLength,
+				expiry: new Date(rawVote.rate.expiry * 1000),
+				lastClaimed: new Date(rawVote.rate.lastClaimed * 1000),
+				kind: fundingKinds[rawVote.rate.kind],
+			},
+			weight: rawVote.votes,
+		};
+	} catch (e) {
+		console.warn(e);
+
+		return null;
+	}
 };
 
 /**

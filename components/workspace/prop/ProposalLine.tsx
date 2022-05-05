@@ -6,7 +6,7 @@ import FullscreenRoundedIcon from "@mui/icons-material/FullscreenRounded";
 import styles from "./ProposalLine.module.css";
 import { useConnStatus, explorers } from "../../../lib/util/networks";
 
-const formatDate = (d: Date): string => `${d.getMonth() + 1}/${d.getDay() + 1}/${d.getFullYear()}`;
+export const formatDate = (d: Date): string => `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
 
 /**
  * Renders the following information about a proposal on a line, with a callback

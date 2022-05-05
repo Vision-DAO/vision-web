@@ -1,0 +1,87 @@
+.flowIndicatorContainer a {
+	color: white;
+	text-decoration: none;
+	border-bottom: 2px solid #5D5FEF;
+}
+
+.flowIndicatorContainer {
+	display: flex;
+
+	flex-flow: row nowrap;
+
+	justify-content: space-between;
+	align-items: center;
+}
+
+.flowIndicatorContainer p {
+	padding: 0;
+	margin: 0;
+}
+
+.arrow {
+	flex-grow: 1;
+
+	display: flex;
+
+	justify-content: center;
+	align-items: center;
+}
+
+.arrow>* {
+	width: 100%;
+}
+
+.flowAddr {
+	border-radius: 5px;
+	background-color: #1D1D1D;
+
+	padding-top: 0.75em;
+	padding-bottom: 0.75em;
+
+	padding-left: 1em;
+	padding-right: 1em;
+
+	display: flex;
+
+	flex-flow: row nowrap;
+	justify-content: center;
+	align-items: center;
+}
+
+.flowAddr>*:first-child:not(:only-child) {
+	margin-right: 0.6em;
+}
+
+.flowValue {
+	display: flex;
+	
+	flex-flow: column nowrap;
+	justify-content: center;
+	align-items: center;
+
+	flex-grow: 1;
+
+	transition: 0.3s;
+}
+
+.flowValue>.arrow {
+	width: 100%;
+
+	transition: 0.3s;
+}
+
+.flowValue:hover {
+	opacity: 1;
+}
+
+.flowValueText {
+	display: flex;
+
+	flex-flow: row nowrap;
+	justify-content: center;
+	align-items: center;
+}
+
+.flowValueText>*:first-child {
+	margin-right: 0.5em;
+}
