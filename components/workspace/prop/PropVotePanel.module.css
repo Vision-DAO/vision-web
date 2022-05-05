@@ -67,6 +67,7 @@
 	transition: 0.3s;
 
 	overflow-x: visible;
+	overflow-y: clip;
 }
 
 .contentContainer.expanded {
@@ -85,9 +86,92 @@
 	flex-flow: row nowrap;
 
 	justify-content: flex-start;
-	align-items: center;
+	align-items: stretch;
+}
+
+.multiChildItem>*:not(:last-child) {
+	margin-right: 2em;
 }
 
 .datePicker {
 	color: black;
+}
+
+.intervalPicker {
+	display: flex;
+
+	flex-flow: row nowrap;
+
+	justify-content: flex-start;
+	align-items: flex-end;
+}
+
+.intervalPicker>*:not(:last-child) {
+	margin-right: 0.5em;
+}
+
+.votePanelItem {
+	display: flex;
+
+	flex-flow: column nowrap;
+
+	justify-content: space-between;
+	align-items: stretch;
+}
+
+.submitButton {
+	margin-top: 2em;
+
+	border-radius: 5px;
+}
+
+.invisibleBody {
+	height: 0;
+	opacity: 0;
+
+	transition: 0.3s;
+}
+
+.visibleBody {
+	height: auto;
+	opacity: 1;
+
+	transition: 0.3s;
+}
+
+.confirmationDialogContainer {
+	display: flex;
+
+	flex-flow: column nowrap;
+
+	justify-content: center;
+	align-items: center;
+
+	opacity: 0;
+	height: 0;
+
+	transition: 0.3s;
+}
+
+.confirmationDialogContainer .submitButton {
+	align-self: stretch;
+}
+
+.confirmationDialogContainer.visible {
+	opacity: 1;
+	height: auto;
+
+	transition: 0.3s;
+}
+
+.confirmationDialogContainer svg {
+	font-size: 8rem;
+}
+
+.confirmationDialogContainer>*:not(:last-child) {
+	padding: 0;
+	margin: 0;
+
+	margin-top: 0.5rem;
+	margin-bottom: 0.5rem;
 }

@@ -69,3 +69,7 @@
 .fullFormItem {
 	align-self: stretch;
 }
+
+.fullWidthInput {
+	width: 100%;
+}

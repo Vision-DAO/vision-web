@@ -39,6 +39,7 @@ export const NewProposalPanel = ({ web3, eth, ipfs, parentAddr, onSubmit }: { we
 	const [propDetails, setPropDetails] = useState<AllProposalInformation>({
 		parentAddr,
 		destAddr: "",
+		address: "",
 		rate: {
 			token: "",
 			value: 0,
@@ -157,7 +158,7 @@ export const NewProposalPanel = ({ web3, eth, ipfs, parentAddr, onSubmit }: { we
 		<div className={ styles.formContainer }>
 			<div className={ `${styles.formItem} ${styles.fullFormItem}` }>
 				<h1>Title</h1>
-				<UnderlinedInput placeholder="Give Jane Money for Lemons" startingValue="" onChange={ (val) => setPropDetails(details => { return {...details, title: val}; }) } />
+				<UnderlinedInput className={ styles.fullWidthInput } placeholder="Give Jane Money for Lemons" startingValue="" onChange={ (val) => setPropDetails(details => { return {...details, title: val}; }) } />
 			</div>
 			<div className={ styles.formItemList }>
 				<div className={ styles.formItem }>
