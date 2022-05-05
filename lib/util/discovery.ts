@@ -2,6 +2,9 @@ import { usePublicRecord, ViewerRecord } from "@self.id/framework";
 import { DefinitionContentType } from "@glazed/did-datastore";
 import { CoreModelTypes } from "@self.id/core";
 import { useState, useEffect } from "react";
+import { staticIdeas } from "../../pages/index";
+import { ConnStatus } from "./networks";
+import Idea from "../../value-tree/build/contracts/Idea.json";
 import Web3 from "web3";
 
 /**
@@ -9,6 +12,23 @@ import Web3 from "web3";
  * crypto accounts.
  */
 export type CryptoAccountsRecord = ViewerRecord<DefinitionContentType<CoreModelTypes, "cryptoAccounts">>;
+
+/**
+ * Gets the name of an idea, or its address if it isn't an Idea.
+ */
+export const resolveIdeaName = async (web3: Web3, conn: ConnStatus, ideaAddr: string): Promise<string> => {
+	const ideaBytecode = await web3.eth.getCode(staticIdeas.get(conn.network)[0]);
+
+	if (!ideaBytecode)
+		return ideaAddr;
+
+	if (await isIdeaContract(web3, ideaAddr, ideaBytecode)) {
+		const contract = new web3.eth.Contract(Idea.abi, ideaAddr);
+		return await contract.methods.name().call();
+	}
+
+	return ideaAddr;
+};
 
 /**
  * Determines whether the indicated Ethereum contract is a deployed instance of
