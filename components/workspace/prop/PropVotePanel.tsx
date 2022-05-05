@@ -9,6 +9,7 @@ import { AbiItem, Contract } from "web3-utils";
 import Slider, { SliderProps } from "@mui/material/Slider";
 import LinearProgress from "@mui/material/LinearProgress";
 import { UnderlinedInput } from "../../input/UnderlinedInput";
+import { formatTime12Hr } from "../idea/activity/ActivityEntry";
 import { FilledButton } from "../../status/FilledButton";
 import { OutlinedOptionSelector } from "../../input/OutlinedOptionSelector";
 import { MobileDatePicker, MobileDatePickerProps } from "@mui/x-date-pickers/MobileDatePicker";
@@ -19,6 +20,13 @@ import Prop from "../../../value-tree/build/contracts/Prop.json";
 import ExpandMore from "@mui/icons-material/ExpandMoreRounded";
 import ExpandLess from "@mui/icons-material/ExpandLessRounded";
 import CheckCircleRounded from "@mui/icons-material/CheckCircleRounded";
+
+export const formatBig = (n: number, nDecimals = 0): string => {
+	if (n <= 10000000)
+		return n.toLocaleString(undefined, { maximumFractionDigits: nDecimals });
+
+	return n.toExponential(0);
+};
 
 const erc20Abi: AbiItem[] = [
 	{
@@ -79,6 +87,7 @@ export const PropVotePanel = ({ prop, web3, eth }: { prop: ExtendedProposalInfor
 	// - Label human readability
 	// - Determining a maximum token amount in slider inputs
 	const [fundingTokenTicker, setFundingTokenTicker] = useState<string>(undefined);
+	const [fundingTokenDecimals, setFundingTokenDecimals] = useState<number>(undefined);
 
 	// To save space, this item can be shrunk to just its header
 	const [containerExpanded, setContainerExpanded] = useState<boolean>(true);
@@ -92,6 +101,7 @@ export const PropVotePanel = ({ prop, web3, eth }: { prop: ExtendedProposalInfor
 
 	// Persisted instance of the contract to which votes can be submitted
 	const [propContract, setPropContract] = useState<Contract>(undefined);
+	const [parentContract, setParentContract] = useState<Contract>(undefined);
 
 	// Renders an indicator for when the vote is being sent
 	const [voteCasting, setVoteCasting] = useState<boolean>(false);
@@ -100,14 +110,17 @@ export const PropVotePanel = ({ prop, web3, eth }: { prop: ExtendedProposalInfor
 	const [confirmationRequired, setConfirmationRequired] = useState<boolean>(false);
 
 	useEffect(() => {
-		if (propContract === undefined)
+		if (propContract === undefined) {
 			setPropContract(new web3.eth.Contract(Prop.abi, prop.address));
+			setParentContract(new web3.eth.Contract(Idea.abi, prop.parentAddr));
+		}
 
 		// Load the maximum votes the user can allocate
 		if (maxVotes === undefined) {
 			setMaxVotes(0);
 			setVoteTicker("");
 			setFundingTokenTicker("");
+			setFundingTokenDecimals(0);
 
 			(async () => {
 				// The contract whose token is used for voting
@@ -116,6 +129,7 @@ export const PropVotePanel = ({ prop, web3, eth }: { prop: ExtendedProposalInfor
 
 				// The voting token is not the same as the funding token, necessarily
 				setFundingTokenTicker(await fundingTokenContract.methods.symbol().call());
+				setFundingTokenDecimals(await fundingTokenContract.methods.decimals().call());
 
 				// The ticker of the parent ERC-20 indicates what the user is voting with
 				setVoteTicker(await contract.methods.symbol().call());
@@ -153,12 +167,6 @@ export const PropVotePanel = ({ prop, web3, eth }: { prop: ExtendedProposalInfor
 
 	const scale = (n: number): number => 2 ** (256 ** n) - 2;
 	const idx = (n: number): number => Math.log(Math.log(n + 2) / Math.log(2)) / (8 * Math.log(2));
-	const formatBig = (n: number, nDecimals = 0): string => {
-		if (n <= 10000000)
-			return n.toLocaleString(undefined, { maximumFractionDigits: nDecimals });
-
-		return n.toExponential(0);
-	};
 
 	const importantFundingLevels = Array(10).fill(10).map((n, i) => scale(i / 9));
 	const fundingLevelMarks = importantFundingLevels.map((n) => { return {
@@ -201,7 +209,7 @@ export const PropVotePanel = ({ prop, web3, eth }: { prop: ExtendedProposalInfor
 		// Serialize structured JS data to an intermediary ABI format
 		const rawRate: RawEthPropRate = {
 			token: prop.rate.token,
-			value: rate.value,
+			value: Math.floor(rate.value * (10 ** fundingTokenDecimals)),
 			intervalLength: rate.interval * intervalMultiplier,
 
 			// Convert Date to a unix timestamp
@@ -210,24 +218,43 @@ export const PropVotePanel = ({ prop, web3, eth }: { prop: ExtendedProposalInfor
 			kind: prop.rate.kind,
 		};
 
-		propContract.methods.vote(nVotes, rawRate).send({
-			from: (await accounts(eth))[0],
+		// Use the first available ethereum account for all transactions
+		const acc = (await accounts(eth))[0];
+
+		// Allocate the votes to the contract
+		parentContract.methods.approve(prop.address, nVotes).send({
+			from: acc,
 		})
 			.on("error", (e) => {
 				setErrorMsg(e.message);
 			})
 			.on("transactionHash", (hash: string) => {
-				setErrorMsg(`Sending! Tx hash: ${hash}`);
+				setErrorMsg(`(1/2) Allocating votes. Tx hash: ${hash}`);
 
 				setVoteCasting(true);
 			})
+		// The votes can now be used
 			.on("receipt", () => {
-				// Clear any loading indicator
-				setErrorMsg("");
-				setVoteCasting(false);
+				// Place the vote
+				propContract.methods.vote(nVotes, { ...rawRate, value: rawRate.value.toString() }).send({
+					from: acc,
+				})
+					.on("error", (e) => {
+						setErrorMsg(e.message);
+					})
+					.on("transactionHash", (hash: string) => {
+						setErrorMsg(`Sending! Tx hash: ${hash}`);
 
-				// Show the user an indicator that their vote has been cast
-				setConfirmationRequired(true);
+						setVoteCasting(true);
+					})
+					.on("receipt", () => {
+						// Clear any loading indicator
+						setErrorMsg("");
+						setVoteCasting(false);
+
+						// Show the user an indicator that their vote has been cast
+						setConfirmationRequired(true);
+					});
 			});
 	};
 
@@ -239,49 +266,56 @@ export const PropVotePanel = ({ prop, web3, eth }: { prop: ExtendedProposalInfor
 				<p>Your vote has been cast successfully, and will be reflected shortly.</p>
 				<FilledButton className={ styles.submitButton } label="Ok" onClick={ () => setConfirmationRequired(false) } />
 			</div>
-			<div className={ confirmationRequired ? styles.invisibleBody : styles.visibleBody }>
-				<div className={ styles.panelHeader }>
-					{ containerExpanded ? <ExpandMore onClick={ () => setContainerExpanded(false) } /> : <ExpandLess onClick={ () => setContainerExpanded(true) }/> }
-					<h2>Cast Vote</h2>
-				</div>
-				<div className={ `${styles.contentContainer} ${containerExpanded ? styles.expanded : "" }` }>
-					<div className={ styles.votePanelItem }>
-						<p>Vote Count: <b>{ nVotes ? nVotes.toLocaleString() : "0" } { voteTicker ?? "" }</b></p>
-						<div className={ styles.votePanelSlider }>
-							<StyledSlider className={ styles.sliderThumb } size="small" min={ 0 } max={ maxVotes ?? 0 } defaultValue={ 0 } marks={ marks } onChange={ handleVoteChange } valueLabelDisplay="auto" />
-						</div>
+			{ new Date() < prop.expiry ?
+				<div className={ confirmationRequired ? styles.invisibleBody : styles.visibleBody }>
+					<div className={ styles.panelHeader }>
+						{ containerExpanded ? <ExpandMore onClick={ () => setContainerExpanded(false) } /> : <ExpandLess onClick={ () => setContainerExpanded(true) }/> }
+						<h2>Cast Vote</h2>
 					</div>
-					<div className={ styles.votePanelItem }>
-						<p>Funding Amount: <b>{ formatBig(rate.value, 3) } { fundingTokenTicker ?? "" }</b></p>
-						<div className={ styles.votePanelSlider }>
-							<StyledSlider className={ styles.sliderThumb } size="small" step={ 0.001 } min={ 0 } max={ 1 } defaultValue={ 0 } marks={ [...fundingLevelMarks] } onChange={ handleFundingChange } scale={ scale } valueLabelDisplay="off" />
-						</div>
-					</div>
-					<div className={ styles.multiChildItem }>
+					<div className={ `${styles.contentContainer} ${containerExpanded ? styles.expanded : "" }` }>
 						<div className={ styles.votePanelItem }>
-							<p>Funding Expiration Date: <b>{ formatDate(rate.expiry) }</b></p>
-							<LocalizationProvider dateAdapter={ AdapterDateFns }>
-								<StyledDatePicker
-									value={ rate.expiry }
-									onChange={ handleExpiryChange }
-									className={ styles.datePicker }
-									renderInput={ (params) => <UnderlinedInput onClick={ (e) => params.inputProps.onClick(e) } placeholder={ formatDate(rate.expiry) } /> }
-								/>
-							</LocalizationProvider>
-						</div>
-						<div className={ styles.votePanelItem }>
-							<p>Funding Interval: <b>{ rate.interval }</b></p>
-							<div className={ styles.intervalPicker }>
-								<UnderlinedInput placeholder="Every 2" startingValue="" onChange={ handleIntervalChange } />
-								<OutlinedOptionSelector options={ ["Days", "Hours", "Minutes", "Seconds"] } onChange={ handleIntervalMultiplierChange } onClear={ () => ({}) } />
+							<p>Vote Count: <b>{ nVotes ? nVotes.toLocaleString() : "0" } { voteTicker ?? "" }</b></p>
+							<div className={ styles.votePanelSlider }>
+								<StyledSlider className={ styles.sliderThumb } size="small" min={ 0 } max={ maxVotes ?? 0 } defaultValue={ 0 } marks={ marks } onChange={ handleVoteChange } valueLabelDisplay="auto" />
 							</div>
 						</div>
+						<div className={ styles.votePanelItem }>
+							<p>Funding Amount: <b>{ formatBig(rate.value, 3) } { fundingTokenTicker ?? "" }</b></p>
+							<div className={ styles.votePanelSlider }>
+								<StyledSlider className={ styles.sliderThumb } size="small" step={ 0.001 } min={ 0 } max={ 1 } defaultValue={ 0 } marks={ [...fundingLevelMarks] } onChange={ handleFundingChange } scale={ scale } valueLabelDisplay="off" />
+							</div>
+						</div>
+						<div className={ styles.multiChildItem }>
+							<div className={ styles.votePanelItem }>
+								<p>Funding Expiration Date: <b>{ formatDate(rate.expiry) }</b></p>
+								<LocalizationProvider dateAdapter={ AdapterDateFns }>
+									<StyledDatePicker
+										value={ rate.expiry }
+										onChange={ handleExpiryChange }
+										className={ styles.datePicker }
+										renderInput={ (params) => <UnderlinedInput onClick={ (e) => params.inputProps.onClick(e) } placeholder={ formatDate(rate.expiry) } /> }
+									/>
+								</LocalizationProvider>
+							</div>
+							<div className={ styles.votePanelItem }>
+								<p>Funding Interval: <b>{ rate.interval }</b></p>
+								<div className={ styles.intervalPicker }>
+									<UnderlinedInput placeholder="Every 2" startingValue="" onChange={ handleIntervalChange } />
+									<OutlinedOptionSelector options={ ["Days", "Hours", "Minutes", "Seconds"] } onChange={ handleIntervalMultiplierChange } onClear={ () => ({}) } />
+								</div>
+							</div>
+						</div>
+						<p>{ errorMsg }</p>
+						{ voteCasting && <LinearProgress /> }
+						<FilledButton label="Cast Vote" onClick={ castVote } className={ styles.submitButton } />
 					</div>
-					<p>{ errorMsg }</p>
-					{ voteCasting && <LinearProgress /> }
-					<FilledButton label="Cast Vote" onClick={ castVote } className={ styles.submitButton } />
 				</div>
-			</div>
+				:
+				<div>
+					<h2>Voting Closed</h2>
+					<p>Proposal expired <b>{ formatDate(prop.expiry) }</b> at <b>{ formatTime12Hr(prop.expiry) }</b>.</p>
+				</div>
+			}
 		</div>
 	);
 };

@@ -67,6 +67,18 @@ export const PropActivityPanel = ({ web3, conn, prop }: { web3: Web3, conn: Conn
 				setEvents(events);
 			})();
 		}
+
+		// The proposal has closed for voting but the event isn't listed
+		if (events && new Date() > prop.expiry && events.filter(({ kind }) => kind === "ProposalClosed").length === 0) {
+			setEvents(events => [
+				...events,
+				{
+					kind: "ProposalClosed",
+					label: `${prop.title}: Voting Closed`,
+					timestamp: prop.expiry 
+				}
+			]);
+		}
 	});
 
 	return (

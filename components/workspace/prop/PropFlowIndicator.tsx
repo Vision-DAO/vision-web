@@ -8,12 +8,14 @@ import CurrencyExchange from "@mui/icons-material/CurrencyExchange";
 import EyeRounded from "@mui/icons-material/VisibilityRounded";
 import Web3 from "web3";
 import { AbiItem } from "web3-utils";
+import { formatBig } from "./PropVotePanel";
 import Lightbulb from "@mui/icons-material/Lightbulb";
 import { useRouter } from "next/router";
 
 interface FundingTokenInfo {
 	name: string;
 	ticker: string;
+	decimals: number;
 	url: string;
 }
 
@@ -59,7 +61,7 @@ export const PropFlowIndicator = ({ prop, dest, web3, ipfs, conn }: { prop: Exte
 			(async () => {
 				// The funding token is 0x000
 				if ((new Set([...prop.rate.token])).keys.length === 2) {
-					setTokenInfo(() => { return { name: "Ethereum", ticker: "ETH", url: "" }; });
+					setTokenInfo(() => { return { name: "Ethereum", ticker: "ETH", url: "", decimals: 18 }; });
 
 					return;
 				}
@@ -89,17 +91,30 @@ export const PropFlowIndicator = ({ prop, dest, web3, ipfs, conn }: { prop: Exte
 						"payable": false,
 						"stateMutability": "view",
 						"type": "function"
-					}
+					},
+					{
+						"constant": true,
+						"inputs": [],
+						"name": "decimals",
+						"outputs": [
+							{ "name": "", "type": "uint8" }
+						],
+						"payable": false,
+						"stateMutability": "view",
+						"type": "function"
+					},
 				];
 
 				let name = "";
 				let ticker = "";
+				let decimals = 0;
 
 				try {
 					const contract = new web3.eth.Contract(erc20Abi, prop.rate.token);
 
 					name = await contract.methods.name().call();
 					ticker = await contract.methods.symbol().call();
+					decimals = await contract.methods.decimals().call();
 				} catch (e) {
 					console.warn(e);
 				}
@@ -108,6 +123,7 @@ export const PropFlowIndicator = ({ prop, dest, web3, ipfs, conn }: { prop: Exte
 					name: name,
 					ticker: ticker,
 					url: `${explorers[conn.network]}/address/${ prop.rate.token }`,
+					decimals: decimals,
 				};
 
 				setTokenInfo(meta);
@@ -124,7 +140,7 @@ export const PropFlowIndicator = ({ prop, dest, web3, ipfs, conn }: { prop: Exte
 			<div className={ styles.flowValue }>
 				<div className={ styles.flowValueText }>
 					<CurrencyExchange />
-					<a href={ tokenInfo ? tokenInfo.url : "" }>{ prop.rate.value }<b>{ tokenInfo ? ` ${tokenInfo.ticker}` : "" }</b></a>
+					<a href={ tokenInfo ? tokenInfo.url : "" }>{ formatBig(prop.rate.value / (tokenInfo ? 10 ** tokenInfo.decimals : 10 ** 18)) }<b>{ tokenInfo ? ` ${tokenInfo.ticker}` : "" }</b></a>
 				</div>
 				<div ref={ arrowContainer } className={ styles.arrow }>
 					<ArrowRight ref={ arrow } sx={{ color: "#5D5FEF", opacity: 0.8 }} fontSize="large" />

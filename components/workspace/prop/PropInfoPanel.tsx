@@ -5,6 +5,7 @@ import styles from "./PropInfoPanel.module.css";
 import { PropFlowIndicator } from "./PropFlowIndicator";
 import { useState, useEffect } from "react";
 import { formatDate } from "../prop/ProposalLine";
+import { formatTime12Hr } from "../idea/activity/ActivityEntry";
 import { resolveIdeaName } from "../../../lib/util/discovery";
 import Web3 from "web3";
 
@@ -39,7 +40,7 @@ export const PropInfoPanel = ({ web3, ipfs, conn, prop }: { web3: Web3, ipfs: Ip
 		"Funding Type": fundingTypes[prop.rate.kind],
 		"Funding Amount": prop.rate.value,
 		"Users Voted": prop.nVoters,
-		[new Date() > prop.expiry ? "Expired" : "Expires"]: formatDate(prop.expiry),
+		[new Date() > prop.expiry ? "Expired" : "Expires"]: `${formatDate(prop.expiry)} ${formatTime12Hr(prop.expiry)}`,
 	};
 
 	return (

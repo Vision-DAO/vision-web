@@ -217,7 +217,7 @@ export const loadProposalVote = async (web3: Web3, propAddr: string, voterAddr: 
 	const contract = new web3.eth.Contract(Prop.abi, propAddr);
 
 	try {
-		const rawVote: RawEthPropVote = await contract.methods.refunds().call(voterAddr);
+		const rawVote: RawEthPropVote = await contract.methods.refunds(voterAddr).call();
 
 		if (!rawVote)
 			return null;

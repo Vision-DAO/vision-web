@@ -75,7 +75,10 @@ const pages: Page[] = [
 // Not dynamic, yet
 const theme = createTheme({
 	palette: {
-		mode: "dark"
+		mode: "dark",
+		primary: {
+			main: "#FFFFFF",
+		}
 	},
 });
 
