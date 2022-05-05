@@ -8,7 +8,7 @@ import { formatDate } from "../prop/ProposalLine";
 import { AbiItem } from "web3-utils";
 import Slider, { SliderProps } from "@mui/material/Slider";
 import { UnderlinedInput } from "../../input/UnderlinedInput";
-import { MobileDatePicker } from "@mui/x-date-pickers/MobileDatePicker";
+import { MobileDatePicker, MobileDatePickerProps } from "@mui/x-date-pickers/MobileDatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import Idea from "../../../value-tree/build/contracts/Idea.json";
@@ -47,6 +47,12 @@ const StyledSlider = styled(Slider)<SliderProps>(() => ({
 	"& .MuiSlider-track": {
 		backgroundColor: "rgba(93, 95, 239, 0.75)",
 	}
+}));
+
+const StyledDatePicker = styled(MobileDatePicker)<MobileDatePickerProps>(() => ({
+	"& .MuiButton-root": {
+		backgroundColor: "black",
+	},
 }));
 
 /**
@@ -163,9 +169,10 @@ export const PropVotePanel = ({ prop, web3, eth }: { prop: ExtendedProposalInfor
 					<div className={ styles.votePanelItem }>
 						<p>Expiration Date: <b>{ formatDate(rate.expiry) }</b></p>
 						<LocalizationProvider dateAdapter={ AdapterDateFns }>
-							<MobileDatePicker
+							<StyledDatePicker
 								value={ rate.expiry }
 								onChange={ handleExpiryChange }
+								className={ styles.datePicker }
 								renderInput={ (params) => <UnderlinedInput onClick={ (e) => params.inputProps.onClick(e) } placeholder={ formatDate(rate.expiry) } /> }
 							/>
 						</LocalizationProvider>
