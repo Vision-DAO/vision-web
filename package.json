@@ -23,8 +23,10 @@
     "@types/react": "^17.0.20",
     "@types/react-blockies": "^1.4.1",
     "@types/react-dom": "^17.0.9",
+    "bech32": "^2.0.0",
     "bson": "^4.6.2",
     "date-fns": "^2.28.0",
+    "eth-crypto": "^2.3.0",
     "ipfs-core": "^0.14.1",
     "libp2p": "^0.36.2",
     "next": "^12.1.0",
@@ -34,7 +36,7 @@
     "styled-components": "^5.3.5",
     "typescript": "^4.4.2",
     "web-vitals": "^2.1.0",
-    "web3": "^1.7.1"
+    "web3": "^1.7.3"
   },
   "scripts": {
     "dev": "next dev",

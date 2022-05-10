@@ -14,13 +14,14 @@ import { create, multiaddr } from "ipfs-core";
 import type { AppProps } from "next/app";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { NextPage } from "next";
+import { NextPage, GetServerSideProps } from "next";
 
 import { NetworkedWorkspace } from "../components/workspace/Networked";
 import NavPanel from "../components/workspace/nav/NavPanel";
 import { NavItem } from "../components/workspace/nav/NavItem";
 import navStyles from "../components/workspace/nav/NavPanel.module.css";
 import { Web3Context, provideWeb3 } from "../lib/util/web3";
+import EthCrypto from "eth-crypto";
 import { IpfsContext, ActiveIdeaContext, ActiveProposalContext, ProposalsContext, GossipProposalInformation } from "../lib/util/ipfs";
 import { ConnectionContext, provideConnStatus } from "../lib/util/networks";
 import { ModalContext } from "../lib/util/modal";
@@ -51,6 +52,26 @@ interface Page {
 
 	icon: React.ReactElement;
 }
+
+/**
+ * Signed data indicating the user is who they say they are.
+ */
+const LOGIN_ATTESTATION = "Login_VisionECO";
+
+/**
+ * Accounts pre-approved for Vision usage.
+ */
+const whitelist: string[] = [
+	"0x928613da9dE038458c29fe34066fbbDe74A2DB9f",
+	"0x44A3Bc524b80a50ABb252f1ffBeDF21Dba50445C",
+	"0xecDd164e108EE04736EE264e00B7a024267fc62b",
+	"0xdc36FA7961324b2403e4DD8B9c3bdd27c725E693",
+	"0x40c519d4dfc6B426B0285CC78f05c958708c88b2",
+	"0xCf457e101EF999C95c6563A494241D9C0aD8763B",
+	"0xc32dC5713162479dfD0e0B7E54780DcF23A58fc7",
+	"0x9405c86c9021F068b5d2a7a6A818c34A85252f23"
+];
+
 
 // pages navigable through the main application
 const pages: Page[] = [
@@ -224,6 +245,33 @@ const App = ({ Component, pageProps }: AppPropsWithLayout) => {
 			</Provider>
 		</>
 	);
+};
+
+/**
+ * TODO: Find a workaround with next edge functions that uses a fully browser
+ * compatible version of web3.
+ */
+export const getServerSideProps = async ({ req, res }) => {
+	// TODO: Abstract this
+	if (req.url === "/login" || req.url === "/Vision_Eye_Transparent.png")
+		return;
+
+	const signature = req.cookies[LOGIN_ATTESTATION];
+
+	// Check that the user is an authenticated user
+	if (signature &&
+		whitelist.includes(EthCrypto.recover(signature, EthCrypto.hash.keccak256(LOGIN_ATTESTATION)))
+	) {
+		return {};
+	}
+
+	// NextJS requires absolute path
+	res.setHeader("location", "/login");
+	res.statusCode = 302;
+	res.end();
+
+	// Redirect the user to the login page.
+	return {};
 };
 
 export default App;
