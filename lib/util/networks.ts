@@ -78,7 +78,7 @@ export const requestChangeNetwork = async (ethProvider: any): Promise<void> => {
 		params: [{
 			chainId: "0x13881",
 			chainName: "Polygon Testnet",
-			nativeCurrency: { name: "Polygon", symbol: "MATIC" },
+			nativeCurrency: { name: "Polygon", symbol: "MATIC", decimals: 18 },
 			rpcUrls: ["https://nd-333-212-679.p2pify.com/b3780ceca4a0bb12fd62cbecd480efef"],
 			blockExplorerUrls: ["https://mumbai.polygonscan.com"] 
 		}]
