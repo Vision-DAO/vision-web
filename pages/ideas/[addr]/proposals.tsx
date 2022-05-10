@@ -12,7 +12,7 @@ import { NewProposalPanel } from "../../../components/workspace/prop/NewProposal
 import dashStyles from "./about.module.css";
 import styles from "./proposals.module.css";
 import { useRouter } from "next/router";
-import { pages, loader } from "./module";
+import { pages, loader } from "../../../lib/util/ideas/module";
 
 /**
  * Renders a list of the current proposals active on IPFS.

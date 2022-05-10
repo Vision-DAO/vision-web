@@ -8,7 +8,7 @@ import { ActiveProposalContext, ExtendedProposalInformation, IpfsContext } from 
 import { useWeb3 } from "../../../lib/util/web3";
 import { useConnStatus } from "../../../lib/util/networks";
 import styles from "../../ideas/[addr]/about.module.css";
-import { pages, loader } from "./module";
+import { pages, loader } from "../../../lib/util/proposals/module";
 
 /**
  * A sub-navigation context that allows a user to view information about a

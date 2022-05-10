@@ -7,7 +7,7 @@ import { ExtendedIdeaInformation } from "../../../components/workspace/IdeaDetai
 import { ActiveIdeaContext } from "../../../lib/util/ipfs";
 import { useWeb3 } from "../../../lib/util/web3";
 import styles from "./about.module.css";
-import { pages, loader } from "./module";
+import { pages, loader } from "../../../lib/util/ideas/module";
 
 /**
  * A sub-navigation context that allows a user to view basic information about
