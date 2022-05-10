@@ -14,7 +14,7 @@ import { create, multiaddr } from "ipfs-core";
 import type { AppProps } from "next/app";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { NextPage, GetServerSideProps } from "next";
+import { NextPage } from "next";
 
 import { NetworkedWorkspace } from "../components/workspace/Networked";
 import NavPanel from "../components/workspace/nav/NavPanel";
@@ -251,24 +251,30 @@ const App = ({ Component, pageProps }: AppPropsWithLayout) => {
  * TODO: Find a workaround with next edge functions that uses a fully browser
  * compatible version of web3.
  */
-export const getServerSideProps = async ({ req, res }) => {
-	// TODO: Abstract this
-	if (req.url === "/login" || req.url === "/Vision_Eye_Transparent.png")
-		return;
+App.getInitialProps = async ({ ctx: { req, res }, router }) => {
+	if (req) {
+		// TODO: Abstract this
+		if (req.url === "/login" || req.url === "/Vision_Eye_Transparent.png")
+			return {};
 
-	const signature = req.cookies[LOGIN_ATTESTATION];
+		const signature = req.cookies[LOGIN_ATTESTATION];
 
-	// Check that the user is an authenticated user
-	if (signature &&
-		whitelist.includes(EthCrypto.recover(signature, EthCrypto.hash.keccak256(LOGIN_ATTESTATION)))
-	) {
-		return {};
+		// Check that the user is an authenticated user
+		if (signature &&
+			whitelist.includes(EthCrypto.recover(signature, EthCrypto.hash.keccak256(`\x19Ethereum Signed Message:\n${LOGIN_ATTESTATION.length}${LOGIN_ATTESTATION}`)))
+		) {
+			return {};
+		}
 	}
 
-	// NextJS requires absolute path
-	res.setHeader("location", "/login");
-	res.statusCode = 302;
-	res.end();
+	// Use two methods of redirecting
+	if (res) {
+		res.setHeader("location", "/login");
+		res.statusCode = 302;
+		res.end();
+	} else if (router) {
+		router.replace("/login");
+	}
 
 	// Redirect the user to the login page.
 	return {};
