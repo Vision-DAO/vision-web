@@ -2,7 +2,6 @@ import styles from "./login.module.css";
 import { provideWeb3 } from "../lib/util/web3";
 import { accounts } from "../lib/util/networks";
 import { useState, Dispatch, SetStateAction } from "react";
-import { useRouter, NextRouter as Router } from "next/router";
 import LinearProgress from "@mui/material/LinearProgress";
 
 const LOGIN_ATTESTATION = "Login_VisionECO";
@@ -10,7 +9,7 @@ const LOGIN_ATTESTATION = "Login_VisionECO";
 /**
  * Generates a signature for the user's account, and attempts a refresh.
  */
-const handleLogin = async (eth: any, router: Router, setSigning: Dispatch<SetStateAction<boolean>>) => {
+const handleLogin = async (eth: any, setSigning: Dispatch<SetStateAction<boolean>>) => {
 	setSigning(true);
 
 	try {
@@ -19,7 +18,7 @@ const handleLogin = async (eth: any, router: Router, setSigning: Dispatch<SetSta
 
 		setSigning(false);
 
-		refresh(router);
+		refresh();
 	} catch (e) {
 		console.warn(e);
 
@@ -30,8 +29,8 @@ const handleLogin = async (eth: any, router: Router, setSigning: Dispatch<SetSta
 /**
  * Reloads the user's page.
  */
-const refresh = (router: Router) => {
-	router.push("/");
+const refresh = () => {
+	window.location.pathname = "/";
 };
 
 /**
@@ -40,13 +39,12 @@ const refresh = (router: Router) => {
  */
 export const Login = () => {
 	const ctx = provideWeb3();
-	const router = useRouter();
 	const [signing, setSigning] = useState<boolean>(false);
 
 	return (
 		<div className={ styles.loginContainer }>
 			<img src="/Vision_Eye_Transparent.png" alt="Vision Eye Logo" className={ styles.mainLogo } />
-			<p className={ styles.actionButton } onClick={ () => ctx ? handleLogin(ctx[1], router, setSigning) : refresh(router) }><b>(Beta)</b> Login with Metamask</p>
+			<p className={ styles.actionButton } onClick={ () => ctx ? handleLogin(ctx[1], setSigning) : refresh() }><b>(Beta)</b> Login with Metamask</p>
 			{ signing && <LinearProgress className={ styles.progress } /> }
 		</div>
 	);
