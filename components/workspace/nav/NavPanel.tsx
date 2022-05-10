@@ -125,7 +125,7 @@ export const NavPanel = ({ items, onProfileClicked, ctx }: NavProps) => {
 				connectMetamask(window.ethereum)
 					.then(() => {
 						initialize();
-						if (network != "polygon" && network != "polygon-test")
+						if (network != "polygon-test")
 							return requestChangeNetwork(window.ethereum);
 					})
 					.then(() => {
