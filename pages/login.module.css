@@ -1,0 +1,33 @@
+.loginContainer {
+	display: flex;
+
+	flex-flow: column nowrap;
+
+	justify-content: center;
+	align-items: center;
+
+	height: 100%;
+	width: 100%;
+}
+
+.mainLogo {
+	width: 15%;
+}
+
+.actionButton {
+	border-bottom: 1px solid #5D5FEF;
+	opacity: 1;
+
+	cursor: pointer;
+
+	transition: 0.3s;
+}
+
+.actionButton:hover {
+	opacity: 0.7;
+}
+
+.progress {
+	margin-top: 3rem;
+	width: 40%;
+}

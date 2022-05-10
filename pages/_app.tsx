@@ -1,5 +1,5 @@
 import React from "react";
-import { useEffect, useState, ReactElement, ReactNode } from "react";
+import { useEffect, useState, ReactElement } from "react";
 import { HomeRounded, MenuRounded, VisibilityRounded } from "@mui/icons-material";
 import { ThemeProvider } from "@mui/material";
 import { createTheme } from "@mui/material/styles";
@@ -14,12 +14,12 @@ import { create, multiaddr } from "ipfs-core";
 import type { AppProps } from "next/app";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { NextPage } from "next/page";
+import { NextPage } from "next";
 
 import { NetworkedWorkspace } from "../components/workspace/Networked";
 import NavPanel from "../components/workspace/nav/NavPanel";
 import { NavItem } from "../components/workspace/nav/NavItem";
-import { guttered } from "../components/workspace/nav/NavPanel.module.css";
+import navStyles from "../components/workspace/nav/NavPanel.module.css";
 import { Web3Context, provideWeb3 } from "../lib/util/web3";
 import { IpfsContext, ActiveIdeaContext, ActiveProposalContext, ProposalsContext, GossipProposalInformation } from "../lib/util/ipfs";
 import { ConnectionContext, provideConnStatus } from "../lib/util/networks";
@@ -35,7 +35,7 @@ import "./index.css";
  * composition.
  */
 type NextPageWithLayout = NextPage & {
-  getLayout?: (page: ReactElement) => ReactNode
+  getLayout?: (page: ReactElement) => ReactElement
 }
 
 type AppPropsWithLayout = AppProps & {
@@ -150,7 +150,7 @@ const App = ({ Component, pageProps }: AppPropsWithLayout) => {
 
 	// Allow each navigable item to be switched to through the navbar
 	const navItems = pages.map(({ label, path, icon }) =>
-		<div key={ label } className={ router.pathname != path ? guttered : "" }>
+		<div key={ label } className={ router.pathname != path ? navStyles.guttered : "" }>
 			<NavItem
 				label={ label }
 				icon={ icon }
@@ -193,24 +193,26 @@ const App = ({ Component, pageProps }: AppPropsWithLayout) => {
 									<ProposalsContext.Provider value={ [proposalCache, addProposal] }>
 										<ActiveProposalContext.Provider value={ [activeProposal, setActiveProposal] }>
 											<ModalContext.Provider value={ [modal, setModal] }>
-												<div className={ `${styles.app} ${styles.root}${hasModal ? (" " + styles.hidden) : ""}` }>
-													<div className={ styles.navPanel }>
-														<NavPanel
-															items={navItems}
-															onProfileClicked={(selfId: string) => router.push({
-																pathname: "/profile/[id]",
-																query: { id: selfId } }
-															)}
-															onSettingsActive={() => router.push("/settings")}
-															ctx={web3}
-														/>
+												{ router.pathname !== "/login" ?
+													<div className={ `${styles.app} ${styles.root}${hasModal ? (" " + styles.hidden) : ""}` }>
+														<div className={ styles.navPanel }>
+															<NavPanel
+																items={navItems}
+																onProfileClicked={(selfId: string) => router.push({
+																	pathname: "/profile/[id]",
+																	query: { id: selfId } }
+																)}
+																onSettingsActive={() => router.push("/settings")}
+																ctx={web3}
+															/>
+														</div>
+														<div className={styles.workspace}>
+															<NetworkedWorkspace>
+																{ getLayout(<Component {...pageProps} />) }
+															</NetworkedWorkspace>
+														</div>
 													</div>
-													<div className={styles.workspace}>
-														<NetworkedWorkspace>
-															{ getLayout(<Component {...pageProps} />) }
-														</NetworkedWorkspace>
-													</div>
-												</div>
+													: <div className={ `${styles.app} ${styles.root}` }><Component {...pageProps} /></div> }
 											</ModalContext.Provider>
 										</ActiveProposalContext.Provider>
 									</ProposalsContext.Provider>

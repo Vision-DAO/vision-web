@@ -8,7 +8,7 @@ export type Network = "ethereum" | "polygon" | "polygon-test" | "unknown";
  * contracts.
  */
 export const staticProposals: { [net: string]: string } = {
-	"polygon-test": "0xE57748473897D626A485bbe3816E1f3ff5d98B23",
+	"polygon-test": "0x6d79339f074A749320db49F807b3d928EAcdA723",
 };
 
 export const ConnectionContext: Context<[ConnStatus, () => void]> = createContext(
