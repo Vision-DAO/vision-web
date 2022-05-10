@@ -69,7 +69,7 @@ export const NewIdeaModal = ({ active: isActive, onClose, onDeploy, onUpload, ct
 			arguments: [
 				constructorArgs.ideaName,
 				constructorArgs.ideaTicker,
-				constructorArgs.ideaShares,
+				web3.utils.toBN(constructorArgs.ideaShares).mul(web3.utils.toBN(10 ** 18)).toString(),
 				constructorArgs.datumIpfsHash
 			]
 		})

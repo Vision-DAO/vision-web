@@ -34,9 +34,10 @@ export const resolveIdeaName = async (web3: Web3, conn: ConnStatus, ideaAddr: st
  * Determines whether the indicated Ethereum contract is a deployed instance of
  * the Idea smart contract.
  */
-export const isIdeaContract = (web3: Web3, ideaAddr: string, exemplarBytecode: string): Promise<boolean> =>
-	web3.eth.getCode(ideaAddr)
+export const isIdeaContract = (web3: Web3, ideaAddr: string, exemplarBytecode: string): Promise<boolean> => {
+	return web3.eth.getCode(ideaAddr)
 		.then((code) => code == exemplarBytecode);
+};
 
 /**
  * Write the given address to the list of owned crypto accounts stored in the

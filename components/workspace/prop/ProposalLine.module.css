@@ -30,6 +30,27 @@
 	align-items: center;
 }
 
+.labelButton {
+	color: #5D5FEF;
+
+	border-bottom: 1px solid #5D5FEF;
+
+	cursor: pointer;
+
+	opacity: 1;
+
+	transition: 0.3s;
+}
+
+.labelButton:hover {
+	opacity: 0.7;
+}
+
+.labelFail {
+	color: #FF0000;
+}
+
 .labelDone {
 	color: #44BF39;
+	border-bottom-color: #44BF39;
 }

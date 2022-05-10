@@ -1,12 +1,13 @@
 import { ExtendedIdeaInformation } from "../../../components/workspace/IdeaDetailCard";
 import { FilledButton } from "../../../components/status/FilledButton";
 import { GeneralModal } from "../../../components/status/GeneralModal";
-import { ActiveIdeaContext, useProposals, IpfsContext, AllProposalInformation, GossipProposalInformation } from "../../../lib/util/ipfs";
+import { ActiveIdeaContext, useProposals, useFundedChildren, IpfsContext, AllProposalInformation, GossipProposalInformation } from "../../../lib/util/ipfs";
 import { useWeb3 } from "../../../lib/util/web3";
 import { ModalContext } from "../../../lib/util/modal";
 import { DetailNavigatorLayout } from "../../../components/workspace/DetailNavigatorLayout";
 import { ProposalsList } from "../../../components/workspace/prop/ProposalsList";
 import { useContext, ReactElement } from "react";
+import { IdeaChildrenList } from "../../../components/workspace/idea/IdeaChildrenList";
 import { NewProposalPanel } from "../../../components/workspace/prop/NewProposalPanel";
 import dashStyles from "./about.module.css";
 import styles from "./proposals.module.css";
@@ -22,6 +23,7 @@ export const Proposals = () => {
 	const [proposals, pub] = useProposals(idea.addr);
 	const [web3, eth] = useWeb3();
 	const ipfs = useContext(IpfsContext);
+	const [rates, ideas] = useFundedChildren(idea.addr, web3, ipfs);
 	const router = useRouter();
 
 	// When the user deploys a new proposal, this modal is used
@@ -45,7 +47,16 @@ export const Proposals = () => {
 
 	return (
 		<div className={ `${dashStyles.infoContainers} ${styles.infoContainers}` }>
-			<ProposalsList ipfs={ ipfs } web3={ web3 } proposals={ proposals } onSelectProp={ (addr) => router.push(`/proposals/${addr}/about`) } />
+			<div className={ styles.proposalLists }>
+				<div className={ styles.proposalList }>
+					<h2>New Proposals</h2>
+					<ProposalsList eth={ eth } ipfs={ ipfs } web3={ web3 } proposals={ proposals } onSelectProp={ (addr) => router.push(`/proposals/${addr}/about`) } />
+				</div>
+				<div className={ styles.proposalList }>
+					<h2>Funded Ideas</h2>
+					<IdeaChildrenList parentAddr={ idea.addr } rates={ rates } ideas={ ideas } web3={ web3 } eth={ eth } />
+				</div>
+			</div>
 			<FilledButton label="Create New Proposal" onClick={ () => setModal(newPropModalContent) } className={ styles.newPropButton } />
 		</div>
 	);

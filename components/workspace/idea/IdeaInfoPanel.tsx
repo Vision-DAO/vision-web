@@ -63,7 +63,7 @@ export const IdeaInfoPanel = ({ idea }: { idea: ExtendedIdeaInformation }) => {
 	const info = {
 		"Market cap": <p>{ `${marketCap.toLocaleString("en-US", { style: "currency", currency: "USD" })}` }</p>,
 		"Last price": <p>{ `${price.toLocaleString("en-US", { style: "currency", currency: "USD" })}` }</p>,
-		"Total supply": <p>{ totalSupply }</p>,
+		"Total supply": <p>{ (totalSupply / (10 ** 18)).toLocaleString() }</p>,
 		"Contract": <p><a href={ `${explorerURI}/address/${addr}` } target="_blank" rel="noopener noreferrer">{ addr }</a></p>,
 		"Child projects": <p>{ nChildren }</p>,
 		"Date created": <p>{ `${createdAt.getMonth()}/${createdAt.getDay()}/${createdAt.getFullYear()}` }</p>

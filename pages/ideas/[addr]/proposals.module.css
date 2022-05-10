@@ -6,11 +6,26 @@
 	align-items: stretch;
 }
 
-.infoContainers>*:first-child {
-	overflow: auto;
+.infoContainers>.proposalLists {
 	height: 100%;
 
 	margin-bottom: 1em;
+}
+
+.proposalList>*:nth-child(2) {
+	overflow: auto;
+}
+
+.proposalList {
+	height: 50%;
+	display: flex;
+	flex-flow: column nowrap;
+	justify-content: flex-start;
+	align-items: stretch;
+}
+
+.proposalLists>*:nth-child(2n) {
+	overflow: auto;
 }
 
 .newPropButton {

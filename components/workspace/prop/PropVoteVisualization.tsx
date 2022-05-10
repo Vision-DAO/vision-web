@@ -27,7 +27,7 @@ export const PropertyVisualization = ({ max, bars, key, decimals, label = "", cl
 		<div className={ styles.titledBarChart }>
 			<div className={ styles.barChart }>
 				{ Object.entries(bars).sort(([k1, ], [k2, ]) => k1.localeCompare(k2)).map(([k, v]) =>
-					<Tooltip key={ k } title={ formatters(decimals)[label](parseInt(k)) } placement="top" arrow>
+					<Tooltip key={ k } title={ formatters(decimals)[label](Number(k)) } placement="top" arrow>
 						<div className={ className } key={ key } style={{ height: `${v / max * 100}%` }}>
 						</div>
 					</Tooltip>
@@ -84,7 +84,7 @@ export const PropVoteVisualization = ({ votes, decimals }: { votes: ProposalVote
 					<div className={ styles.graphYText }>
 						<p className={ styles.yAxisTitle }># of Votes</p>
 						<div className={ styles.graphYLabels }>
-							<p>{ max.toLocaleString() || 0 }</p>
+							<p>{ (max / (10 ** 18)).toLocaleString() || 0 }</p>
 							<p>0</p>
 						</div>
 					</div>

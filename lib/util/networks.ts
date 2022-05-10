@@ -8,7 +8,7 @@ export type Network = "ethereum" | "polygon" | "polygon-test" | "unknown";
  * contracts.
  */
 export const staticProposals: { [net: string]: string } = {
-	"polygon-test": "0x79f0991E5d635Bf8041261C1d9a0C4A3692400BB",
+	"polygon-test": "0xE57748473897D626A485bbe3816E1f3ff5d98B23",
 };
 
 export const ConnectionContext: Context<[ConnStatus, () => void]> = createContext(
@@ -76,18 +76,18 @@ export const requestChangeNetwork = async (ethProvider: any): Promise<void> => {
 	await ethProvider.request({
 		method: "wallet_addEthereumChain",
 		params: [{
-			chainId: "0x89",
-			chainName: "Polygon",
+			chainId: "0x13881",
+			chainName: "Polygon Testnet",
 			nativeCurrency: { name: "Polygon", symbol: "MATIC" },
-			rpcUrls: ["https://polygon-rpc.com"],
-			blockExplorerUrls: ["https://polygonscan.com"] 
+			rpcUrls: ["https://nd-333-212-679.p2pify.com/b3780ceca4a0bb12fd62cbecd480efef"],
+			blockExplorerUrls: ["https://mumbai.polygonscan.com"] 
 		}]
 	});
 
 	await ethProvider.request({
 		method: "wallet_switchEthereumChain",
 		params: [{
-			chainId: "0x89",
+			chainId: "0x13881",
 		}],
 	});
 };

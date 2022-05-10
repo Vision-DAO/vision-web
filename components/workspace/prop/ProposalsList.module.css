@@ -1,3 +1,7 @@
 .spacedList {
 	justify-content: space-around;
 }
+
+.list {
+	overflow-y: auto;
+}

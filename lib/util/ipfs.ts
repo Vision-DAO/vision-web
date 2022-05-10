@@ -9,6 +9,7 @@ import { BasicIdeaInformation } from "../../components/workspace/IdeaBubble";
 import Idea from "../../value-tree/build/contracts/Idea.json";
 import Prop from "../../value-tree/build/contracts/Prop.json";
 import Web3 from "web3";
+import { Contract } from "web3-eth-contract";
 
 /**
  * An alias for the type of the IPFS constructor.
@@ -19,6 +20,11 @@ export type IpfsClient = Awaited<ReturnType<typeof create>>;
  * A global context providing an instance of IPFS.
  */
 export const IpfsContext: React.Context<IpfsClient> = createContext(undefined);
+
+/**
+ * A global context providing a cache for proposals.
+ */
+export const ProposalsContext: React.Context<[{ [addr: string]: GossipProposalInformation[] }, (addr: string, info: GossipProposalInformation) => void]> = createContext([{}, null]);
 
 /**
  * Available gossiped data about a proposal.
@@ -69,7 +75,7 @@ export interface FundingRate {
 export interface ExtendedProposalInformation {
 	data: IdeaData[],
 
-	address: string;
+	addr: string;
 
 	parentAddr: string;
 	title: string;
@@ -158,10 +164,26 @@ export type RawEthPropVote = {
 // Map ethereum-packed enum types to js enums
 const fundingKinds = [FundingKind.Treasury, FundingKind.Mint];
 
+const extractRawFundingRate = async (nVoters: number, expired: boolean, w: Web3, propContract: Contract): Promise<RawEthPropRate> => {
+	const parentContract = new w.eth.Contract(Idea.abi, await propContract.methods.governed().call());
+
+	if (nVoters > 0) {
+		const parentEntry = await parentContract.methods.fundedIdeas(await propContract.methods.toFund().call()).call();
+
+		if (expired && parentEntry.expiry !== "0") {
+			return parentEntry;
+		}
+
+		return await propContract.methods.finalFundsRate().call();
+	}
+
+	return await propContract.methods.rate().call();
+};
+
 /**
  * Loads all information available about a proposal from IPFS and ethereum.
  */
-export const loadExtendedProposalInfo = async (ipfs: IpfsClient, network: Network, w: Web3, prop: GossipProposalInformation): Promise<ExtendedProposalInformation> => {
+export const loadExtendedProposalInfo = async (ipfs: IpfsClient, w: Web3, prop: GossipProposalInformation): Promise<ExtendedProposalInformation> => {
 	// Details for a proposal are contained:
 	// - on ethereum
 	// - on IPFS
@@ -171,9 +193,10 @@ export const loadExtendedProposalInfo = async (ipfs: IpfsClient, network: Networ
 
 	// Ethereum stores structs as packed arrays. Further processing will be necessary
 	const nVoters = await contract.methods.nVoters().call();
+	const expired = (new Date()) > (await contract.methods.expiresAt().call());
 
 	// Calculate the final rate, or the null rate, depending on if any users voted
-	const { token, value, intervalLength: interval, expiry, lastClaimed, kind }: RawEthPropRate = nVoters > 0 ? await contract.methods.finalFundsRate().call() : await contract.methods.rate().call();
+	const { token, value, intervalLength: interval, expiry, lastClaimed, kind }: RawEthPropRate = await extractRawFundingRate(nVoters, expired, w, contract);
 
 	const rate: FundingRate = {
 		token,
@@ -188,7 +211,7 @@ export const loadExtendedProposalInfo = async (ipfs: IpfsClient, network: Networ
 
 	return {
 		data,
-		address: prop.addr,
+		addr: prop.addr,
 		parentAddr: await contract.methods.governed().call(),
 		destAddr: await contract.methods.toFund().call(),
 		nVoters,
@@ -411,7 +434,7 @@ export const useParents = (defaults?: Map<string, string[]>): [string[], (ideaAd
  */
 export const useProposals = (ideaAddr: string): [GossipProposalInformation[], (prop: GossipProposalInformation) => void] => {
 	const ipfs = useContext(IpfsContext);
-	const [proposals, setProposals] = useState<GossipProposalInformation[]>([]);
+	const [proposals, addProposal]: [{ [addr: string]: GossipProposalInformation[] }, (addr: string, prop: GossipProposalInformation) => void] = useContext(ProposalsContext);
 
 	if (!ipfs)
 		return [[], () => ({})];
@@ -420,11 +443,11 @@ export const useProposals = (ideaAddr: string): [GossipProposalInformation[], (p
 		try {
 			const prop: GossipProposalInformation = deserialize(msg.data, { promoteBuffers: true }) as GossipProposalInformation;
 
-			if (proposals.includes(prop))
+			if (proposals[ideaAddr].includes(prop))
 				return;
 
 			// Append the proposal to the list of proposals
-			setProposals(proposals => [...proposals, prop]);
+			addProposal(ideaAddr, prop);
 		} catch (e) {
 			console.warn(e);
 		}
@@ -440,9 +463,66 @@ export const useProposals = (ideaAddr: string): [GossipProposalInformation[], (p
 
 	const pub = (prop: GossipProposalInformation) => {
 		ipfs.pubsub.publish(ideaAddr, serialize(prop));
+		addProposal(ideaAddr, prop);
 	};
 
-	return [proposals, pub];
+	return [proposals[ideaAddr] ?? [], pub];
+};
+
+/**
+ * Loads basic information and funding rates for all accepted children of the indicated idea.
+ */
+export const useFundedChildren = (addr: string, web3: Web3, ipfs: IpfsClient): [{ [addr: string]: FundingRate }, { [addr: string]: BasicIdeaInformation }] => {
+	const [children, setChildren] = useState<[{ [addr: string]: FundingRate }, { [addr: string]: BasicIdeaInformation }]>([{}, {}]);
+	const [numChildren, setNchildren] = useState<number>(0);
+
+	if (!ipfs || !web3)
+		return [{}, {}];
+
+	useEffect(() => {
+		(async () => {
+			const contract = new web3.eth.Contract(Idea.abi, addr);
+			const nChildren = parseInt(await contract.methods.numChildren().call());
+
+			if (numChildren !== nChildren) {
+				setNchildren(nChildren);
+
+				return;
+			}
+
+			// The children have already been loaded
+			if (Object.keys(children[0]).length === numChildren) {
+				return;
+			}
+
+			const childIndices = Array(nChildren).fill(1).map((v, i) => i);
+
+			// Gets a list of the addresses of children of the contract
+			const childAddrs = await Promise.all(childIndices.map((i) => contract.methods.children(i).call()));
+			const childRates: [string, RawEthPropRate][] = await Promise.all(childAddrs.map((addr: string) => contract.methods.fundedIdeas(addr).call().then((rate: RawEthPropRate) => [addr, rate])));
+
+			// Convert eth ABI rates into actual rates
+			const parsedChildRates: { [addr: string]: FundingRate } = childRates.reduce((prev, [addr, rate]) => { return {
+				...prev,
+				[addr]: {
+					token: rate.token,
+					value: parseInt(rate.value) || 0,
+					interval: parseInt(rate.intervalLength) || 0,
+					expiry: new Date((parseInt(rate.expiry) || 0) * 1000),
+					lastClaimed: new Date((parseInt(rate.lastClaimed) || 0) * 1000),
+
+					// Enums are represented as indices in Ethereum
+					kind: fundingKinds[rate.kind],
+				},
+			}; }, {});
+			const childIdeaDetails: [string, BasicIdeaInformation][] = await Promise.all(childAddrs.map((addr: string) => loadBasicIdeaInfo(ipfs, web3, addr).then((info: BasicIdeaInformation) => { const res: [string, BasicIdeaInformation] = [addr, info]; return res;})));
+			const parsedChildDetails: { [addr: string]: BasicIdeaInformation } = childIdeaDetails.reduce((prev, [addr, details]) => { return { ...prev, [addr]: details }; }, {});
+
+			setChildren([parsedChildRates, parsedChildDetails]);
+		})();
+	});
+
+	return children;
 };
 
 /**

@@ -5,10 +5,13 @@ import { accounts } from "../../../lib/util/networks";
 import { useState, useEffect } from "react";
 import { styled } from "@mui/material/styles";
 import { formatDate } from "../prop/ProposalLine";
-import { AbiItem, Contract } from "web3-utils";
+import { AbiItem } from "web3-utils";
+import BN from "bn.js";
+import { Contract } from "web3-eth-contract";
 import Slider, { SliderProps } from "@mui/material/Slider";
 import LinearProgress from "@mui/material/LinearProgress";
 import { UnderlinedInput } from "../../input/UnderlinedInput";
+import { formatInterval } from "./PropInfoPanel";
 import { formatTime12Hr } from "../idea/activity/ActivityEntry";
 import { FilledButton } from "../../status/FilledButton";
 import { OutlinedOptionSelector } from "../../input/OutlinedOptionSelector";
@@ -27,6 +30,8 @@ export const formatBig = (n: number, nDecimals = 0): string => {
 
 	return n.toExponential(0);
 };
+
+const parseBig = (web3: Web3, n: number, decimals: number): BN => web3.utils.toBN(Math.trunc(n)).mul(web3.utils.toBN(10 ** decimals)).add(web3.utils.toBN(Math.trunc((n % 1) * (10 ** decimals))));
 
 const erc20Abi: AbiItem[] = [
 	{
@@ -59,7 +64,13 @@ const StyledSlider = styled(Slider)<SliderProps>(() => ({
 	},
 	"& .MuiSlider-track": {
 		backgroundColor: "rgba(93, 95, 239, 0.75)",
-	}
+	},
+	"& .MuiSlider-markLabel[data-index=\"0\"]": {
+		transform: "translateX(0%)",
+	},
+	"& .MuiSlider-markLabel[data-index=\"1\"]": {
+		transform: "translateX(-100%)",
+	},
 }));
 
 const StyledDatePicker = styled(MobileDatePicker)<MobileDatePickerProps>(() => ({
@@ -111,7 +122,7 @@ export const PropVotePanel = ({ prop, web3, eth }: { prop: ExtendedProposalInfor
 
 	useEffect(() => {
 		if (propContract === undefined) {
-			setPropContract(new web3.eth.Contract(Prop.abi, prop.address));
+			setPropContract(new web3.eth.Contract(Prop.abi, prop.addr));
 			setParentContract(new web3.eth.Contract(Idea.abi, prop.parentAddr));
 		}
 
@@ -160,8 +171,8 @@ export const PropVotePanel = ({ prop, web3, eth }: { prop: ExtendedProposalInfor
 			label: `0 ${voteTicker ?? ""}`,
 		},
 		{
-			value: maxVotes ?? 0,
-			label: `${maxVotes ? maxVotes.toLocaleString() : "0"} ${voteTicker ?? ""}`,
+			value: (maxVotes / (10 ** 18)) ?? 0,
+			label: `${maxVotes ? (maxVotes / (10 ** 18)).toLocaleString() : "0"} ${voteTicker ?? ""}`,
 		},
 	];
 
@@ -209,7 +220,7 @@ export const PropVotePanel = ({ prop, web3, eth }: { prop: ExtendedProposalInfor
 		// Serialize structured JS data to an intermediary ABI format
 		const rawRate: RawEthPropRate = {
 			token: prop.rate.token,
-			value: Math.floor(rate.value * (10 ** fundingTokenDecimals)).toString(0),
+			value: parseBig(web3, rate.value, fundingTokenDecimals).toString(),
 			intervalLength: (rate.interval * intervalMultiplier).toString(),
 
 			// Convert Date to a unix timestamp
@@ -222,32 +233,32 @@ export const PropVotePanel = ({ prop, web3, eth }: { prop: ExtendedProposalInfor
 		const acc = (await accounts(eth))[0];
 
 		// Allocate the votes to the contract
-		parentContract.methods.approve(prop.address, nVotes).send({
+		await parentContract.methods.approve(prop.addr, parseBig(web3, nVotes, 18).toString()).send({
 			from: acc,
 		})
 			.on("error", (e) => {
 				setErrorMsg(e.message);
 			})
-			.on("transactionHash", (hash: string) => {
+			.once("transactionHash", (hash: string) => {
 				setErrorMsg(`(1/2) Allocating votes. Tx hash: ${hash}`);
 
 				setVoteCasting(true);
 			})
-		// The votes can now be used
-			.on("receipt", () => {
+			.then(() => {
+				// The votes can now be used
 				// Place the vote
-				propContract.methods.vote(nVotes, { ...rawRate, value: rawRate.value.toString() }).send({
+				return propContract.methods.vote(parseBig(web3, nVotes, 18).toString(), { ...rawRate, value: rawRate.value }).send({
 					from: acc,
 				})
 					.on("error", (e) => {
 						setErrorMsg(e.message);
 					})
-					.on("transactionHash", (hash: string) => {
+					.once("transactionHash", (hash: string) => {
 						setErrorMsg(`Sending! Tx hash: ${hash}`);
 
 						setVoteCasting(true);
 					})
-					.on("receipt", () => {
+					.once("receipt", () => {
 						// Clear any loading indicator
 						setErrorMsg("");
 						setVoteCasting(false);
@@ -276,7 +287,7 @@ export const PropVotePanel = ({ prop, web3, eth }: { prop: ExtendedProposalInfor
 						<div className={ styles.votePanelItem }>
 							<p>Vote Count: <b>{ nVotes ? nVotes.toLocaleString() : "0" } { voteTicker ?? "" }</b></p>
 							<div className={ styles.votePanelSlider }>
-								<StyledSlider className={ styles.sliderThumb } size="small" min={ 0 } max={ maxVotes ?? 0 } defaultValue={ 0 } marks={ marks } onChange={ handleVoteChange } valueLabelDisplay="auto" />
+								<StyledSlider className={ styles.sliderThumb } size="small" min={ 0 } max={ maxVotes ? maxVotes / (10 ** 18) : 0 } defaultValue={ 0 } marks={ marks } onChange={ handleVoteChange } valueLabelDisplay="auto" />
 							</div>
 						</div>
 						<div className={ styles.votePanelItem }>
@@ -298,7 +309,7 @@ export const PropVotePanel = ({ prop, web3, eth }: { prop: ExtendedProposalInfor
 								</LocalizationProvider>
 							</div>
 							<div className={ styles.votePanelItem }>
-								<p>Funding Interval: <b>{ rate.interval }</b></p>
+								<p>Funding Interval: <b>{ formatInterval(rate.interval) }</b></p>
 								<div className={ styles.intervalPicker }>
 									<UnderlinedInput placeholder="Every 2" startingValue="" onChange={ handleIntervalChange } />
 									<OutlinedOptionSelector options={ ["Days", "Hours", "Minutes", "Seconds"] } onChange={ handleIntervalMultiplierChange } onClear={ () => ({}) } />

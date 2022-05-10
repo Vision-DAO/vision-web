@@ -46,7 +46,7 @@ export const ActivityEntry = ({ key, kind, label, timestamp }: { key?: string, k
 				{ icons[kind] }
 				<p>{ properLabels[kind] }</p>
 			</div>
-			<p>&quot;{ label }&quot;</p>
+			<p>{ label }</p>
 			<p>{ formatTime12Hr(timestamp) }</p>
 		</OutlinedListEntry>
 	);

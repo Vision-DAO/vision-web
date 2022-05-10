@@ -22,7 +22,7 @@ export const staticIdeas: Map<string, string[]> = new Map([
 	["ethereum", [] as string[]],
 	["polygon", [] as string[]],
 	["polygon-test", [
-		"0x5c1E65dec0d758c38c7960b103001092dB64432f",
+		"0x75c80d568479AcD05aA3E8e4e5676C9Bb6D13126",
 	]],
 ]);
 
@@ -56,7 +56,7 @@ export const Index = () => {
 	const ipfs = useContext(IpfsContext);
 	const [modal, ] = useContext(ModalContext);
 	const [conn, ,] = useConnection();
-	const [connStatus, ,] = useConnStatus();
+	const [connStatus, ] = useConnStatus();
 
 	// Ideas are discovered through other peers informing us of them, through
 	// locally existing ones (e.g., that were created on vision.eco),

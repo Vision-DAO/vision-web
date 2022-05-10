@@ -18,5 +18,5 @@ export const loader = async (ipfs: IpfsClient, web3: Web3, eth: any, conn: ConnS
 	if (!propBytecode || !await isIdeaContract(web3, addr, propBytecode))
 		return undefined;
 
-	return await loadExtendedProposalInfo(ipfs, conn.network, web3, { addr: addr, dataIpfsAddr: null });
+	return await loadExtendedProposalInfo(ipfs, web3, { addr: addr, dataIpfsAddr: null });
 };

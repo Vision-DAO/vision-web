@@ -14,7 +14,10 @@ import { WarningMessage } from "../status/WarningMessage";
 export interface Detailable {
 	title?: string;
 	explorerURI?: string;
+	addr?: string;
 }
+
+const refreshRate = 2000;
 
 /**
  * See nextjs documentation on layouts: a wrapper for all pages on an
@@ -46,6 +49,10 @@ export const DetailNavigatorLayout = <T extends Detailable,>({ title, pages, chi
 	const [modal, ] = useContext(ModalContext);
 
 	useEffect(() => {
+		// The wrong idea is loaded
+		if (ideaInfo && ideaInfo.addr !== addr)
+			setIdeaInfo(undefined);
+
 		// A render hasn't even been triggered if the active idea is undefined
 		// Note: the ideaInfo should be set back to undefined after it is unloaded
 		if (ideaInfo === undefined) {
@@ -59,6 +66,18 @@ export const DetailNavigatorLayout = <T extends Detailable,>({ title, pages, chi
 					setIdeaInfo(v);
 				});
 		}
+
+		const handle = setInterval(() => {
+			loader(ipfs, web3, eth, conn, addr)
+				.then((v) => {
+					if (!v)
+						return;
+					
+					setIdeaInfo(v);
+				});
+		}, refreshRate);
+
+		return () => clearInterval(handle);
 	});
 
 	// If IdeaInfo is undefined, a load hasn't even been attempted, which

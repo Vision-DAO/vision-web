@@ -15,7 +15,7 @@ import Web3 from "web3";
  * This includes events for its parent contract that are relevant to the proposal.
  */
 export const PropActivityPanel = ({ web3, conn, prop }: { web3: Web3, conn: ConnStatus, prop: ExtendedProposalInformation }) => {
-	const contract = new web3.eth.Contract(Prop.abi, prop.address);
+	const contract = new web3.eth.Contract(Prop.abi, prop.addr);
 	const ideaContract = new web3.eth.Contract(Idea.abi, prop.parentAddr);
 	const [events, setEvents] = useState<ActivityEntryProps[]>(undefined);
 
@@ -37,7 +37,7 @@ export const PropActivityPanel = ({ web3, conn, prop }: { web3: Web3, conn: Conn
 				// Do not include entries for parent proposals that aren't this one
 				const events = await Promise.all([...parentLogs, ...propLogs]
 					.filter((e) => e !== undefined && e !== null && e.event)
-					.filter((e) => e.event === "NewProposal" || e.raw.topics[0] === prop.address)
+					.filter((e) => e.event === "NewProposal" || e.raw.topics[0] === prop.addr)
 					.map((e) => {
 						// Use an empty label for unrecognized events
 						let label = "";

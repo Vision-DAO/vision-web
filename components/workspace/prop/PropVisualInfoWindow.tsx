@@ -13,6 +13,7 @@ import Web3 from "web3";
  */
 export const PropVisualInfoWindow = ({ prop, web3 }: { prop: ExtendedProposalInformation, web3: Web3 }) => {
 	const [votes, setVotes] = useState<ProposalVote[]>(undefined);
+	const [nVotes, setNvotes] = useState<number>(prop.nVoters);
 
 	// Decimals are needed to show non-gigantic (wei) token values
 	const [tokenDecimals, setTokenDecimals] = useState<number>(undefined);
@@ -54,26 +55,26 @@ export const PropVisualInfoWindow = ({ prop, web3 }: { prop: ExtendedProposalInf
 			})();
 		}
 
-		if (votes === undefined) {
-			setVotes([]);
-
-			// Load the list of votes for the proposal so that the distribution
-			// can be displayed
-			(async () => {
-				const voters = await loadAllProposalVoters(web3, prop.address);
+		(async () => {
+			// Use the number of voters on the proposal as a checksum to update the vote display
+			if (prop.nVoters !== nVotes || votes === undefined) {
+				// Load the list of votes for the proposal so that the distribution
+				// can be displayed
+				const voters = await loadAllProposalVoters(web3, prop.addr);
 
 				if (!voters)
 					return;
 
 				// Each voter has a registered vote
-				const votes = await Promise.all(voters.map((voter: string) => loadProposalVote(web3, prop.address, voter)));
+				const votes = await Promise.all(voters.map((voter: string) => loadProposalVote(web3, prop.addr, voter)));
 
 				if (!votes)
 					return;
 
 				setVotes(votes);
-			})();
-		}
+				setNvotes(prop.nVoters);
+			}
+		})();
 	});
 
 	return (
