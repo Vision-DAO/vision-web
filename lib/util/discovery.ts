@@ -97,10 +97,13 @@ export const useOwnedIdeas = (did: string, web3: Web3, filterInstanceOf: string)
 			isIdeaContract(web3, addr, targetBytecode)
 				.then((valid) => {
 					// The address is an instance of the Idea contract!
-					if (valid)
-						setChecked(checked => new Set([...checked, addr]));
-					else
-						setBlocked(blocked => new Set([...blocked, addr]));
+					if (valid) {
+						if (!checked.has(addr))
+							setChecked(checked => new Set([...checked, addr]));
+					} else {
+						if (!blocked.has(addr))
+							setBlocked(blocked => new Set([...blocked, addr]));
+					}
 				});
 		}
 	});

@@ -404,8 +404,9 @@ export const useParents = (defaults?: Map<string, string[]>): [string[], (ideaAd
 		const dec = new TextDecoder("utf-8");
 		const idea = dec.decode(msg.data);
 
-		if (!ideas.has(idea))
+		if (!ideas.has(idea)) {
 			setIdeas(new Set([...ideas, idea]));
+		}
 	};
 
 	// Collect up-to-date information on the root-level ideas stored on vision

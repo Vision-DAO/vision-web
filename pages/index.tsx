@@ -22,7 +22,7 @@ export const staticIdeas: Map<string, string[]> = new Map([
 	["ethereum", [] as string[]],
 	["polygon", [] as string[]],
 	["polygon-test", [
-		"0x865166F67eE48DfE78802D3c839D26fC6a1259bf",
+		"0x2Bc839ce334D3dE78eF8E6929ad484756B842293",
 	]],
 ]);
 
@@ -106,8 +106,9 @@ export const Index = () => {
 				break;
 
 			// Mark the item as being loaded
-			if (!(ideaAddr in ideaDetails))
+			if (!(ideaAddr in ideaDetails)) {
 				setIdeaDetails(ideas => { return { ...ideas, [ideaAddr]: null }; } );
+			}
 
 			// Fetch the basic information of the idea from Ethereum
 			// TODO: Loading of extended metadata from IPFS
@@ -150,8 +151,9 @@ export const Index = () => {
 						// Remove the idea from the list of viewable ideas
 						blockIdea(ideaAddr, setBlockedIdeas);
 
-						if (ideaAddr in ideaDetails)
+						if (ideaAddr in ideaDetails) {
 							setIdeaDetails(ideas => { const { [ideaAddr]: _, ...remaining } = ideas; return remaining; });
+						}
 
 						return;
 					}
@@ -180,8 +182,9 @@ export const Index = () => {
 				};
 
 				// Render the information of the bubble as a component on the mindmap
-				if (!bubblesEqual(ideaDetails[ideaAddr], bubbleContent))
+				if (!bubblesEqual(ideaDetails[ideaAddr], bubbleContent)) {
 					setIdeaDetails(ideas => { return {...ideas, [ideaAddr]: bubbleContent}; });
+				}
 			})();
 		}
 
@@ -192,6 +195,8 @@ export const Index = () => {
 			}
 		};
 	});
+
+	console.log(ideaDetails);
 
 	const loadIdeaCard = async (details: BasicIdeaInformation) => {
 		setActiveIdea(null);
