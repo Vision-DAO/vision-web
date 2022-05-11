@@ -253,6 +253,10 @@ const App = ({ Component, pageProps }: AppPropsWithLayout) => {
  * compatible version of web3.
  */
 App.getInitialProps = async ({ ctx: { req, res }, router }) => {
+	// The server has already verified the user's identity
+	if (!req)
+		return {};
+
 	if (req) {
 		// TODO: Abstract this
 		if (req.url === "/login" || req.url === "/Vision_Eye_Transparent.png")

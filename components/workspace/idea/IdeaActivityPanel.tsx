@@ -78,12 +78,17 @@ export const IdeaActivityPanel = ({ web3, idea }: { web3: Web3, idea: ExtendedId
 								},
 							];
 
+							const getLabelFundingDispersed = async () => {
+								const contract = new web3.eth.Contract(erc20Abi, e.returnValues.rate.token);
+
+								return `${(Number(e.returnValues.rate.value) / (10 ** (await contract.methods.decimals().call()))).toLocaleString()} ${await contract.methods.symbol().call()} Sent to Idea ${await resolveIdeaName(web3, conn, e.returnValues.idea)}` ;
+							};
+
 							const eventBlock = await web3.eth.getBlock(e.blockNumber);
-							const contract = new web3.eth.Contract(erc20Abi, e.returnValues.rate.token);
 
 							return {
 								kind: e.event,
-								label: e.event === "FundingDispersed" ? `${(Number(e.returnValues.rate.value) / (10 ** (await contract.methods.decimals().call()))).toLocaleString()} ${await contract.methods.symbol().call()} Sent to Idea ${await resolveIdeaName(web3, conn, e.returnValues.idea)}` : label,
+								label: e.event === "FundingDispersed" ? await getLabelFundingDispersed() : label,
 								timestamp: new Date(eventBlock.timestamp as number * 1000),
 							};
 

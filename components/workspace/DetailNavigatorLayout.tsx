@@ -50,8 +50,9 @@ export const DetailNavigatorLayout = <T extends Detailable,>({ title, pages, chi
 
 	useEffect(() => {
 		// The wrong idea is loaded
-		if (ideaInfo && ideaInfo.addr !== addr)
+		if (ideaInfo && ideaInfo.addr !== addr) {
 			setIdeaInfo(undefined);
+		}
 
 		// A render hasn't even been triggered if the active idea is undefined
 		// Note: the ideaInfo should be set back to undefined after it is unloaded
