@@ -220,7 +220,7 @@ export const PropVotePanel = ({ prop, web3, eth }: { prop: ExtendedProposalInfor
 		// Serialize structured JS data to an intermediary ABI format
 		const rawRate: RawEthPropRate = {
 			token: prop.rate.token,
-			value: parseBig(web3, rate.value, fundingTokenDecimals).toString(),
+			value: parseBig(web3, Number(rate.value), fundingTokenDecimals).toString(),
 			intervalLength: (rate.interval * intervalMultiplier).toString(),
 
 			// Convert Date to a unix timestamp
@@ -233,7 +233,7 @@ export const PropVotePanel = ({ prop, web3, eth }: { prop: ExtendedProposalInfor
 		const acc = (await accounts(eth))[0];
 
 		// Allocate the votes to the contract
-		await parentContract.methods.approve(prop.addr, parseBig(web3, nVotes, 18).toString()).send({
+		await parentContract.methods.approve(prop.addr, parseBig(web3, Number(nVotes), 18).toString()).send({
 			from: acc,
 		})
 			.on("error", (e) => {
@@ -247,7 +247,7 @@ export const PropVotePanel = ({ prop, web3, eth }: { prop: ExtendedProposalInfor
 			.then(() => {
 				// The votes can now be used
 				// Place the vote
-				return propContract.methods.vote(parseBig(web3, nVotes, 18).toString(), { ...rawRate, value: rawRate.value }).send({
+				return propContract.methods.vote(parseBig(web3, Number(nVotes), 18).toString(), { ...rawRate, value: rawRate.value }).send({
 					from: acc,
 				})
 					.on("error", (e) => {
