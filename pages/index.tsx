@@ -51,7 +51,6 @@ export const Index = () => {
 	const [ideaDetails, setIdeaDetails] = useState<{[ideaAddr: string]: BasicIdeaInformation}>({});
 	const [activeIdea, setActiveIdea] = useState(undefined);
 	const [blockedIdeas, setBlockedIdeas] = useState<Set<string>>(new Set());
-	const [ipfsCache, setIpfsCache] = useState({});
 	const [web3, eth] = useWeb3();
 	const ipfs = useContext(IpfsContext);
 	const [modal, ] = useContext(ModalContext);
@@ -94,28 +93,29 @@ export const Index = () => {
 		}
 
 		for (const ideaAddr of allIdeas) {
-			const contract = new web3.eth.Contract(Idea.abi, ideaAddr);
+			// Cannot continue without an exemplar to compare against
+			if (!ideaContractBytecode || ideaContractBytecode == "")
+				break;
 
 			// Skip all ideas that have been blocked
 			if (blockedIdeas.has(ideaAddr))
 				continue;
 
-			// We cannot check that the given contract is an Idea without
-			// an instance of the Idea contract to compare to
-			if (!ideaContractBytecode || ideaContractBytecode == "")
-				break;
+			// TODO: Allow live updates for basic idea metadata once it is feasible
+			if (ideaAddr in ideaDetails)
+				continue;
+
+			const contract = new web3.eth.Contract(Idea.abi, ideaAddr);
 
 			// Mark the item as being loaded
-			if (!(ideaAddr in ideaDetails)) {
-				setIdeaDetails(ideas => { return { ...ideas, [ideaAddr]: null }; } );
-			}
+			setIdeaDetails(ideas => { return { ...ideas, [ideaAddr]: null }; } );
 
 			// Fetch the basic information of the idea from Ethereum
 			// TODO: Loading of extended metadata from IPFS
 			(async () => {
 				// Filter out any contracts that aren't ideas
 				// TODO: Cover Proposals as well
-				if (!(ideaAddr in ideaDetails) && !await isIdeaContract(web3, ideaAddr, ideaContractBytecode)) {
+				if (!await isIdeaContract(web3, ideaAddr, ideaContractBytecode)) {
 					blockIdea(ideaAddr, setBlockedIdeas);
 
 					return;
@@ -130,39 +130,20 @@ export const Index = () => {
 					return;
 				}
 
-				// TODO: Allow live updates for basic idea metadata once it is feasible
-				if (ideaAddr in ideaDetails)
-					return;
-
-				// See IdeaBubble.tsx for prop documentation
-				let bubbleContent: BasicIdeaInformation = ipfsCache[ipfsAddr];
-
 				// Extra props containing optional data for a bubble
 				// All ideas have associated metadata of varying degrees of completion
-				if (!(ipfsAddr in ipfsCache)) {
-					// Mark the item as being loaded
-					setIpfsCache(cache => { return { ...cache, [ipfsAddr]: null }; });
+				// Load the title, image, and address of the idea
+				const data = await loadBasicIdeaInfo(ipfs, web3, ideaAddr);
 
-					// Load the title, image, and address of the idea
-					const data = await loadBasicIdeaInfo(ipfs, web3, ideaAddr);
+				// Make sure no errors occurred
+				if (!data) {
+					// Remove the idea from the list of viewable ideas
+					blockIdea(ideaAddr, setBlockedIdeas);
 
-					// Make sure no errors occurred
-					if (!data) {
-						// Remove the idea from the list of viewable ideas
-						blockIdea(ideaAddr, setBlockedIdeas);
-
-						if (ideaAddr in ideaDetails) {
-							setIdeaDetails(ideas => { const { [ideaAddr]: _, ...remaining } = ideas; return remaining; });
-						}
-
-						return;
-					}
-
-					// Cache the content
-					setIpfsCache(cache => { return { ...cache, [ipfsAddr]: data }; });
-
-					bubbleContent = data;
+					return;
 				}
+
+				const bubbleContent: BasicIdeaInformation = data;
 
 				// This item is still loading
 				if (!bubbleContent)
@@ -195,8 +176,6 @@ export const Index = () => {
 			}
 		};
 	});
-
-	console.log(ideaDetails);
 
 	const loadIdeaCard = async (details: BasicIdeaInformation) => {
 		setActiveIdea(null);
