@@ -71,6 +71,7 @@ const whitelist: string[] = [
 	"0xc32dC5713162479dfD0e0B7E54780DcF23A58fc7",
 	"0x9405c86c9021F068b5d2a7a6A818c34A85252f23",
 	"0xd3Fe8b4f1CF50E27fE8707921d38B77F09aC6Db8",
+	"0x38aAA5b1A4EA15D86Cd875FC958c1274Fd496835",
 ];
 
 
@@ -136,14 +137,15 @@ const App = ({ Component, pageProps }: AppPropsWithLayout) => {
 	useEffect(() => {
 		if (ipfs === undefined) {
 			setIpfs(null);
-			create({ EXPERIMENTAL: { ipnsPubsub: true } }).then((ipfs) => {
-				// TODO: Auto-generate this testing peer on testing environments
-				//
-				// TODO: Figure out why IPFS isn't properly subscribing.
-				// Suspect IPFS are just a bunch of dumbfucks that can't write good
-				// software
-				setIpfs(ipfs);
-			});
+			create({ EXPERIMENTAL: { ipnsPubsub: true } })
+				.then((ipfs) => {
+					// TODO: Auto-generate this testing peer on testing environments
+					//
+					// TODO: Figure out why IPFS isn't properly subscribing.
+					// Suspect IPFS are just a bunch of dumbfucks that can't write good
+					// software
+					setIpfs(ipfs);
+				});
 		}
 	});
 

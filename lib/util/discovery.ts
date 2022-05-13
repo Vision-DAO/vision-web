@@ -1,7 +1,8 @@
 import { usePublicRecord, ViewerRecord } from "@self.id/framework";
 import { DefinitionContentType } from "@glazed/did-datastore";
 import { CoreModelTypes } from "@self.id/core";
-import { useState, useEffect } from "react";
+import { useState, useEffect, ReactElement } from "react";
+import { IdeaBubble, BasicIdeaInformation } from "../../components/workspace/IdeaBubble";
 import { staticIdeas } from "../../pages/index";
 import { ConnStatus } from "./networks";
 import Idea from "../../value-tree/build/contracts/Idea.json";
@@ -12,6 +13,17 @@ import Web3 from "web3";
  * crypto accounts.
  */
 export type CryptoAccountsRecord = ViewerRecord<DefinitionContentType<CoreModelTypes, "cryptoAccounts">>;
+
+/**
+ * Renders a list of children nodes of the idea.
+ */
+/*export const useChildIdeas = async (web3: Web3, ideaAddr: string): ReactElement[] => {
+	const childInfo = useState<BasicIdeaInformation> = useState(undefined);
+
+	useEffect(() => {
+
+	});
+};*/
 
 /**
  * Gets the name of an idea, or its address if it isn't an Idea.
