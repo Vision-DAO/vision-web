@@ -54,6 +54,12 @@ interface Page {
 }
 
 /**
+ * An IPFS node hosted on AWS. A domain name and SSL cert are required because
+ * web clients cannot resolve non-secure domain names (mozilla particularly).
+ */
+const BOOTSTRAP_NODE = "/dns4/visiondaodev.com/tcp/443/wss/p2p/12D3KooWE2ofDNP9omeVFvvmPD4ihyGW9p7nXEtzkdwKxuo47yYc";
+
+/**
  * Signed data indicating the user is who they say they are.
  */
 const LOGIN_ATTESTATION = "Login_VisionECO";
@@ -139,6 +145,10 @@ const App = ({ Component, pageProps }: AppPropsWithLayout) => {
 			setIpfs(null);
 			create({ EXPERIMENTAL: { ipnsPubsub: true } })
 				.then((ipfs) => {
+					ipfs.bootstrap.add(BOOTSTRAP_NODE);
+
+					window.ipfs = ipfs;
+
 					// TODO: Auto-generate this testing peer on testing environments
 					//
 					// TODO: Figure out why IPFS isn't properly subscribing.
