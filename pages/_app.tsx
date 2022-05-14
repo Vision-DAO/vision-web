@@ -57,7 +57,7 @@ interface Page {
  * An IPFS node hosted on AWS. A domain name and SSL cert are required because
  * web clients cannot resolve non-secure domain names (mozilla particularly).
  */
-const BOOTSTRAP_NODE = "/dns4/visiondaodev.com/tcp/443/wss/p2p/12D3KooWE2ofDNP9omeVFvvmPD4ihyGW9p7nXEtzkdwKxuo47yYc";
+const BOOTSTRAP_NODE = "/dns4/visiondaodev.com/tcp/4003/wss/p2p/12D3KooWE2ofDNP9omeVFvvmPD4ihyGW9p7nXEtzkdwKxuo47yYc";
 
 /**
  * Signed data indicating the user is who they say they are.
