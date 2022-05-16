@@ -5,7 +5,7 @@ import { IpfsContext } from "../lib/util/ipfs";
 import { ModalContext } from "../lib/util/modal";
 import { serialize } from "bson";
 import { useConnection, useViewerRecord } from "@self.id/framework";
-import { useState, useEffect, useContext, Dispatch, SetStateAction } from "react";
+import { useState, useEffect, useContext, Dispatch, SetStateAction, useRef } from "react";
 import { useConnStatus } from "../lib/util/networks";
 import Idea from "../value-tree/build/contracts/Idea.json";
 import { IdeaBubble, BasicIdeaInformation } from "../components/workspace/IdeaBubble";
@@ -69,6 +69,32 @@ export const Index = () => {
 	// Display items as a map of bubbles
 	const [zoomFactor, setZoomFactor] = useState(1);
 	const [creatingIdea, setCreatingIdea] = useState(false);
+
+	// Start bubbles out as 1/5 of the screen width
+	const bubbleRef = useRef(null);
+	const [bubbleWidth, setBubbleWidth] = useState<number>(0);
+
+	// Refresh the size of ideas when the window gets bigger
+	const windowRef = useRef(null);
+	const [windowWidth, setWindowWidth] = useState<number>(0);
+
+	// Make sure the size of the mind map is a square
+	const mapRef = useRef(null);
+	const [mapHeight, setMapHeight] = useState<number>(0);
+
+	// On first load, set the starting width of an Idea bubble
+	useEffect(() => {
+		if (bubbleRef && bubbleRef.current) {
+			if (windowRef && windowRef.current && windowRef.current.clientWidth !== windowWidth && bubbleRef && bubbleRef.current) {
+				setWindowWidth(windowRef.current.clientWidth);
+				setBubbleWidth(bubbleRef.current.clientWidth);
+			}
+		}
+
+		if (mapRef && mapRef.current && bubbleWidth !== 0 && mapRef.current.scrollHeight !== mapHeight) {
+			setMapHeight(mapRef.current.scrollHeight);
+		}
+	});
 
 	// Every time the list of parent nodes expands, part of the component
 	// tree must be rebuilt
@@ -187,18 +213,31 @@ export const Index = () => {
 	// The size of idea bubbles might change before the information in them does, or is loaded in
 	const ideaBubbles = Object.values(ideaDetails)
 		.filter((details) => details !== null)
-		.map((details: BasicIdeaInformation) =>
+		.map((details: BasicIdeaInformation, i) =>
 			IdeaBubble({
 				details: details,
-				size: zoomFactor,
+				size: bubbleWidth === 0 ? "20%" : `${bubbleWidth * zoomFactor}px`,
+				ref: i === 0 ? bubbleRef : undefined,
 				active: activeIdea && activeIdea.addr == details.addr,
 				onClick: () => loadIdeaCard(details),
 			}));
 
+	// Make sure the height of the map is the same as its width
+	const mapStyle = {};
+
+	if (mapHeight !== 0 && mapHeight > windowWidth) {
+		const size = Math.sqrt(mapHeight * windowWidth);
+
+		mapStyle["height"] = size;
+		mapStyle["width"] = size;
+	}
+
 	return (
-		<div className={ styles.browser }>
-			<div className={ styles.map }>
-				{ ideaBubbles }
+		<div className={ styles.browser } ref={ windowRef }>
+			<div className={ styles.mapContainer }>
+				<div className={ styles.map } style={ mapStyle } ref={ mapRef }>
+					{ ideaBubbles }
+				</div>
 			</div>
 			<div className={ styles.hud }>
 				{ creatingIdea &&

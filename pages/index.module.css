@@ -7,22 +7,31 @@
 	grid-template: repeat(64, 1fr) / repeat(64, 1fr);
 }
 
-.map {
+.mapContainer {
+	min-width: 100%;
+	min-height: 100%;
+
+	overflow: auto;
+
 	grid-row-start: 1;
 	grid-row-end: 65;
 
 	grid-column-start: 1;
 	grid-column-end: 65;
+}
 
+.map {
 	display: flex;
 	flex-flow: row wrap;
 
 	justify-content: center;
 	align-items: center;
 
+	height: 100%;
+	width: 100%;
+
 	transition: 0.3s;
 
-	overflow: auto;
 	cursor: grab;
 }
 
