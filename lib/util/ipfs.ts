@@ -388,7 +388,7 @@ export const decodeIdeaDataUTF8 = (d: Uint8Array): string => {
  * A hook providing a component with an up-to-date list of the most popular root ideas on vision,
  * and a hook for advertising new parents on vision.
  */
-export const useParents = (defaults?: Map<string, string[]>): [string[], (ideaAddr: string) => void] => {
+export const useParents = (defaults?: Map<string, string[]>): [Set<string>, (ideaAddr: string) => void] => {
 	// IPFS provides a pub/sub mechanism that we can use for discovery
 	const ipfs = useContext(IpfsContext);
 	const [ideas, setIdeas] = useState<Set<string>>(new Set());
@@ -397,7 +397,7 @@ export const useParents = (defaults?: Map<string, string[]>): [string[], (ideaAd
 	const [connInfo, ] = useConnStatus();
 
 	if (!ipfs)
-		return [[...ideas, ...defaults.get(connInfo.network)], () => ({})];
+		return [new Set([...ideas, ...defaults.get(connInfo.network)]), () => ({})];
 
 	// TODO: Validation before registration in browser
 	const handleIdea = (msg: Message) => {
@@ -405,6 +405,8 @@ export const useParents = (defaults?: Map<string, string[]>): [string[], (ideaAd
 		const idea = dec.decode(msg.data);
 
 		if (!ideas.has(idea)) {
+			console.debug(`receive idea ${idea} <- ${networkIdeasTopic(connInfo)}`);
+
 			setIdeas(new Set([...ideas, idea]));
 		}
 	};
@@ -420,8 +422,10 @@ export const useParents = (defaults?: Map<string, string[]>): [string[], (ideaAd
 	});
 
 	// Allow the user to publish ideas via the callback
-	return [[...ideas, ...defaults.get(connInfo.network)], (ideaAddr: string) => {
+	return [new Set([...ideas, ...defaults.get(connInfo.network)]), (ideaAddr: string) => {
 		const enc = new TextEncoder();
+
+		console.debug(`pub idea ${ideaAddr} -> ${networkIdeasTopic(connInfo)}`);
 
 		ipfs.pubsub.publish(networkIdeasTopic(connInfo), enc.encode(ideaAddr));
 	}];

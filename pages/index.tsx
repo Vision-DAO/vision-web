@@ -63,7 +63,7 @@ export const Index = () => {
 	const [rootIdeas, pubRootIdea] = useParents(staticIdeas);
 	const userIdeasRecord = useViewerRecord("cryptoAccounts");
 	const ownedIdeas = useOwnedIdeas(conn.status == "connected" ? conn.selfID.id : "", web3, baseIdeaContract);
-	const allIdeas = [...rootIdeas, ...ownedIdeas];
+	const allIdeas = [...new Set([...rootIdeas, ...ownedIdeas])];
 	const [ideaContractBytecode, setIdeaContractBytecode] = useState(null);
 
 	// Display items as a map of bubbles
@@ -87,7 +87,7 @@ export const Index = () => {
 		for (const ideaAddr of ownedIdeas) {
 			// Remind other users every n seconds about our sovereign ideas,
 			// and register a PID to cancel after the component is dismounted
-			gossipers.push(setTimeout(() => {
+			gossipers.push(setInterval(() => {
 				pubRootIdea(ideaAddr);
 			}, heartbeatPeriod));
 		}
@@ -172,7 +172,7 @@ export const Index = () => {
 		// Remove all pubsub publishers after the item is dismounted
 		return () => {
 			for (const gossiper of gossipers) {
-				clearTimeout(gossiper);
+				clearInterval(gossiper);
 			}
 		};
 	});

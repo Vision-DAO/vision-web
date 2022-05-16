@@ -67,7 +67,7 @@ export const saveIdea = (
  * Gets a list of the addresses of idea contracts owned by the given
  * address from ceramic.
  */
-export const useOwnedIdeas = (did: string, web3: Web3, filterInstanceOf: string): string[] => {
+export const useOwnedIdeas = (did: string, web3: Web3, filterInstanceOf: string): Set<string> => {
 	// Ceramic supports storing a document with a list of links to ethereum addresses
 	// Some of these might be addresses to vision-compatible tokens
 	const cryptoAccountsRecord = usePublicRecord("cryptoAccounts", did);
@@ -120,5 +120,5 @@ export const useOwnedIdeas = (did: string, web3: Web3, filterInstanceOf: string)
 		}
 	});
 
-	return [...checked];
+	return checked;
 };

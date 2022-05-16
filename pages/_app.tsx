@@ -9,7 +9,7 @@ import closeIcon from "@self.id/multiauth/assets/icon-close.svg";
 import selectedIcon from "@self.id/multiauth/assets/icon-selected.svg";
 import ethereumLogo from "@self.id/multiauth/assets/ethereum.png";
 import metaMaskLogo from "@self.id/multiauth/assets/metamask.png";
-import { create } from "ipfs-core";
+import { create, multiaddr } from "ipfs-core";
 
 import type { AppProps } from "next/app";
 import Head from "next/head";
@@ -145,7 +145,7 @@ const App = ({ Component, pageProps }: AppPropsWithLayout) => {
 			setIpfs(null);
 			create({ EXPERIMENTAL: { ipnsPubsub: true } })
 				.then((ipfs) => {
-					ipfs.bootstrap.add(BOOTSTRAP_NODE);
+					ipfs.bootstrap.add(new multiaddr(BOOTSTRAP_NODE));
 
 					window.ipfs = ipfs;
 
