@@ -48,6 +48,7 @@
 
 .labelFail {
 	color: #FF0000;
+	border-bottom-color: #FF0000;
 }
 
 .labelDone {

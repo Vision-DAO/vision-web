@@ -67,9 +67,9 @@ export const ProposalLine = ({ addr, prop, web3, props, onExpand, onFinalize }: 
 				<p className={ expired ? (successful ? styles.labelDone : styles.labelFail) : "" }><b>{ expired ? "Done:" : "Ongoing:" }</b></p>
 				<p>{ expired ? "Expired" : "Expires" } { formatDate(prop.expiry) } { formatTime12Hr(prop.expiry) }</p>
 			</div>
-			{ expired && successful ?
+			{ expired ?
 				<div className={ styles.rowLabelItem }>
-					<p className={ `${styles.labelButton} ${styles.labelDone}` } onClick={ onFinalize }><b>Finalize Proposal</b></p>
+					<p className={ `${styles.labelButton} ${successful ? styles.labelDone : styles.labelFail}` } onClick={ onFinalize }><b>Finalize Proposal</b></p>
 				</div>
 				: <></>
 			}
