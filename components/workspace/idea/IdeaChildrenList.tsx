@@ -2,12 +2,11 @@ import { BasicIdeaInformation } from "../IdeaBubble";
 import Web3 from "web3";
 import { OutlinedListEntry } from "../../status/OutlinedListEntry";
 import { FundingRate } from "../../../lib/util/ipfs";
-import { accounts } from "../../../lib/util/networks";
+import { accounts, explorers, useConnStatus } from "../../../lib/util/networks";
 import { formatDate } from "../prop/ProposalLine";
 import { formatTime12Hr } from "../idea/activity/ActivityEntry";
 import { formatInterval } from "../prop/PropInfoPanel";
 import { GeneralModal } from "../../status/GeneralModal";
-import { FilledButton } from "../../status/FilledButton";
 import { ModalContext } from "../../../lib/util/modal";
 import Idea from "../../../value-tree/build/contracts/Idea.json";
 import { AbiItem } from "web3-utils";
@@ -49,6 +48,7 @@ const erc20Abi: AbiItem[] = [
 export const IdeaChildrenList = ({ parentAddr, rates, ideas, web3, eth }: { parentAddr: string, rates: { [idea: string]: FundingRate }, ideas: { [idea: string]: BasicIdeaInformation }, web3: Web3, eth: any }) => {
 	// Used for showing the user errors
 	const [, setModal] = useContext(ModalContext);
+	const [conn, ] = useConnStatus();
 	const items = Object.entries(rates)
 		.map(([addr, rate]) => [ideas[addr], rate]);
 	const [parentContract, setParentContract] = useState(undefined);
@@ -68,7 +68,7 @@ export const IdeaChildrenList = ({ parentAddr, rates, ideas, web3, eth }: { pare
 		try {
 			await parentContract.methods.disperseFunding(addr).send({ from: (await accounts(eth))[0] })
 				.on("error", (e) => {
-					displayModal("Error", `Failed to disperse funding: ${e}`);
+					displayModal("Error", e.message ?? JSON.stringify(e));
 				})
 				.on("transactionHash", (hash) => {
 					setFundsReleasing(prev => { return { ...prev, [addr]: true }; });
@@ -79,7 +79,7 @@ export const IdeaChildrenList = ({ parentAddr, rates, ideas, web3, eth }: { pare
 					displayModal("Success", "The requested funds have been released.");
 				});
 		} catch (e) {
-			displayModal("Error", e);
+			displayModal("Error", e.message ?? JSON.stringify(e));
 		}
 	};
 
@@ -114,7 +114,7 @@ export const IdeaChildrenList = ({ parentAddr, rates, ideas, web3, eth }: { pare
 				}
 
 				return (<OutlinedListEntry key={ idea.addr } styles={{ roundTop: false, roundBottom: i === items.length - 1 }}>
-					<p><b>{ idea.title }</b></p>
+					<a href={ `${explorers[conn.network]}/address/${idea.addr}` } target="_blank" rel="noreferrer"><b>{ idea.title }</b></a>
 					<p><b>{ (rate.value / (10 ** (tokenDecimals[rate.token] ?? 1))).toLocaleString() } { tokenTickers[rate.token] != null ? tokenTickers[rate.token] : rate.token }</b></p>
 					<p><b>{ formatInterval(rate.interval) }</b></p>
 					<p><b>{ formatDate(rate.expiry) } { formatTime12Hr(rate.expiry) }</b></p>
