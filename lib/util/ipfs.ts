@@ -3,9 +3,11 @@ import { serialize, deserialize } from "bson";
 import { blobify } from "./blobify";
 import { createContext, useContext, useEffect, useState } from "react";
 import { useConnStatus, networkIdeasTopic, Network, explorers } from "./networks";
+import { isIdeaContract } from "./discovery";
 import { Message } from "ipfs-core-types/src/pubsub";
 import { MarketMetrics, OnlyIdeaDetailProps, ExtendedIdeaInformation } from "../../components/workspace/IdeaDetailCard";
 import { BasicIdeaInformation } from "../../components/workspace/IdeaBubble";
+import { staticIdeas } from "../../pages/index";
 import Idea from "../../value-tree/build/contracts/Idea.json";
 import Prop from "../../value-tree/build/contracts/Prop.json";
 import Web3 from "web3";
@@ -478,15 +480,32 @@ export const useProposals = (ideaAddr: string): [GossipProposalInformation[], (p
  * Loads basic information and funding rates for all accepted children of the indicated idea.
  */
 export const useFundedChildren = (addr: string, web3: Web3, ipfs: IpfsClient): [{ [addr: string]: FundingRate }, { [addr: string]: BasicIdeaInformation }] => {
+	const [isValid, setIsValid] = useState<boolean>(undefined);
 	const [children, setChildren] = useState<[{ [addr: string]: FundingRate }, { [addr: string]: BasicIdeaInformation }]>([{}, {}]);
 	const [numChildren, setNchildren] = useState<number>(0);
+	const [conn, ] = useConnStatus();
 
-	if (!ipfs || !web3)
-		return [{}, {}];
+	// An example of an idea contract. Used for ensuring that this is a valid Idea
+	// contract, since a hook cannot be called conditionally - the logic inside
+	// it must be
+	const exemplar = staticIdeas.get(conn.network)[0];
 
 	useEffect(() => {
+		// The idea has not been determined to be an instance of the Idea contract
+		if (isValid === undefined) {
+			setIsValid(false);
+
+			(async () => {
+				setIsValid(await isIdeaContract(web3, addr, await web3.eth.getCode(exemplar)));
+			})();
+		}
+
+		if (!isValid)
+			return;
+
 		(async () => {
 			const contract = new web3.eth.Contract(Idea.abi, addr);
+			const contractCode = await web3.eth.getCode(exemplar);
 			const nChildren = parseInt(await contract.methods.numChildren().call());
 
 			if (numChildren !== nChildren) {
@@ -520,12 +539,23 @@ export const useFundedChildren = (addr: string, web3: Web3, ipfs: IpfsClient): [
 					kind: fundingKinds[rate.kind],
 				},
 			}; }, {});
-			const childIdeaDetails: [string, BasicIdeaInformation][] = await Promise.all(childAddrs.map((addr: string) => loadBasicIdeaInfo(ipfs, web3, addr).then((info: BasicIdeaInformation) => { const res: [string, BasicIdeaInformation] = [addr, info]; return res;})));
+			const childIdeaDetails: [string, BasicIdeaInformation][] = await Promise.all(childAddrs.map((addr: string) => {
+				return (async (): Promise<[string, BasicIdeaInformation]> => {
+					if (await isIdeaContract(web3, addr, contractCode))
+						return loadBasicIdeaInfo(ipfs, web3, addr).then((info: BasicIdeaInformation) => { const res: [string, BasicIdeaInformation] = [addr, info]; return res;});
+
+					const res: [string, BasicIdeaInformation] = [addr, { title: `${addr.substring(0, 12)}...`, image: null, addr }];
+					return res;
+				})();
+			}));
 			const parsedChildDetails: { [addr: string]: BasicIdeaInformation } = childIdeaDetails.reduce((prev, [addr, details]) => { return { ...prev, [addr]: details }; }, {});
 
 			setChildren([parsedChildRates, parsedChildDetails]);
 		})();
 	});
+
+	if (!ipfs || !web3)
+		return [{}, {}];
 
 	return children;
 };
