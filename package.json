@@ -25,6 +25,8 @@
     "@types/react-dom": "^17.0.9",
     "bech32": "^2.0.0",
     "bson": "^4.6.2",
+    "cytoscape": "^3.21.1",
+    "cytoscape-dagre": "^2.4.0",
     "date-fns": "^2.28.0",
     "eth-crypto": "^2.3.0",
     "ipfs-core": "^0.14.1",
@@ -62,6 +64,8 @@
     ]
   },
   "devDependencies": {
+    "@types/cytoscape": "^3.19.4",
+    "@types/cytoscape-dagre": "^2.3.0",
     "@typescript-eslint/eslint-plugin": "^5.15.0",
     "@typescript-eslint/parser": "^5.15.0",
     "eslint": "^8.11.0",

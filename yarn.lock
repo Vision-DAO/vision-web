@@ -2051,6 +2051,18 @@
   dependencies:
     "@types/node" "*"
 
+"@types/cytoscape-dagre@^2.3.0":
+  version "2.3.0"
+  resolved "https://registry.yarnpkg.com/@types/cytoscape-dagre/-/cytoscape-dagre-2.3.0.tgz#e9193f710f47472bed9c80430ca0d6cb98cf1620"
+  integrity sha512-1WwDnCcdySVwhxhHWHxRFlWoz7InlXlA9O9gQjtBkk1Sf7hW0+uaRxS6nr1TLBSPZRX0QNpYGvGqh13NuFEDaA==
+  dependencies:
+    "@types/cytoscape" "*"
+
+"@types/cytoscape@*", "@types/cytoscape@^3.19.4":
+  version "3.19.4"
+  resolved "https://registry.yarnpkg.com/@types/cytoscape/-/cytoscape-3.19.4.tgz#f41214103b80ff3d7d8741bacc32265ed90e45b5"
+  integrity sha512-0IozTg1vdZrA3nuAK5o9Pa8nl2INUnTaXwcGwoiALDcsD8/TiVnp0Zi+R1IiPRG6edoy0Ya61/3osFLtfkhhmw==
+
 "@types/debug@^4.1.7":
   version "4.1.7"
   resolved "https://registry.yarnpkg.com/@types/debug/-/debug-4.1.7.tgz#7cc0ea761509124709b8b2d1090d8f6c17aadb82"
@@ -3633,6 +3645,24 @@ csstype@^3.0.11, csstype@^3.0.2:
   resolved "https://registry.yarnpkg.com/csstype/-/csstype-3.0.11.tgz#d66700c5eacfac1940deb4e3ee5642792d85cd33"
   integrity sha512-sa6P2wJ+CAbgyy4KFssIb/JNMLxFvKF1pCYCSXS8ZMuqZnMsrxqI2E5sPyoTpxoPU/gVZMzr2zjOfg8GIZOMsw==
 
+cytoscape-dagre@^2.4.0:
+  version "2.4.0"
+  resolved "https://registry.yarnpkg.com/cytoscape-dagre/-/cytoscape-dagre-2.4.0.tgz#abf145b1c675afe3b7d531166e6727dc39dc350d"
+  integrity sha512-jfOtKzKduCnruBs3YMHS9kqWjZKqvp6loSJwlotPO5pcU4wLUhkx7ZBIyW3VWZXa8wfkGxv/zhWoBxWtYrUxKQ==
+  dependencies:
+    dagre "^0.8.5"
+
+cytoscape@^3.21.1:
+  version "3.21.1"
+  resolved "https://registry.yarnpkg.com/cytoscape/-/cytoscape-3.21.1.tgz#2d3a8b8ade8661c9efab2e9bf7a354b374d6cf0e"
+  integrity sha512-mxdxCzuGHOMSWHUFO+/ZQPeMNtJAm81LGzdwP02LhT592ZRfHWCvHUY++HpnSjg/SgrKg1CMqegY/HvYLUS1qg==
+  dependencies:
+    heap "^0.2.6"
+    lodash.debounce "^4.0.8"
+    lodash.get "^4.4.2"
+    lodash.set "^4.3.2"
+    lodash.topath "^4.5.2"
+
 d@1, d@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/d/-/d-1.0.1.tgz#8698095372d58dbee346ffd0c7093f99f8f9eb5a"
@@ -3659,6 +3689,14 @@ dag-jose@^1.0.0:
   dependencies:
     "@ipld/dag-cbor" "^6.0.3"
     multiformats "^9.0.2"
+
+dagre@^0.8.5:
+  version "0.8.5"
+  resolved "https://registry.yarnpkg.com/dagre/-/dagre-0.8.5.tgz#ba30b0055dac12b6c1fcc247817442777d06afee"
+  integrity sha512-/aTqmnRta7x7MCCpExk7HQL2O4owCT2h8NT//9I1OQ9vt29Pa0BzSAkR5lwFUcQ7491yVi/3CXU9jQ5o0Mn2Sw==
+  dependencies:
+    graphlib "^2.1.8"
+    lodash "^4.17.15"
 
 dashdash@^1.12.0:
   version "1.14.1"
@@ -5244,6 +5282,13 @@ graceful-fs@^4.1.2, graceful-fs@^4.1.6, graceful-fs@^4.2.4:
   resolved "https://registry.yarnpkg.com/graceful-fs/-/graceful-fs-4.2.10.tgz#147d3a006da4ca3ce14728c7aefc287c367d7a6c"
   integrity sha512-9ByhssR2fPVsNZj478qUUbKfmL0+t5BDVyjShtyZZLiK7ZDAArFFfopyOTj0M05wE2tJPisA4iTnnXl2YoPvOA==
 
+graphlib@^2.1.8:
+  version "2.1.8"
+  resolved "https://registry.yarnpkg.com/graphlib/-/graphlib-2.1.8.tgz#5761d414737870084c92ec7b5dbcb0592c9d35da"
+  integrity sha512-jcLLfkpoVGmH7/InMC/1hIvOPSUh38oJtGhvrOFGzioE1DZ+0YW16RgmOJhHiuWTvGiJQ9Z1Ik43JvkRPRvE+A==
+  dependencies:
+    lodash "^4.17.15"
+
 grommet-icons@^4.7.0:
   version "4.7.0"
   resolved "https://registry.yarnpkg.com/grommet-icons/-/grommet-icons-4.7.0.tgz#1d537b2bdc507be07d5643309d433bbe1464c5b6"
@@ -5361,6 +5406,11 @@ hashlru@^2.3.0:
   version "2.3.0"
   resolved "https://registry.yarnpkg.com/hashlru/-/hashlru-2.3.0.tgz#5dc15928b3f6961a2056416bb3a4910216fdfb51"
   integrity sha512-0cMsjjIC8I+D3M44pOQdsy0OHXGLVz6Z0beRuufhKa0KfaD2wGwAev6jILzXsd3/vpnNQJmWyZtIILqM1N+n5A==
+
+heap@^0.2.6:
+  version "0.2.7"
+  resolved "https://registry.yarnpkg.com/heap/-/heap-0.2.7.tgz#1e6adf711d3f27ce35a81fe3b7bd576c2260a8fc"
+  integrity sha512-2bsegYkkHO+h/9MGbn6KWcE45cHZgPANo5LXF7EvWdT0yT2EguSVO1nDgU5c8+ZOPwp2vMNa7YFsJhVcDR9Sdg==
 
 hmac-drbg@^1.0.1:
   version "1.0.1"
@@ -7142,15 +7192,30 @@ lodash.debounce@^4.0.8:
   resolved "https://registry.yarnpkg.com/lodash.debounce/-/lodash.debounce-4.0.8.tgz#82d79bff30a67c4005ffd5e2515300ad9ca4d7af"
   integrity sha1-gteb/zCmfEAF/9XiUVMArZyk168=
 
+lodash.get@^4.4.2:
+  version "4.4.2"
+  resolved "https://registry.yarnpkg.com/lodash.get/-/lodash.get-4.4.2.tgz#2d177f652fa31e939b4438d5341499dfa3825e99"
+  integrity sha512-z+Uw/vLuy6gQe8cfaFWD7p0wVv8fJl3mbzXh33RS+0oW2wvUqiRXiQ69gLWSLpgB5/6sU+r6BlQR0MBILadqTQ==
+
 lodash.merge@^4.6.2:
   version "4.6.2"
   resolved "https://registry.yarnpkg.com/lodash.merge/-/lodash.merge-4.6.2.tgz#558aa53b43b661e1925a0afdfa36a9a1085fe57a"
   integrity sha512-0KpjqXRVvrYyCsX1swR/XTK0va6VQkQM6MNo7PqW77ByjAhoARA8EfrP1N4+KlKj8YS0ZUCtRT/YUuhyYDujIQ==
 
+lodash.set@^4.3.2:
+  version "4.3.2"
+  resolved "https://registry.yarnpkg.com/lodash.set/-/lodash.set-4.3.2.tgz#d8757b1da807dde24816b0d6a84bea1a76230b23"
+  integrity sha512-4hNPN5jlm/N/HLMCO43v8BXKq9Z7QdAGc/VGrRD61w8gN9g/6jF9A4L1pbUgBLCffi0w9VsXfTOij5x8iTyFvg==
+
 lodash.throttle@^4.1.1:
   version "4.1.1"
   resolved "https://registry.yarnpkg.com/lodash.throttle/-/lodash.throttle-4.1.1.tgz#c23e91b710242ac70c37f1e1cda9274cc39bf2f4"
   integrity sha1-wj6RtxAkKscMN/HhzaknTMOb8vQ=
+
+lodash.topath@^4.5.2:
+  version "4.5.2"
+  resolved "https://registry.yarnpkg.com/lodash.topath/-/lodash.topath-4.5.2.tgz#3616351f3bba61994a0931989660bd03254fd009"
+  integrity sha512-1/W4dM+35DwvE/iEd1M9ekewOSTlpFekhw9mhAtrwjVqUr83/ilQiyAvmg4tVX7Unkcfl1KC+i9WdaT4B6aQcg==
 
 lodash@^4.17.11, lodash@^4.17.14, lodash@^4.17.15:
   version "4.17.21"

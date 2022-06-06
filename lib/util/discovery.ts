@@ -3,8 +3,9 @@ import { DefinitionContentType } from "@glazed/did-datastore";
 import { CoreModelTypes } from "@self.id/core";
 import { useState, useEffect, ReactElement } from "react";
 import { IdeaBubble, BasicIdeaInformation } from "../../components/workspace/IdeaBubble";
+import { getAllIdeaDescendants, IpfsClient, FundingRate } from "./ipfs";
 import { staticIdeas } from "../../pages/index";
-import { ConnStatus } from "./networks";
+import { ConnStatus, useConnStatus } from "./networks";
 import Idea from "../../value-tree/build/contracts/Idea.json";
 import Web3 from "web3";
 
@@ -15,15 +16,28 @@ import Web3 from "web3";
 export type CryptoAccountsRecord = ViewerRecord<DefinitionContentType<CoreModelTypes, "cryptoAccounts">>;
 
 /**
- * Renders a list of children nodes of the idea.
+ * Traverses a list of root addresses, collecting their children in a returned
+ * set of addresses. Avoids circular loops by remembering visited nodes in a
+ * `visited` set. Including addresses in the `visited` set can also be used to
+ * filter out bad addresses that shouldn't be visited at all.
  */
-/*export const useChildIdeas = async (web3: Web3, ideaAddr: string): ReactElement[] => {
-	const childInfo = useState<BasicIdeaInformation> = useState(undefined);
+export const useTraversedChildIdeas = (roots: string[], web3: Web3, ipfs: IpfsClient, visited: string[]): { [addr: string]: { [parent: string]: FundingRate } } => {
+	const [children, setChildren] = useState<{ [addr: string]: { [parent: string]: FundingRate } }>({});
+	const [conn, ] = useConnStatus();
 
+	// Traverse the graph in a depth first, recursive fashion
 	useEffect(() => {
+		(async () => {
+			for (const root of roots) {
+				const { found: rootFound } = await getAllIdeaDescendants(root, web3, new Set(visited), ipfs, conn);
+				setChildren(children => Object.entries(rootFound)
+					.reduce((ideas, [k, v]) => { return { ...ideas, [k]: v }; }, children));
+			}
+		})();
+	}, [roots.reduce((sum, x) => sum + x, "")]);
 
-	});
-};*/
+	return children;
+};
 
 /**
  * Gets the name of an idea, or its address if it isn't an Idea.

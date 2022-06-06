@@ -2,7 +2,7 @@ import { create } from "ipfs-core";
 import { serialize, deserialize } from "bson";
 import { blobify } from "./blobify";
 import { createContext, useContext, useEffect, useState } from "react";
-import { useConnStatus, networkIdeasTopic, Network, explorers } from "./networks";
+import { useConnStatus, networkIdeasTopic, Network, explorers, ConnStatus } from "./networks";
 import { isIdeaContract } from "./discovery";
 import { Message } from "ipfs-core-types/src/pubsub";
 import { MarketMetrics, OnlyIdeaDetailProps, ExtendedIdeaInformation } from "../../components/workspace/IdeaDetailCard";
@@ -54,6 +54,9 @@ export enum FundingKind {
  * Represents the details of how an Idea is funded.
  */
 export interface FundingRate {
+	/* The contract sending the funding rate */
+	sender: string;
+
 	/* The token used for funding */
 	token: string;
 
@@ -155,7 +158,7 @@ export type RawEthPropRate = {
 	intervalLength: string,
 	expiry: string,
 	lastClaimed: string,
-	kind: string
+	kind: string,
 };
 
 export type RawEthPropVote = {
@@ -206,6 +209,7 @@ export const loadExtendedProposalInfo = async (ipfs: IpfsClient, w: Web3, prop: 
 		interval: parseInt(interval) || 0,
 		expiry: new Date(parseInt(expiry) || 0 * 1000),
 		lastClaimed: new Date(parseInt(lastClaimed) || 0 * 1000),
+		sender: await contract.methods.governed().call(),
 
 		// Enums are represented as indices in Ethereum
 		kind: fundingKinds[kind],
@@ -258,6 +262,7 @@ export const loadProposalVote = async (web3: Web3, propAddr: string, voterAddr: 
 				expiry: new Date(parseInt(rawVote.rate.expiry) || 0 * 1000),
 				lastClaimed: new Date(parseInt(rawVote.rate.lastClaimed) || 0 * 1000),
 				kind: fundingKinds[parseInt(rawVote.rate.kind) || 0],
+				sender: await contract.methods.governed().call(),
 			},
 			weight: parseInt(rawVote.votes) || 0,
 		};
@@ -505,7 +510,6 @@ export const useFundedChildren = (addr: string, web3: Web3, ipfs: IpfsClient): [
 
 		(async () => {
 			const contract = new web3.eth.Contract(Idea.abi, addr);
-			const contractCode = await web3.eth.getCode(exemplar);
 			const nChildren = parseInt(await contract.methods.numChildren().call());
 
 			if (numChildren !== nChildren) {
@@ -519,38 +523,7 @@ export const useFundedChildren = (addr: string, web3: Web3, ipfs: IpfsClient): [
 				return;
 			}
 
-			const childIndices = Array(nChildren).fill(1).map((v, i) => i);
-
-			// Gets a list of the addresses of children of the contract
-			const childAddrs = await Promise.all(childIndices.map((i) => contract.methods.children(i).call()));
-			const childRates: [string, RawEthPropRate][] = await Promise.all(childAddrs.map((addr: string) => contract.methods.fundedIdeas(addr).call().then((rate: RawEthPropRate) => [addr, rate])));
-
-			// Convert eth ABI rates into actual rates
-			const parsedChildRates: { [addr: string]: FundingRate } = childRates.reduce((prev, [addr, rate]) => { return {
-				...prev,
-				[addr]: {
-					token: rate.token,
-					value: parseInt(rate.value) || 0,
-					interval: parseInt(rate.intervalLength) || 0,
-					expiry: new Date((parseInt(rate.expiry) || 0) * 1000),
-					lastClaimed: new Date((parseInt(rate.lastClaimed) || 0) * 1000),
-
-					// Enums are represented as indices in Ethereum
-					kind: fundingKinds[rate.kind],
-				},
-			}; }, {});
-			const childIdeaDetails: [string, BasicIdeaInformation][] = await Promise.all(childAddrs.map((addr: string) => {
-				return (async (): Promise<[string, BasicIdeaInformation]> => {
-					if (await isIdeaContract(web3, addr, contractCode))
-						return loadBasicIdeaInfo(ipfs, web3, addr).then((info: BasicIdeaInformation) => { const res: [string, BasicIdeaInformation] = [addr, info]; return res;});
-
-					const res: [string, BasicIdeaInformation] = [addr, { title: `${addr.substring(0, 12)}...`, image: null, addr }];
-					return res;
-				})();
-			}));
-			const parsedChildDetails: { [addr: string]: BasicIdeaInformation } = childIdeaDetails.reduce((prev, [addr, details]) => { return { ...prev, [addr]: details }; }, {});
-
-			setChildren([parsedChildRates, parsedChildDetails]);
+			setChildren(await getFundedChildren(addr, web3, ipfs, conn));
 		})();
 	});
 
@@ -558,6 +531,130 @@ export const useFundedChildren = (addr: string, web3: Web3, ipfs: IpfsClient): [
 		return [{}, {}];
 
 	return children;
+};
+
+/**
+ * The addresses that have already been visited by the graph traversal engine,
+ * and the addresses found by the traversal engine.
+ */
+export interface GraphTraversalState {
+	// The addresses that the traversal engine has already passed over
+	visited: Set<string>,
+
+	// The addresses the graph traversal passed over, with a list of incoming
+	// edges for each node
+	found: { [addr: string]: { [parent: string]: FundingRate } },
+}
+
+/**
+ * Gets a list of the addresses and funding rates of all children funded by
+ * the idea specified by the given idea address. Assumes that the indicated
+ * address is the address of a valid Idea.
+ *
+ * Pred: `addr` is the address of a valid Idea
+ */
+export const getFundedChildren = async (addr: string, web3: Web3, ipfs: IpfsClient, conn: ConnStatus): Promise<[{ [addr: string]: FundingRate }, { [addr: string]: BasicIdeaInformation }]> => {
+	const contract = new web3.eth.Contract(Idea.abi, addr);
+	const exemplar = staticIdeas.get(conn.network)[0];
+	const contractCode = await web3.eth.getCode(exemplar);
+
+	const childAddrs = await getChildAddrs(addr, web3);
+	
+	const childRates: [string, RawEthPropRate][] = await Promise.all(childAddrs.map((addr: string) => contract.methods.fundedIdeas(addr).call().then((rate: RawEthPropRate) => [addr, rate])));
+
+	const parentAddr = addr;
+
+	// Convert eth ABI rates into actual rates
+	const parsedChildRates: { [addr: string]: FundingRate } = childRates.reduce((prev, [addr, rate]) => { return {
+		...prev,
+		[addr]: {
+			token: rate.token,
+			value: parseInt(rate.value) || 0,
+			interval: parseInt(rate.intervalLength) || 0,
+			expiry: new Date((parseInt(rate.expiry) || 0) * 1000),
+			lastClaimed: new Date((parseInt(rate.lastClaimed) || 0) * 1000),
+			sender: parentAddr,
+
+			// Enums are represented as indices in Ethereum
+			kind: fundingKinds[rate.kind],
+		},
+	}; }, {});
+
+	const childIdeaDetails: [string, BasicIdeaInformation][] = await Promise.all(childAddrs.map((addr: string) => {
+		return (async (): Promise<[string, BasicIdeaInformation]> => {
+			if (await isIdeaContract(web3, addr, contractCode))
+				return loadBasicIdeaInfo(ipfs, web3, addr).then((info: BasicIdeaInformation) => { const res: [string, BasicIdeaInformation] = [addr, info]; return res;});
+
+			const res: [string, BasicIdeaInformation] = [addr, { title: `${addr.substring(0, 12)}...`, image: null, addr }];
+			return res;
+		})();
+	}));
+	const parsedChildDetails: { [addr: string]: BasicIdeaInformation } = childIdeaDetails.reduce((prev, [addr, details]) => { return { ...prev, [addr]: details }; }, {});
+
+	return [parsedChildRates, parsedChildDetails];
+};
+
+/**
+ * Gets a list of the addresses of the children funded by the idea `addr`.
+ *
+ * Pred: assumes that `addr` is the address of a valid Idea.
+ */
+export const getChildAddrs = async (addr: string, web3: Web3): Promise<string[]> => {
+	const contract = new web3.eth.Contract(Idea.abi, addr);
+	const nChildren = parseInt(await contract.methods.numChildren().call());
+
+	const childIndices = Array(nChildren).fill(1).map((v, i) => i);
+
+	// Gets a list of the addresses of children of the contract
+	return await Promise.all(childIndices.map((i) => contract.methods.children(i).call()));
+};
+
+/**
+ * Gets a list of all the children funded by this idea, and all of the
+ * children of those children, with a list of funding rates for each of the
+ * returned children.
+ *
+ * Pred: `addr` is the address of a valid Idea
+ */
+export const getAllIdeaDescendants = async (addr: string, web3: Web3, visited: Set<string>, ipfs: IpfsClient, conn: ConnStatus): Promise<GraphTraversalState> => {
+	// Skip any addresses that should be filtered out
+	if (visited.has(addr)) {
+		return { visited, found: {} };
+	}
+
+	// If this is not a valid Idea contract, add it to the list of visited
+	// addresses, but return nothing
+	const exemplar = staticIdeas.get(conn.network)[0];
+	const exemplarCode = await web3.eth.getCode(exemplar);
+
+	if (!(await isIdeaContract(web3, addr, exemplarCode))) {
+		return { visited: new Set([...visited, addr]), found: {} };
+	}
+
+	const [edges, children] = await getFundedChildren(addr, web3, ipfs, conn);
+	visited.add(addr);
+
+	if (Object.values(children).length === 0) {
+		return { visited, found: {} };
+	}
+
+	const found = {};
+	Object.values(children)
+		.map(({ addr }: BasicIdeaInformation) => {
+			found[addr] = { ...found[addr], [edges[addr].sender]: edges[addr] };
+		});
+
+	for (const child of Object.values(children).map(({ addr }: BasicIdeaInformation) => addr)) {
+		const { visited: childVisited, found: childFound } = await getAllIdeaDescendants(child, web3, visited, ipfs, conn);
+		visited = new Set([...visited, ...childVisited]);
+
+		// Merge child edges with edges from other branches
+		Object.entries(childFound).forEach(([k, v]) => {
+			found[k] = { ...found[k], v };
+		});
+	}
+
+	return { found, visited };
 };
 
 /**

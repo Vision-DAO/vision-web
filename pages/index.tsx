@@ -1,17 +1,19 @@
 import { useParents, loadExtendedIdeaInfo, loadBasicIdeaInfo } from "../lib/util/ipfs";
-import { useOwnedIdeas, isIdeaContract } from "../lib/util/discovery";
+import { useOwnedIdeas, isIdeaContract, useTraversedChildIdeas } from "../lib/util/discovery";
 import { useWeb3 } from "../lib/util/web3";
 import { IpfsContext } from "../lib/util/ipfs";
 import { ModalContext } from "../lib/util/modal";
 import { serialize } from "bson";
 import { useConnection, useViewerRecord } from "@self.id/framework";
-import { useState, useEffect, useContext, Dispatch, SetStateAction, useRef } from "react";
+import { useState, useEffect, useContext, Dispatch, SetStateAction, useRef, Fragment, createElement } from "react";
 import { useConnStatus } from "../lib/util/networks";
 import Idea from "../value-tree/build/contracts/Idea.json";
-import { IdeaBubble, BasicIdeaInformation } from "../components/workspace/IdeaBubble";
+import { BasicIdeaInformation } from "../components/workspace/IdeaBubble";
+import dagre from "cytoscape-dagre";
 import { IdeaDetailCard } from "../components/workspace/IdeaDetailCard";
 import { NewIdeaModal } from "../components/status/NewIdeaModal";
 import { FilledButton } from "../components/status/FilledButton";
+import cytoscape from "cytoscape";
 import styles from "./index.module.css";
 
 /**
@@ -63,38 +65,23 @@ export const Index = () => {
 	const [rootIdeas, pubRootIdea] = useParents(staticIdeas);
 	const userIdeasRecord = useViewerRecord("cryptoAccounts");
 	const ownedIdeas = useOwnedIdeas(conn.status == "connected" ? conn.selfID.id : "", web3, baseIdeaContract);
-	const allIdeas = [...new Set([...rootIdeas, ...ownedIdeas])];
 	const [ideaContractBytecode, setIdeaContractBytecode] = useState(null);
+
+	// Ideas can either be known through immediate information (i.e., stored on
+	// the device, hardcoded, or received over the network, or through work done
+	// on our own to traverse the graph)
+	const immediateIdeas = [...rootIdeas, ...ownedIdeas];
+	const discoveredIdeas = useTraversedChildIdeas(immediateIdeas.sort(), web3, ipfs, []);
+
+	// Record edges for all ideas that have them, or default to a list of empty edges
+	const allIdeas = [...immediateIdeas].reduce((ideas, ideaAddr) => { return { ...ideas, [ideaAddr]: discoveredIdeas[ideaAddr] ?? {} }; }, {});
 
 	// Display items as a map of bubbles
 	const [zoomFactor, setZoomFactor] = useState(1);
 	const [creatingIdea, setCreatingIdea] = useState(false);
 
-	// Start bubbles out as 1/5 of the screen width
-	const bubbleRef = useRef(null);
-	const [bubbleWidth, setBubbleWidth] = useState<number>(0);
-
-	// Refresh the size of ideas when the window gets bigger
-	const windowRef = useRef(null);
-	const [windowWidth, setWindowWidth] = useState<number>(0);
-
-	// Make sure the size of the mind map is a square
-	const mapRef = useRef(null);
-	const [mapHeight, setMapHeight] = useState<number>(0);
-
-	// On first load, set the starting width of an Idea bubble
-	useEffect(() => {
-		if (bubbleRef && bubbleRef.current) {
-			if (windowRef && windowRef.current && windowRef.current.clientWidth !== windowWidth && bubbleRef && bubbleRef.current) {
-				setWindowWidth(windowRef.current.clientWidth);
-				setBubbleWidth(bubbleRef.current.clientWidth);
-			}
-		}
-
-		if (mapRef && mapRef.current && bubbleWidth !== 0 && mapRef.current.scrollHeight !== mapHeight) {
-			setMapHeight(mapRef.current.scrollHeight);
-		}
-	});
+	// The container that cytoscape binds to for rendering nodes
+	const map = useRef(null);
 
 	// Every time the list of parent nodes expands, part of the component
 	// tree must be rebuilt
@@ -118,7 +105,7 @@ export const Index = () => {
 			}, heartbeatPeriod));
 		}
 
-		for (const ideaAddr of allIdeas) {
+		for (const ideaAddr of Object.keys(allIdeas)) {
 			// Cannot continue without an exemplar to compare against
 			if (!ideaContractBytecode || ideaContractBytecode == "")
 				break;
@@ -210,34 +197,85 @@ export const Index = () => {
 		setActiveIdea(info);
 	};
 
-	// The size of idea bubbles might change before the information in them does, or is loaded in
-	const ideaBubbles = Object.values(ideaDetails)
-		.filter((details) => details !== null)
-		.map((details: BasicIdeaInformation, i) =>
-			IdeaBubble({
-				details: details,
-				size: bubbleWidth === 0 ? "20%" : `${bubbleWidth * zoomFactor}px`,
-				ref: i === 0 ? bubbleRef : undefined,
-				active: activeIdea && activeIdea.addr == details.addr,
-				onClick: () => loadIdeaCard(details),
-			}));
+	// Render a map of ideas
+	useEffect(() => {
+		cytoscape.use(dagre);
 
-	// Make sure the height of the map is the same as its width
-	const mapStyle = {};
+		let destructor = () => {};
 
-	if (mapHeight !== 0 && mapHeight > windowWidth) {
-		const size = Math.sqrt(mapHeight * windowWidth);
+		if (map && map.current) {
+			const cy = cytoscape({
+				container: map.current,
+				elements: {
+					nodes: Object.entries(ideaDetails).map(([k, v]) => { return { data: { id: k, label: v ? v.title : k } }; }),
+					edges: Object.entries(discoveredIdeas).map(([k, v]) => Object.values(v).filter((edge) => edge.sender in ideaDetails && k in ideaDetails).map((edge) => { return { data: { id: `${k}${edge.sender}`, source: edge.sender, target: k } }; })).flat(),
+				},
+				zoom: 0.8,
+				layout: {
+					name: "dagre",
+				},
+				boxSelectionEnabled: false,
+				style: [
+					{
+						selector: "node",
+						style: {
+							"label": "data(label)",
+							"text-wrap": "ellipsis",
+							"text-max-width": "70%",
+							"text-valign": "center",
+							"color": "white",
+							"font-size": "2.75rem",
+							"font-family": "Roboto, Helvetica Neue, sans-serif",
+							"font-weight": "bold",
+							"background-color": "#151515",
+							"border-width": 0.05,
+							"border-color": "white",
+							"background-image": "data(image)",
+						},
+					},
+					{
+						selector: "node:selected",
+						style: {
+							"border-width": 0.25,
+							"border-color": "#5D5FEF",
+						},
+					},
+					{
+						selector: "node:active",
+						style: {
+							"border-width": 0.25,
+						},
+					},
+					{
+						selector: "edge",
+						style: {
+							"width": 0.1,
+							"opacity": 0.75,
+						}
+					},
+				],
+			});
 
-		mapStyle["height"] = size;
-		mapStyle["width"] = size;
-	}
+			// Open the idea card for the node whenever it is tapped
+			const handleClick = (e) => {
+				loadIdeaCard(ideaDetails[e.target.id()]);
+				cy.nodes().unselect();
+				e.target.select();
+			};
+
+			cy.on("tap", "node", handleClick);
+
+			destructor = () => {
+				cy.removeListener("tap", handleClick);
+			};
+		}
+
+		return destructor;
+	});
 
 	return (
-		<div className={ styles.browser } ref={ windowRef }>
-			<div className={ styles.mapContainer }>
-				<div className={ styles.map } style={ mapStyle } ref={ mapRef }>
-					{ ideaBubbles }
-				</div>
+		<div className={ styles.browser }>
+			<div className={ styles.mapContainer } ref={ map }>
 			</div>
 			<div className={ styles.hud }>
 				{ creatingIdea &&
