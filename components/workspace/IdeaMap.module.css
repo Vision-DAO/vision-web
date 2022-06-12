@@ -1,0 +1,12 @@
+.mapContainer {
+	min-width: 100%;
+	min-height: 100%;
+
+	overflow: auto;
+
+	grid-row-start: 1;
+	grid-row-end: 65;
+
+	grid-column-start: 1;
+	grid-column-end: 65;
+}
