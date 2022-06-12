@@ -9,7 +9,7 @@ import { useState, useEffect, useContext, Dispatch, SetStateAction, useRef, Frag
 import { useConnStatus } from "../lib/util/networks";
 import Idea from "../value-tree/build/contracts/Idea.json";
 import { BasicIdeaInformation } from "../components/workspace/IdeaBubble";
-import dagre from "cytoscape-dagre";
+import cola from "cytoscape-cola";
 import { IdeaDetailCard } from "../components/workspace/IdeaDetailCard";
 import { NewIdeaModal } from "../components/status/NewIdeaModal";
 import { FilledButton } from "../components/status/FilledButton";
@@ -77,8 +77,11 @@ export const Index = () => {
 	const allIdeas = [...immediateIdeas].reduce((ideas, ideaAddr) => { return { ...ideas, [ideaAddr]: discoveredIdeas[ideaAddr] ?? {} }; }, {});
 
 	// Display items as a map of bubbles
-	const [zoomFactor, setZoomFactor] = useState(1);
 	const [creatingIdea, setCreatingIdea] = useState(false);
+
+	// The cytoscape instance used for the map
+	const [cyx, setCy] = useState(undefined);
+	const [cyNodes, setCyNodes] = useState<Set<string>>(new Set());
 
 	// The container that cytoscape binds to for rendering nodes
 	const map = useRef(null);
@@ -104,6 +107,9 @@ export const Index = () => {
 				pubRootIdea(ideaAddr);
 			}, heartbeatPeriod));
 		}
+
+		if (cyx)
+			cyx.startBatch();
 
 		for (const ideaAddr of Object.keys(allIdeas)) {
 			// Cannot continue without an exemplar to compare against
@@ -177,10 +183,34 @@ export const Index = () => {
 
 				// Render the information of the bubble as a component on the mindmap
 				if (!bubblesEqual(ideaDetails[ideaAddr], bubbleContent)) {
+					if (cyx) {
+
+						// Mutate the existing record
+						if (cyNodes.has(ideaAddr)) {
+							const node = cyx.getElementById(ideaAddr);
+							node.data("label", bubbleContent.title);
+
+							if (bubbleContent.image)
+								node.data("image", bubbleContent.image);
+
+							return;
+						}
+
+						// Add the new idea to the cytoscape instance
+						const newNode = { group: "nodes", data: { id: ideaAddr, label: bubbleContent.title, ...(bubbleContent.image ? { image: bubbleContent.image } : {}) } };
+						cyx.add(newNode);
+						cyx.layout({ name: "cola" }).run();
+
+						setCyNodes(nodes => new Set([...nodes, ideaAddr]));
+					}
+
 					setIdeaDetails(ideas => { return {...ideas, [ideaAddr]: bubbleContent}; });
 				}
 			})();
 		}
+
+		if (cyx)
+			cyx.endBatch();
 
 		// Remove all pubsub publishers after the item is dismounted
 		return () => {
@@ -199,74 +229,117 @@ export const Index = () => {
 
 	// Render a map of ideas
 	useEffect(() => {
-		cytoscape.use(dagre);
-
-		let destructor = () => {};
+		let destructor = Function.prototype();
 
 		if (map && map.current) {
-			const cy = cytoscape({
-				container: map.current,
-				elements: {
-					nodes: Object.entries(ideaDetails).map(([k, v]) => { return { data: { id: k, label: v ? v.title : k } }; }),
-					edges: Object.entries(discoveredIdeas).map(([k, v]) => Object.values(v).filter((edge) => edge.sender in ideaDetails && k in ideaDetails).map((edge) => { return { data: { id: `${k}${edge.sender}`, source: edge.sender, target: k } }; })).flat(),
-				},
-				zoom: 0.8,
-				layout: {
-					name: "dagre",
-				},
-				boxSelectionEnabled: false,
-				style: [
-					{
-						selector: "node",
-						style: {
-							"label": "data(label)",
-							"text-wrap": "ellipsis",
-							"text-max-width": "70%",
-							"text-valign": "center",
-							"color": "white",
-							"font-size": "2.75rem",
-							"font-family": "Roboto, Helvetica Neue, sans-serif",
-							"font-weight": "bold",
-							"background-color": "#151515",
-							"border-width": 0.05,
-							"border-color": "white",
-							"background-image": "data(image)",
+			let cy = cyx;
+
+			if (cyx === undefined) {
+				setCy(null);
+
+				cytoscape.use(cola);
+
+				cy = cytoscape({
+					container: map.current,
+					elements: {
+						nodes: [],
+						edges: [],
+					},
+					zoom: 0.8,
+					layout: {
+						name: "cola",
+					},
+					boxSelectionEnabled: false,
+					style: [
+						{
+							selector: "node",
+							style: {
+								"label": "data(label)",
+								"text-wrap": "ellipsis",
+								"text-max-width": "70%",
+								"text-valign": "center",
+								"color": "white",
+								"font-size": "2.75rem",
+								"font-family": "Roboto, Helvetica Neue, sans-serif",
+								"font-weight": "bold",
+								"background-color": "#151515",
+								"border-width": 0.05,
+								"border-color": "white",
+							},
 						},
-					},
-					{
-						selector: "node:selected",
-						style: {
-							"border-width": 0.25,
-							"border-color": "#5D5FEF",
+						{
+							selector: "node[image]",
+							style: {
+								"background-image": "data(image)",
+								"background-image-containment": "over",
+								"background-fit": "cover",
+								"background-image-opacity": 0.6,
+							},
 						},
-					},
-					{
-						selector: "node:active",
-						style: {
-							"border-width": 0.25,
+						{
+							selector: "node:selected",
+							style: {
+								"border-width": 0.25,
+								"border-color": "#5D5FEF",
+							},
 						},
-					},
-					{
-						selector: "edge",
-						style: {
-							"width": 0.1,
-							"opacity": 0.75,
-						}
-					},
-				],
-			});
+						{
+							selector: "node:active",
+							style: {
+								"border-width": 0.25,
+							},
+						},
+						{
+							selector: "edge",
+							style: {
+								"width": 0.1,
+								"opacity": 0.75,
+							}
+						},
+					],
+				});
+
+				setCy(cy);
+			}
+
+			if (!cy)
+				return;
+
+			const newEdges = Object.entries(discoveredIdeas).map(([k, v]) => Object.values(v).filter((edge) => edge.sender in ideaDetails && k in ideaDetails).map((edge) => { return { data: { id: `${k}${edge.sender}`, source: edge.sender, target: k } }; })).flat().filter(({ data: { id } }) => !cyNodes.has(id));
+
+			cy.add(newEdges.map((edge) => { return { group: "edges", ...edge }; }));
+
+			if (newEdges.length > 0)
+				setCyNodes(nodes => new Set([...nodes, ...newEdges.map(({ data: { id } }) => id)]));
 
 			// Open the idea card for the node whenever it is tapped
-			const handleClick = (e) => {
+			// We have to manually select the node, since for some reason, overriding
+			// a default behavior, like clicking a node, does not also invoke the
+			// default behavior of the element, which would be to select it.
+			// Implement manually
+			const handleClick = (e: cytoscape.EventObjectNode) => {
 				loadIdeaCard(ideaDetails[e.target.id()]);
-				cy.nodes().unselect();
-				e.target.select();
 			};
 
-			cy.on("tap", "node", handleClick);
+			// When the user puts their mouse over a node
+			const handleHover = (e: cytoscape.EventObjectNode) => {
+				if (e.cy.container())
+					e.cy.container().style.cursor = "pointer";
+			};
+
+			const handleDehover = (e: cytoscape.EventObjectNode) => {
+				if (e.cy.container())
+					e.cy.container().style.cursor = "default";
+			};
+
+			cy.on("select", "node", handleClick);
+			cy.on("mouseover", "node", handleHover);
+			cy.on("mouseout", "node", handleDehover);
 
 			destructor = () => {
-				cy.removeListener("tap", handleClick);
+				cy.removeListener("select", handleClick);
+				cy.removeListener("mouseover", handleHover);
+				cy.removeListener("mouseout", "node", handleDehover);
 			};
 		}
 
@@ -298,10 +371,10 @@ export const Index = () => {
 				}
 				<div className={ styles.leftActionButton }>
 					<div className={ styles.zoomButtons }>
-						<div className={ styles.zoomButton } onClick={ () => setZoomFactor(zoomFactor * 1.1) }>
+						<div className={ styles.zoomButton } onClick={ () => cyx.zoom(cyx.zoom() * 1.1) }>
 							+
 						</div>
-						<div className={ styles.zoomButton } onClick={ () => setZoomFactor(zoomFactor * 0.9) }>
+						<div className={ styles.zoomButton } onClick={ () => cyx.zoom(cyx.zoom() * 0.9) }>
 							-
 						</div>
 					</div>
@@ -309,7 +382,7 @@ export const Index = () => {
 				</div>
 				{ activeIdea !== undefined &&
 					<div className={ styles.ideaDetailsPanel }>
-						<IdeaDetailCard content={ activeIdea } onClose={ () => setActiveIdea(undefined) } />
+						<IdeaDetailCard content={ activeIdea } onClose={ () => { setActiveIdea(undefined); cyx.nodes().unselect(); } } />
 					</div>
 				}
 			</div>
