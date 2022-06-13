@@ -4,6 +4,7 @@ import { HomeRounded, MenuRounded, VisibilityRounded } from "@mui/icons-material
 import { ThemeProvider } from "@mui/material";
 import { createTheme } from "@mui/material/styles";
 
+import { ModelTypesToAliases } from "@glazed/types";
 import { Provider } from "@self.id/framework";
 import closeIcon from "@self.id/multiauth/assets/icon-close.svg";
 import selectedIcon from "@self.id/multiauth/assets/icon-selected.svg";
@@ -25,6 +26,8 @@ import EthCrypto from "eth-crypto";
 import { IpfsContext, ActiveIdeaContext, ActiveProposalContext, ProposalsContext, GossipProposalInformation } from "../lib/util/ipfs";
 import { ConnectionContext, provideConnStatus } from "../lib/util/networks";
 import { ModalContext } from "../lib/util/modal";
+import { ModelTypes } from "../lib/util/discovery";
+import modelAliases from "../lib/schema/model.json";
 
 import styles from "./App.module.css";
 import "./App.css";
@@ -110,6 +113,8 @@ const theme = createTheme({
 		}
 	},
 });
+
+const aliases: ModelTypesToAliases<ModelTypes> = modelAliases;
 
 /**
  * A component that shares a global navigation workspace layout between
@@ -200,7 +205,7 @@ const App = ({ Component, pageProps }: AppPropsWithLayout) => {
 				<meta name="viewport" content="width=device-width, initial-scale=1" />
 			</Head>
 			<Provider
-				client={{ ceramic: "testnet-clay" }}
+				client={{ ceramic: "testnet-clay", aliases }}
 				auth={{
 					modal: { closeIcon: closeIcon.src, selectedIcon: selectedIcon.src },
 					networks: [

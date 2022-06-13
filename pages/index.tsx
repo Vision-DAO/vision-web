@@ -1,5 +1,5 @@
 import { useParents, loadExtendedIdeaInfo } from "../lib/util/ipfs";
-import { useOwnedIdeas, useTraversedChildIdeas } from "../lib/util/discovery";
+import { useOwnedIdeas, useTraversedChildIdeas, ModelTypes } from "../lib/util/discovery";
 import { useWeb3 } from "../lib/util/web3";
 import { IpfsContext } from "../lib/util/ipfs";
 import { ModalContext } from "../lib/util/modal";
@@ -57,7 +57,7 @@ export const Index = () => {
 	// locally existing ones (e.g., that were created on vision.eco),
 	// and through entries in the registry smart contract.
 	const [rootIdeas, pubRootIdea] = useParents(staticIdeas);
-	const userIdeasRecord = useViewerRecord("cryptoAccounts");
+	const userIdeasRecord = useViewerRecord<ModelTypes>("ownedItemAddresses");
 	const ownedIdeas = useOwnedIdeas(conn.status == "connected" ? conn.selfID.id : "", web3, baseIdeaContract);
 
 	// Ideas can either be known through immediate information (i.e., stored on
