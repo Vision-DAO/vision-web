@@ -251,13 +251,45 @@ export const IdeaMap = ({ ideas, onClickIdea }: IdeaMapProps): [(ideaAddr: strin
 
 			// When the user puts their mouse over a node
 			const handleHover = (e: cytoscape.EventObjectNode) => {
-				if (e.cy.container())
+				if (e.cy.container()) {
 					e.cy.container().style.cursor = "pointer";
+				}
+
+				// Save to return to original height
+				const sizePx = e.target.style("height").split("px")[0];
+				e.target.data("originalSize", sizePx);
+
+				const fontSizePx = e.target.style("font-size").split("px")[0];
+				e.target.data("originalFontSize", fontSizePx);
+
+				e.target.animate({
+					style: {
+						height: `${sizePx * 1.05}px`,
+						width: `${sizePx * 1.05}px`,
+						"font-size": `${fontSizePx * 1.05}px`,
+					},
+				},
+				{
+					duration: 100,
+					easing: "ease-in-out",
+				});
 			};
 
 			const handleDehover = (e: cytoscape.EventObjectNode) => {
 				if (e.cy.container())
 					e.cy.container().style.cursor = "default";
+
+				e.target.animate({
+					style: {
+						height: `${e.target.data("originalSize")}px`,
+						width: `${e.target.data("originalSize")}px`,
+						"font-size": `${e.target.data("originalFontSize")}px`,
+					},
+				},
+				{
+					duration: 100,
+					easing: "ease-in-out",
+				});
 			};
 
 			cy.on("select", "node", handleClick);
