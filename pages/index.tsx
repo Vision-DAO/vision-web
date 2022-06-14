@@ -4,7 +4,7 @@ import { useWeb3 } from "../lib/util/web3";
 import { IpfsContext } from "../lib/util/ipfs";
 import { ModalContext } from "../lib/util/modal";
 import { serialize } from "bson";
-import { useConnection, useViewerRecord } from "@self.id/framework";
+import { useViewerConnection as useConnection, useViewerRecord } from "@self.id/framework";
 import { useState, useEffect, useContext } from "react";
 import { useConnStatus } from "../lib/util/networks";
 import { BasicIdeaInformation } from "../components/workspace/IdeaBubble";
@@ -57,7 +57,7 @@ export const Index = () => {
 	// locally existing ones (e.g., that were created on vision.eco),
 	// and through entries in the registry smart contract.
 	const [rootIdeas, pubRootIdea] = useParents(staticIdeas);
-	const userIdeasRecord = useViewerRecord<ModelTypes>("ownedItemAddresses");
+	const userIdeasRecord = useViewerRecord<ModelTypes>("visionOwnedItemAddressesList");
 	const ownedIdeas = useOwnedIdeas(conn.status == "connected" ? conn.selfID.id : "", web3, baseIdeaContract);
 
 	// Ideas can either be known through immediate information (i.e., stored on

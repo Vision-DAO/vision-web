@@ -6,10 +6,10 @@ import { createTheme } from "@mui/material/styles";
 
 import { ModelTypesToAliases } from "@glazed/types";
 import { Provider } from "@self.id/framework";
-import closeIcon from "@self.id/multiauth/assets/icon-close.svg";
-import selectedIcon from "@self.id/multiauth/assets/icon-selected.svg";
-import ethereumLogo from "@self.id/multiauth/assets/ethereum.png";
-import metaMaskLogo from "@self.id/multiauth/assets/metamask.png";
+import closeIcon from "../public/icons/icon-close.svg";
+import selectedIcon from "../public/icons/icon-selected.svg";
+import ethereumLogo from "../public/icons/ethereum.png";
+import metaMaskLogo from "../public/icons/metamask.png";
 import { create, multiaddr } from "ipfs-core";
 
 import type { AppProps } from "next/app";

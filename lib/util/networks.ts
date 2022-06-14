@@ -1,5 +1,5 @@
 import { useContext, useState, useEffect, Context, createContext } from "react";
-import { useConnection } from "@self.id/framework";
+import { useViewerConnection as useConnection } from "@self.id/framework";
 
 export type Network = "ethereum" | "polygon" | "polygon-test" | "unknown";
 

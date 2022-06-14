@@ -60,7 +60,6 @@ export const NewIdeaModal = ({ active: isActive, onClose, onDeploy, onUpload, ct
 
 	// Deploys a new Idea smart contract from the callback of the Idea modal
 	const createIdea = async (constructorArgs: NewIdeaSubmission) => {
-		await saveIdea("", ideasBuf);
 		const contract = new web3.eth.Contract(Idea.abi);
 		contract.deploy({
 			data: Idea.bytecode,
