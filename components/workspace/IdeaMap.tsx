@@ -267,6 +267,7 @@ export const IdeaMap = ({ ideas, onClickIdea }: IdeaMapProps): [(ideaAddr: strin
 						height: `${sizePx * 1.05}px`,
 						width: `${sizePx * 1.05}px`,
 						"font-size": `${fontSizePx * 1.05}px`,
+						opacity: 0.8,
 					},
 				},
 				{
@@ -284,6 +285,7 @@ export const IdeaMap = ({ ideas, onClickIdea }: IdeaMapProps): [(ideaAddr: strin
 						height: `${e.target.data("originalSize")}px`,
 						width: `${e.target.data("originalSize")}px`,
 						"font-size": `${e.target.data("originalFontSize")}px`,
+						opacity: 1,
 					},
 				},
 				{
