@@ -1,6 +1,6 @@
 import { useState, useEffect, useContext } from "react";
 import { useRouter } from "next/router";
-import { usePublicRecord, useViewerRecord, useConnection } from "@self.id/framework";
+import { usePublicRecord, useViewerRecord, useViewerConnection as useConnection } from "@self.id/framework";
 import { ExtendedProfile } from "../../components/profile/ExtendedProfile";
 import CircularProgress from "@mui/material/CircularProgress";
 import defaultProfileIcon from "../../public/icons/account_circle_white_48dp.svg";

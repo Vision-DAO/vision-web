@@ -1,4 +1,5 @@
 import { usePublicRecord, ViewerRecord } from "@self.id/framework";
+import { ModelTypeAliases } from "@glazed/types";
 import { DefinitionContentType } from "@glazed/did-datastore";
 import { CoreModelTypes } from "@self.id/core";
 import { useState, useEffect, ReactElement } from "react";
@@ -9,11 +10,26 @@ import { ConnStatus, useConnStatus } from "./networks";
 import Idea from "../../value-tree/build/contracts/Idea.json";
 import Web3 from "web3";
 
+// A model representing a ceramic record storing the items owned by the user
+export type OwnedItemAddressesList = {
+	items: string[],
+};
+
+// All model representations of ceramic models depended on by vision
+export type ModelTypes = ModelTypeAliases<
+	{
+		OwnedItemAddressesList: OwnedItemAddressesList,
+	},
+	{
+		visionOwnedItemAddressesList: "OwnedItemAddressesList",
+	}
+>
+
 /**
  * A convenience type representing a writable ceramic record for a user's
  * crypto accounts.
  */
-export type CryptoAccountsRecord = ViewerRecord<DefinitionContentType<CoreModelTypes, "cryptoAccounts">>;
+export type OwnedIdeasRecord = ViewerRecord<DefinitionContentType<ModelTypes, "visionOwnedItemAddressesList">>;
 
 /**
  * Traverses a list of root addresses, collecting their children in a returned
@@ -69,22 +85,24 @@ export const isIdeaContract = (web3: Web3, ideaAddr: string, exemplarBytecode: s
  * Write the given address to the list of owned crypto accounts stored in the
  * provided ceramic document.
  */
-export const saveIdea = (
+export const saveIdea = async (
 	ideaAddr: string,
-	record: CryptoAccountsRecord,
-): Promise<void> => 
+	record: OwnedIdeasRecord,
+): Promise<void> => {
 	// TODO: Work on identifying cryptographic non-guarantees, and terminating this
 	// non-null document link
-	record.merge({ [`${ideaAddr}@eip155:1`]: "ceramic://todo" });
+	return await record.set({ items: [...(record.content ? record.content.items : []), ideaAddr] });
+};
 
 /**
  * Gets a list of the addresses of idea contracts owned by the given
  * address from ceramic.
  */
 export const useOwnedIdeas = (did: string, web3: Web3, filterInstanceOf: string): Set<string> => {
+	//TODO: Replace with new record type
 	// Ceramic supports storing a document with a list of links to ethereum addresses
 	// Some of these might be addresses to vision-compatible tokens
-	const cryptoAccountsRecord = usePublicRecord("cryptoAccounts", did);
+	const ownedIdeasRecord = usePublicRecord<ModelTypes>("visionOwnedItemAddressesList", did);
 
 	// Cache items that have already been checked to be owned by the user
 	const [checked, setChecked] = useState<Set<string>>(new Set());
@@ -103,19 +121,11 @@ export const useOwnedIdeas = (did: string, web3: Web3, filterInstanceOf: string)
 		}
 
 		// No possible way of determining owned tokens
-		if (targetBytecode == "" || !did || did == "" || !web3 || !cryptoAccountsRecord || cryptoAccountsRecord.isLoading || cryptoAccountsRecord.isError || !cryptoAccountsRecord.content)
+		if (targetBytecode == "" || !did || did == "" || !web3 || !ownedIdeasRecord || ownedIdeasRecord.isLoading || ownedIdeasRecord.isError || !ownedIdeasRecord.content)
 			return;
 
-		for (const accLink of Object.keys(cryptoAccountsRecord.content)) {
-			const possibleAddr = /(0x.*)@/.exec(accLink);
-
-			// Check that an ethereum address was found
-			if (possibleAddr.length < 2)
-				continue;
-
-			// Now check that the address contains an instance of the Ideas contract
-			const addr = possibleAddr[1];
-
+		// Now check that each address contains an instance of the Ideas contract
+		for (const addr of ownedIdeasRecord.content.items) {
 			// Skip cached items
 			if (blocked.has(addr) || checked.has(addr))
 				continue;

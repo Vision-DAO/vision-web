@@ -5,8 +5,8 @@ import OutlinedButton from "../../status/OutlinedButton";
 import styles from "./NavPanel.module.css";
 
 import { BasicProfile } from "@datamodels/identity-profile-basic";
-import { useConnection, useViewerRecord } from "@self.id/framework";
-import { useConnStatus, requestChangeNetwork, connectMetamask } from "../../../lib/util/networks";
+import { useViewerConnection as useConnection, useViewerRecord, EthereumAuthProvider } from "@self.id/framework";
+import { useConnStatus, requestChangeNetwork, connectMetamask, accounts } from "../../../lib/util/networks";
 import { getAll, IpfsContext } from "../../../lib/util/ipfs";
 import { blobify } from "../../../lib/util/blobify";
 import Web3 from "web3";
@@ -128,8 +128,8 @@ export const NavPanel = ({ items, onProfileClicked, ctx }: NavProps) => {
 						if (network != "polygon-test")
 							return requestChangeNetwork(window.ethereum);
 					})
-					.then(() => {
-						connect();
+					.then(async () => {
+						connect(new EthereumAuthProvider(window.ethereum, (await accounts(window.ethereum))[0]));
 					});
 			}} severity="action">
 				<h2>Connect to <b>Polygon</b></h2>

@@ -2,7 +2,7 @@ import Web3 from "web3";
 import styles from "./NewIdeaModal.module.css";
 import { useState, useEffect } from "react";
 import { accounts } from "../../lib/util/networks";
-import { saveIdea, CryptoAccountsRecord } from "../../lib/util/discovery";
+import { saveIdea, OwnedIdeasRecord } from "../../lib/util/discovery";
 import { IdeaData } from "../../lib/util/ipfs";
 import CloseIcon from "@mui/icons-material/CloseRounded";
 import LinearProgress from "@mui/material/LinearProgress";
@@ -22,7 +22,7 @@ export interface NewIdeaSubmission {
  * A popup modal containing a form with fields for the necessary argumentst to
  * the Idea smart contract constructor.
  */
-export const NewIdeaModal = ({ active: isActive, onClose, onDeploy, onUpload, ctx, ideasBuf }: { active: boolean, onClose: () => void, onDeploy: (address: string) => void, onUpload: (ideaData: IdeaData[]) => Promise<string>, ctx: [Web3, any], ideasBuf: CryptoAccountsRecord }) => {
+export const NewIdeaModal = ({ active: isActive, onClose, onDeploy, onUpload, ctx, ideasBuf }: { active: boolean, onClose: () => void, onDeploy: (address: string) => void, onUpload: (ideaData: IdeaData[]) => Promise<string>, ctx: [Web3, any], ideasBuf: OwnedIdeasRecord }) => {
 	// Transition the opacity of the Idea Modal upon clicking the close button,
 	// prevent the modal from being rendered at all before its opacity goes 0->100
 	const [loaded, setLoaded] = useState(false);

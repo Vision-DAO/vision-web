@@ -4,7 +4,7 @@ import { IpfsContext } from "../../lib/util/ipfs";
 import { useConnStatus } from "../../lib/util/networks";
 import { useWeb3 } from "../../lib/util/web3";
 import { WarningMessage } from "../status/WarningMessage";
-import { useConnection } from "@self.id/framework";
+import { useViewerConnection as useConnection } from "@self.id/framework";
 
 /**
  * - Displays a "no Ethereum provider" message if there is no window.ethereum
@@ -45,10 +45,18 @@ export const NetworkedWorkspace = ({ children }: { children: React.ReactElement 
 		};
 	}
 
-	if (connection.status == "disconnected") {
+	if (connection.status != "connected") {
 		content = {
 			title: "Not Connected",
 			message: "Please login via Polygon to continue.",
+		};
+	}
+
+	if (connection.status === "connecting") {
+		content = {
+			title: "Connecting",
+			message: "Forming a connection to the Ceramic network.",
+			loading: true,
 		};
 	}
 

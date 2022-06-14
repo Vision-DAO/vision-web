@@ -1,0 +1,14 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"title": "OwnedItemAddressesList",
+	"type": "object",
+	"properties": {
+		"ownedItems": {
+			"type": "array",
+			"title": "ownedItems",
+			"items": {
+				"type": "string"
+			}
+		}
+	}
+}
