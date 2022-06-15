@@ -15,21 +15,29 @@ export type OwnedItemAddressesList = {
 	items: string[],
 };
 
+// A model representing a ceramic record storing the items watched by the user
+export type WatchedItemAddressesList = {
+	items: string[],
+}
+
 // All model representations of ceramic models depended on by vision
 export type ModelTypes = ModelTypeAliases<
 	{
 		OwnedItemAddressesList: OwnedItemAddressesList,
+		WatchedItemAddressesList: WatchedItemAddressesList,
 	},
 	{
 		visionOwnedItemAddressesList: "OwnedItemAddressesList",
+		visionWatchedItemAddressesList: "WatchedItemAddressesList",
 	}
 >
 
 /**
- * A convenience type representing a writable ceramic record for a user's
+ * Convenience types representing writable ceramic records for a user's
  * crypto accounts.
  */
 export type OwnedIdeasRecord = ViewerRecord<DefinitionContentType<ModelTypes, "visionOwnedItemAddressesList">>;
+export type WatchedIdeasRecord = ViewerRecord<DefinitionContentType<ModelTypes, "visionWatchedItemAddressesList">>;
 
 /**
  * Traverses a list of root addresses, collecting their children in a returned
@@ -93,6 +101,21 @@ export const saveIdea = async (
 	// non-null document link
 	return await record.set({ items: [...(record.content ? record.content.items : []), ideaAddr] });
 };
+
+/**
+ * Write the given address to the list of watched crypto accounts stored in the
+ * provided ceramic document.
+ */
+export const watchIdea = async (
+	ideaAddr: string,
+	record: WatchedIdeasRecord,
+): Promise<void> => {
+	// TODO: Work on identifying cryptographic non-guarantees, and terminating this
+	// non-null document link
+	return await record.set({ items: [...(record.content ? record.content.items : []), ideaAddr] });
+};
+
+
 
 /**
  * Gets a list of the addresses of idea contracts owned by the given
