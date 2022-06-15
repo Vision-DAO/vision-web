@@ -110,7 +110,6 @@ export const watchIdea = async (
 ): Promise<void> => {
 	// TODO: Work on identifying cryptographic non-guarantees, and terminating this
 	// non-null document link
-	console.log(record.content);
 	return await record.set({ items: [...(record.content ? record.content.items : []), ideaAddr] });
 };
 
@@ -125,7 +124,6 @@ export const unwatchIdea = async (
 ): Promise<void> => {
 	// TODO: Work on identifying cryptographic non-guarantees, and terminating this
 	// non-null document link
-	console.log(record.content?.items ?? []);
 	return await record.set({ items: record.content?.items.filter(addr => addr != ideaAddr) ?? [] });
 };
 

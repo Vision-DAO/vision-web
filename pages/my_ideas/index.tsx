@@ -1,4 +1,4 @@
-import { loadExtendedIdeaInfo } from "../../lib/util/ipfs";
+import { useParents, loadExtendedIdeaInfo } from "../../lib/util/ipfs";
 import { useOwnedIdeas, useTraversedChildIdeas, ModelTypes } from "../../lib/util/discovery";
 import { useWeb3 } from "../../lib/util/web3";
 import { IpfsContext } from "../../lib/util/ipfs";
@@ -56,6 +56,8 @@ export const Index = () => {
 	// Ideas are discovered through other peers informing us of them, through
 	// locally existing ones (e.g., that were created on vision.eco),
 	// and through entries in the registry smart contract.
+	
+	const [, pubRootIdea] = useParents(staticIdeas);
 	const userIdeasRecord = useViewerRecord<ModelTypes>("visionOwnedItemAddressesList");
 	const ownedIdeas = useOwnedIdeas(conn.status == "connected" ? conn.selfID.id : "", web3, baseIdeaContract);
 
