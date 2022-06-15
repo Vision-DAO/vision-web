@@ -46,27 +46,18 @@ const Metric = ({ val, label, isPercent = false }: { val: number, label: string,
 const WatchIdeaButton = (ideaAddr: string) => {
 
 	const watchingRecord = useViewerRecord<ModelTypes>("visionWatchedItemAddressesList");
-	const [watched, setWatched] = useState(() => {
-		const itemArr = watchingRecord.content?.items;
-		console.log(watchingRecord);
-		for(let i = 0; i < itemArr?.length ?? 0; i++) {
-			console.log(itemArr[i], ideaAddr);
-			if(itemArr[i].ideaAddr == ideaAddr.ideaAddr) {
-				return true;
-			}
-		}
-		return false;
-	});
+	const [watched, setWatched] = useState(watchingRecord?.content?.items.includes(ideaAddr.ideaAddr) ?? false);
 
 
 	const watchIdeaCallback = () => {
 		if(watched) {
 			setWatched(false);
-			unwatchIdea(ideaAddr, watchingRecord);
+			unwatchIdea(ideaAddr.ideaAddr, watchingRecord);
+			return;
 		}
 
 		setWatched(true);
-		watchIdea(ideaAddr, watchingRecord);
+		watchIdea(ideaAddr.ideaAddr, watchingRecord);
 	};
 
 	return (
@@ -119,6 +110,7 @@ export const IdeaInfoPanel = ({ idea }: { idea: ExtendedIdeaInformation }) => {
 		"Last Price": deltaPrice,
 		"Finalized Proposals": finalizedProposals,
 	};
+
 
 	return (
 		<div className={ styles.cardInfo }>

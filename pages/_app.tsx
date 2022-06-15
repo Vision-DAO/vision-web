@@ -94,12 +94,12 @@ const pages: Page[] = [
 	},
 	{
 		label: "My Ideas",
-		path: "/collection",
+		path: "/my_ideas",
 		icon: <MenuRounded />,
 	},
 	{
-		label: "Following",
-		path: "/following",
+		label: "Watched",
+		path: "/watched_ideas",
 		icon: <VisibilityRounded />,
 	}
 ];
