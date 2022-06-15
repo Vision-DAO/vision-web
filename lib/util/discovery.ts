@@ -116,6 +116,18 @@ export const watchIdea = async (
 };
 
 
+/**
+ * Removed the given address to the list of watched crypto accounts stored in the
+ * provided ceramic document.
+ */
+export const unwatchIdea = async (
+	ideaAddr: string,
+	record: WatchedIdeasRecord,
+): Promise<void> => {
+	// TODO: Work on identifying cryptographic non-guarantees, and terminating this
+	// non-null document link
+	return await record.set({ items: record.content?.items.filter(addr => addr != ideaAddr) ?? [] });
+};
 
 /**
  * Gets a list of the addresses of idea contracts owned by the given

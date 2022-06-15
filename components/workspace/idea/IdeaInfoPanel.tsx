@@ -5,6 +5,7 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import { useViewerRecord } from "@self.id/framework";
 import { useState } from "react";
+import { unwatchIdea, watchIdea } from "../../../lib/util/discovery.ts";
 
 const InfoItem = ({ left, right, key = left }: { left: string, right: JSX.Element, key?: string }) => {
 	return (
@@ -44,17 +45,32 @@ const Metric = ({ val, label, isPercent = false }: { val: number, label: string,
 
 const WatchIdeaButton = (ideaAddr: string) => {
 
-	const watchedRecord = useViewerRecord<ModelTypes>("visionWatchedItemAddressesList");
-	const [watched, setWatched] = useState(watchedRecord.content?.accountsInterested.has(ideaAddr) ?? false);
+	const watchingRecord = useViewerRecord<ModelTypes>("visionWatchedItemAddressesList");
+	const [watched, setWatched] = useState(() => {
+		const itemArr = watchingRecord.content?.items;
+		console.log(watchingRecord);
+		for(let i = 0; i < itemArr?.length ?? 0; i++) {
+			console.log(itemArr[i], ideaAddr);
+			if(itemArr[i].ideaAddr == ideaAddr.ideaAddr) {
+				return true;
+			}
+		}
+		return false;
+	});
 
-	const followIdeaCallback = () => {
-		setWatched(!watched);
-		console.log(followingRecord.isMutable);
-		followIdea(ideaAddr, followingRecord);
+
+	const watchIdeaCallback = () => {
+		if(watched) {
+			setWatched(false);
+			unwatchIdea(ideaAddr, watchingRecord);
+		}
+
+		setWatched(true);
+		watchIdea(ideaAddr, watchingRecord);
 	};
 
 	return (
-		<OutlinedButton callback={followIdeaCallback}>
+		<OutlinedButton callback={watchIdeaCallback}>
 			{ watched ? <VisibilityIcon/> : <VisibilityOffIcon/> }
 			&nbsp;&nbsp;
 			{ watched ? "Unwatch" : "Watch" }
