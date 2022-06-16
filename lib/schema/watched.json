@@ -1,15 +1,14 @@
 {
 	"$schema": "http://json-schema.org/draft-07/schema#",
-	"title": "OwnedItemAddressesList",
+	"title": "WatchedItemAddressesList",
 	"type": "object",
 	"properties": {
-		"ownedItems": {
+		"watchedItems": {
 			"type": "array",
-			"title": "ownedItems",
+			"title": "watchedItems",
 			"items": {
 				"type": "string"
 			}
 		}
 	}
 }
-
