@@ -33,8 +33,7 @@ const UserProfile = ({ u, profilePicture }: { u: BasicProfile, profilePicture?: 
 		<div className={ `${styles.profileContainer} ${u.name || styles.default}` }>
 			{ pfp }
 			<div className={ styles.username }>
-				<EditIcon className={ styles.actionIcon } />
-				<h1>{ u.name || "User Name"}</h1>
+				<h1>{ u.name || "My Profile"}</h1>
 			</div>
 		</div>
 	);
