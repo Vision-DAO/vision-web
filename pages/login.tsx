@@ -4,7 +4,7 @@ import { accounts } from "../lib/util/networks";
 import { useState, Dispatch, SetStateAction } from "react";
 import LinearProgress from "@mui/material/LinearProgress";
 
-const LOGIN_ATTESTATION = "Login_VisionECO";
+const LOGIN_ATTESTATION = "Login to Vision.eco";
 
 /**
  * Generates a signature for the user's account, and attempts a refresh.

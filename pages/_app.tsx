@@ -65,7 +65,7 @@ const BOOTSTRAP_NODE = "/dns4/visiondaodev.com/tcp/4003/wss/p2p/12D3KooWE2ofDNP9
 /**
  * Signed data indicating the user is who they say they are.
  */
-const LOGIN_ATTESTATION = "Login_VisionECO";
+const LOGIN_ATTESTATION = "Login to Vision.eco";
 
 /**
  * Accounts pre-approved for Vision usage.
