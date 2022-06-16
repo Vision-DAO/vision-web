@@ -237,15 +237,13 @@ export const IdeaMap = ({ ideas, onClickIdea }: IdeaMapProps): [(ideaAddr: strin
 					],
 				});
 
-				window.cyx = cy;
-
 				setCy(cy);
 			}
 
 			if (!cy)
 				return;
 
-			const newEdges = Object.entries(ideas).map(([k, v]) => Object.values(v).filter((edge) => edge.sender in ideaDetails && k in ideaDetails).map((edge) => { return { data: { id: `${k}${edge.sender}`, source: edge.sender, target: k } }; })).flat().filter(({ data: { id } }) => !cyNodes.has(id));
+			const newEdges = Object.entries(ideas).map(([k, v]) => Object.values(v).filter((edge) => edge.sender in ideaDetails && k in ideaDetails && cyNodes.has(edge.sender) && cyNodes.has(k)).map((edge) => { return { data: { id: `${k}${edge.sender}`, source: edge.sender, target: k } }; })).flat().filter(({ data: { id } }) => !cyNodes.has(id));
 
 			cy.add(newEdges.map((edge) => { return { group: "edges", ...edge }; }));
 
