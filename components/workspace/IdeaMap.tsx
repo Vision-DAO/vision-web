@@ -135,7 +135,6 @@ export const IdeaMap = ({ ideas, onClickIdea }: IdeaMapProps): [(ideaAddr: strin
 				// Render the information of the bubble as a component on the mindmap
 				if (!bubblesEqual(ideaDetails[ideaAddr], bubbleContent)) {
 					if (cyx) {
-
 						// Mutate the existing record
 						if (cyNodes.has(ideaAddr)) {
 							const node = cyx.getElementById(ideaAddr);
