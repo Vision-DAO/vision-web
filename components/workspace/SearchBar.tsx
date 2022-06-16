@@ -1,5 +1,7 @@
 import { useState, ChangeEvent, FocusEvent } from "react";
 import SearchRounded from "@mui/icons-material/SearchRounded";
+import ExpandMore from "@mui/icons-material/ExpandMoreRounded";
+import ExpandLess from "@mui/icons-material/ExpandLessRounded";
 import styles from "./SearchBar.module.css";
 
 const defaultSearchText = "\"The next big thing\"";
@@ -12,8 +14,12 @@ export const SearchBar = () => {
 	const [searchText, setSearchText] = useState<string>(defaultSearchText);
 	const [searchResults, setSearchResults] = useState<string[]>([]);
 
+	// The search bar can be minimized
+	const [expanded, setExpanded] = useState<boolean>(true);
+
 	// Recalculate the displayed query results
 	const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+		setExpanded(true);
 		setSearchText(e.target.value);
 		setSearchResults(e.target.value.split(" ").filter((elem) => elem.length > 0));
 	};
@@ -25,15 +31,25 @@ export const SearchBar = () => {
 		}
 	};
 
+	// Toggles the expansion state
+	const handleExpand = () => setExpanded(expanded => !expanded);
+
 	return (
 		<div className={ styles.searchBarContainer }>
-			<div className={ styles.queryArea }>
+			<div className={ `${styles.queryArea} ${styles.searchContent}` }>
 				<SearchRounded />
 				<input type="text" value={ searchText } onClick={ () => setSearchText("") } onChange={ handleChange } onBlur={ handleExit } />
 			</div>
-			<div className={ styles.resultsArea }>
-				{ searchResults.map((result) => <p key={ result }>{ result }</p>) }
-			</div>
+			{ expanded &&
+				<div className={ `${styles.resultsArea} ${styles.searchContent}` }>
+					{ searchResults.map((result) => <p key={ result }>{ result }</p>) }
+				</div>
+			}
+			{ searchResults.length > 0 &&
+				<div className={ styles.expansionTab } onClick={ handleExpand }>
+					{ expanded ? <ExpandMore /> : <ExpandLess /> }
+				</div>
+			}
 		</div>
 	);
 };

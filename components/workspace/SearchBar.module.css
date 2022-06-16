@@ -12,12 +12,15 @@
 	align-items: stretch;
 
 	padding-top: 1.5rem;
-	padding-bottom: 1.5rem;
-	
-	padding-left: 1rem;
-	padding-right: 1rem;
 
 	max-height: 100%;
+	box-sizing: border-box;
+	pointer-events: auto;
+}
+
+.searchContent {
+	padding-left: 1rem;
+	padding-right: 1rem;
 }
 
 .resultsArea {
@@ -36,7 +39,6 @@
 .resultsArea>*:first-child {
 	border-top: 0.5px solid rgba(255, 255, 255, 0.25);
 
-	margin-top: 1rem;
 	padding-top: 1rem;
 }
 
@@ -45,7 +47,7 @@
 
 	color: rgba(255, 255, 255, 0.5);
 
-	transition: 0.3s;
+	transition: 0.15s;
 }
 
 .resultsArea>*:hover {
@@ -64,6 +66,8 @@
 	font-size: 1.5rem;
 
 	transition: 0.3s;
+
+	margin-bottom: 1rem;
 }
 
 .queryArea:hover {
@@ -102,4 +106,30 @@
 	transform: scalex(-1);
 
 	font-size: 2rem;
+}
+
+.expansionTab {
+	display: flex;
+
+	flex-flow: row nowrap;
+
+	justify-content: center;
+	align-items: center;
+
+	width: 100%;
+
+	background-color: rgba(255, 255, 255, 0.125);
+	transition: 0.3s;
+	
+	margin-top: 0.5rem;
+}
+
+.expansionTab>svg {
+	opacity: 0.7;
+}
+
+.expansionTab:hover {
+	opacity: 0.6;
+
+	cursor: pointer;
 }
