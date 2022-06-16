@@ -178,6 +178,7 @@ export const IdeaMap = ({ ideas, onClickIdea }: IdeaMapProps): [(ideaAddr: strin
 
 				cy = cytoscape({
 					container: map.current,
+					wheelSensitivity: 0.25,
 					elements: {
 						nodes: [],
 						edges: [],
@@ -235,6 +236,8 @@ export const IdeaMap = ({ ideas, onClickIdea }: IdeaMapProps): [(ideaAddr: strin
 						},
 					],
 				});
+
+				window.cyx = cy;
 
 				setCy(cy);
 			}
@@ -308,7 +311,7 @@ export const IdeaMap = ({ ideas, onClickIdea }: IdeaMapProps): [(ideaAddr: strin
 		return destructor;
 	});
 
-	return [(addr) => { cyx.nodes().unselect(); if (addr) cyx.getElementById(addr).select();}, (zoom) => cyx.zoom(cyx.zoom() * zoom), (
+	return [(addr) => { cyx.nodes().unselect(); if (addr) cyx.getElementById(addr).select();}, (zoom) => cyx.zoom({ level: cyx.zoom() * zoom, renderedPosition: { x: cyx.width() / 2, y: cyx.height() / 2 }}), (
 		<div key="map" className={ styles.mapContainer } ref={ map }>
 		</div>
 	)];

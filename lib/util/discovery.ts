@@ -1,9 +1,7 @@
 import { usePublicRecord, ViewerRecord } from "@self.id/framework";
 import { ModelTypeAliases } from "@glazed/types";
 import { DefinitionContentType } from "@glazed/did-datastore";
-import { CoreModelTypes } from "@self.id/core";
-import { useState, useEffect, ReactElement } from "react";
-import { IdeaBubble, BasicIdeaInformation } from "../../components/workspace/IdeaBubble";
+import { useState, useEffect } from "react";
 import { getAllIdeaDescendants, IpfsClient, FundingRate } from "./ipfs";
 import { staticIdeas } from "../../pages/index";
 import { ConnStatus, useConnStatus } from "./networks";
@@ -15,21 +13,29 @@ export type OwnedItemAddressesList = {
 	items: string[],
 };
 
+// A model representing a ceramic record storing the items watched by the user
+export type WatchedItemAddressesList = {
+	items: string[],
+}
+
 // All model representations of ceramic models depended on by vision
 export type ModelTypes = ModelTypeAliases<
 	{
 		OwnedItemAddressesList: OwnedItemAddressesList,
+		WatchedItemAddressesList: WatchedItemAddressesList,
 	},
 	{
 		visionOwnedItemAddressesList: "OwnedItemAddressesList",
+		visionWatchedItemAddressesList: "WatchedItemAddressesList",
 	}
 >
 
 /**
- * A convenience type representing a writable ceramic record for a user's
+ * Convenience types representing writable ceramic records for a user's
  * crypto accounts.
  */
 export type OwnedIdeasRecord = ViewerRecord<DefinitionContentType<ModelTypes, "visionOwnedItemAddressesList">>;
+export type WatchedIdeasRecord = ViewerRecord<DefinitionContentType<ModelTypes, "visionWatchedItemAddressesList">>;
 
 /**
  * Traverses a list of root addresses, collecting their children in a returned
@@ -95,6 +101,33 @@ export const saveIdea = async (
 };
 
 /**
+ * Write the given address to the list of watched crypto accounts stored in the
+ * provided ceramic document.
+ */
+export const watchIdea = async (
+	ideaAddr: string,
+	record: WatchedIdeasRecord,
+): Promise<void> => {
+	// TODO: Work on identifying cryptographic non-guarantees, and terminating this
+	// non-null document link
+	return await record.set({ items: [...(record.content ? record.content.items : []), ideaAddr] });
+};
+
+
+/**
+ * Removed the given address to the list of watched crypto accounts stored in the
+ * provided ceramic document.
+ */
+export const unwatchIdea = async (
+	ideaAddr: string,
+	record: WatchedIdeasRecord,
+): Promise<void> => {
+	// TODO: Work on identifying cryptographic non-guarantees, and terminating this
+	// non-null document link
+	return await record.set({ items: record.content?.items.filter(addr => addr != ideaAddr) ?? [] });
+};
+
+/**
  * Gets a list of the addresses of idea contracts owned by the given
  * address from ceramic.
  */
@@ -102,7 +135,7 @@ export const useOwnedIdeas = (did: string, web3: Web3, filterInstanceOf: string)
 	//TODO: Replace with new record type
 	// Ceramic supports storing a document with a list of links to ethereum addresses
 	// Some of these might be addresses to vision-compatible tokens
-	const ownedIdeasRecord = usePublicRecord<ModelTypes>("visionOwnedItemAddressesList", did);
+	const watchedIdeasRecord = usePublicRecord<ModelTypes>("visionOwnedItemAddressesList", did);
 
 	// Cache items that have already been checked to be owned by the user
 	const [checked, setChecked] = useState<Set<string>>(new Set());
@@ -121,11 +154,65 @@ export const useOwnedIdeas = (did: string, web3: Web3, filterInstanceOf: string)
 		}
 
 		// No possible way of determining owned tokens
-		if (targetBytecode == "" || !did || did == "" || !web3 || !ownedIdeasRecord || ownedIdeasRecord.isLoading || ownedIdeasRecord.isError || !ownedIdeasRecord.content)
+		if (targetBytecode == "" || !did || did == "" || !web3 || !watchedIdeasRecord || watchedIdeasRecord.isLoading || watchedIdeasRecord.isError || !watchedIdeasRecord.content)
 			return;
 
 		// Now check that each address contains an instance of the Ideas contract
-		for (const addr of ownedIdeasRecord.content.items) {
+		for (const addr of watchedIdeasRecord.content.items) {
+			// Skip cached items
+			if (blocked.has(addr) || checked.has(addr))
+				continue;
+
+			isIdeaContract(web3, addr, targetBytecode)
+				.then((valid) => {
+					// The address is an instance of the Idea contract!
+					if (valid) {
+						if (!checked.has(addr))
+							setChecked(checked => new Set([...checked, addr]));
+					} else {
+						if (!blocked.has(addr))
+							setBlocked(blocked => new Set([...blocked, addr]));
+					}
+				});
+		}
+	});
+
+	return checked;
+};
+
+
+/**
+ * Gets a list of the addresses of idea contracts watched by the given
+ * address from ceramic.
+ */
+export const useWatchedIdeas = (did: string, web3: Web3, filterInstanceOf: string): Set<string> => {
+	//TODO: Replace with new record type
+	// Ceramic supports storing a document with a list of links to ethereum addresses
+	// Some of these might be addresses to vision-compatible tokens
+	const watchedIdeasRecord = usePublicRecord<ModelTypes>("visionWatchedItemAddressesList", did);
+
+	// Cache items that have already been checked to be owned by the user
+	const [checked, setChecked] = useState<Set<string>>(new Set());
+	const [blocked, setBlocked] = useState<Set<string>>(new Set());
+	const [targetBytecode, setTargetBytecode] = useState<string>(null);
+
+	// Check ownership of any new contracts that appeared
+	useEffect(() => {
+		// All contracts owned by the user must be instances of a global Idea contract.
+		// Load this desired bytecode
+		if (targetBytecode == null) {
+			setTargetBytecode("");
+
+			web3.eth.getCode(filterInstanceOf)
+				.then((code) => setTargetBytecode(code));
+		}
+
+		// No possible way of determining owned tokens
+		if (targetBytecode == "" || !did || did == "" || !web3 || !watchedIdeasRecord || watchedIdeasRecord.isLoading || watchedIdeasRecord.isError || !watchedIdeasRecord.content)
+			return;
+
+		// Now check that each address contains an instance of the Ideas contract
+		for (const addr of watchedIdeasRecord.content.items) {
 			// Skip cached items
 			if (blocked.has(addr) || checked.has(addr))
 				continue;

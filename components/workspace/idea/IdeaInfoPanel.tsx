@@ -1,5 +1,11 @@
 import styles from "../IdeaDetailCard.module.css";
 import { ExtendedIdeaInformation } from "../IdeaDetailCard";
+import { OutlinedButton } from "../../status/OutlinedButton";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
+import { useViewerRecord } from "@self.id/framework";
+import { useState } from "react";
+import { unwatchIdea, watchIdea } from "../../../lib/util/discovery.ts";
 
 const InfoItem = ({ left, right, key = left }: { left: string, right: JSX.Element, key?: string }) => {
 	return (
@@ -34,6 +40,32 @@ const Metric = ({ val, label, isPercent = false }: { val: number, label: string,
 			<p className={ `${ styles.metricValue }${ directionStyles }` }>{ `${prefix}${val}${suffix}` }</p>
 			<p>{ label }</p>
 		</div>
+	);
+};
+
+const WatchIdeaButton = (ideaAddr: string) => {
+
+	const watchingRecord = useViewerRecord<ModelTypes>("visionWatchedItemAddressesList");
+	const [watched, setWatched] = useState(watchingRecord?.content?.items.includes(ideaAddr.ideaAddr) ?? false);
+
+
+	const watchIdeaCallback = () => {
+		if(watched) {
+			setWatched(false);
+			unwatchIdea(ideaAddr.ideaAddr, watchingRecord);
+			return;
+		}
+
+		setWatched(true);
+		watchIdea(ideaAddr.ideaAddr, watchingRecord);
+	};
+
+	return (
+		<OutlinedButton callback={watchIdeaCallback}>
+			{ watched ? <VisibilityIcon/> : <VisibilityOffIcon/> }
+			&nbsp;&nbsp;
+			{ watched ? "Unwatch" : "Watch" }
+		</OutlinedButton>
 	);
 };
 
@@ -79,11 +111,15 @@ export const IdeaInfoPanel = ({ idea }: { idea: ExtendedIdeaInformation }) => {
 		"Finalized Proposals": finalizedProposals,
 	};
 
+
 	return (
 		<div className={ styles.cardInfo }>
 			<div className={ styles.cardTitleInfo }>
-				<h2>{ title } ({ ticker })</h2>
-				{ description && <p>{ description }</p> }
+				<div>
+					<h2>{ title } ({ ticker })</h2>
+					{ description && <p>{ description }</p> }
+				</div>
+				<WatchIdeaButton ideaAddr={addr}/>
 			</div>
 			<div>
 				<h2>Info</h2>
