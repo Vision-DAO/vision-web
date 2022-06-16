@@ -12,6 +12,7 @@ import { IdeaDetailCard } from "../components/workspace/IdeaDetailCard";
 import { NewIdeaModal } from "../components/status/NewIdeaModal";
 import { FilledButton } from "../components/status/FilledButton";
 import { IdeaMap } from "../components/workspace/IdeaMap";
+import { SearchBar } from "../components/workspace/SearchBar";
 import styles from "./index.module.css";
 
 /**
@@ -103,41 +104,46 @@ export const Index = () => {
 	return (
 		<div className={ styles.browser }>
 			{ map }
-			<div className={ styles.hud }>
-				{ creatingIdea &&
-					<div className={ styles.hudModal }>
-						<NewIdeaModal
-							active={ creatingIdea }
-							onClose={ () => setCreatingIdea(false) }
-							onUpload={ async (data) => (await ipfs.add(new Uint8Array(serialize(data)))).cid.toString() }
-							onDeploy={ () => setCreatingIdea(false) }
-							ctx={ [web3, eth] }
-							ideasBuf={ userIdeasRecord }
-						/>
+			<div className={ styles.hudArea }>
+				<div className={ styles.hud }>
+					<div className={ styles.searchArea }>
+						<SearchBar />
 					</div>
-				}
-				{
-					modal !== undefined &&
+					{ creatingIdea &&
 						<div className={ styles.hudModal }>
-							{ modal }
+							<NewIdeaModal
+								active={ creatingIdea }
+								onClose={ () => setCreatingIdea(false) }
+								onUpload={ async (data) => (await ipfs.add(new Uint8Array(serialize(data)))).cid.toString() }
+								onDeploy={ () => setCreatingIdea(false) }
+								ctx={ [web3, eth] }
+								ideasBuf={ userIdeasRecord }
+							/>
 						</div>
-				}
-				<div className={ styles.leftActionButton }>
-					<div className={ styles.zoomButtons }>
-						<div className={ styles.zoomButton } onClick={ () => setMapZoom(1.1) }>
-							+
+					}
+					{
+						modal !== undefined &&
+							<div className={ styles.hudModal }>
+								{ modal }
+							</div>
+					}
+					<div className={ styles.leftActionButton }>
+						<div className={ styles.zoomButtons }>
+							<div className={ styles.zoomButton } onClick={ () => setMapZoom(1.4) }>
+								+
+							</div>
+							<div className={ styles.zoomButton } onClick={ () => setMapZoom(0.9) }>
+								-
+							</div>
 						</div>
-						<div className={ styles.zoomButton } onClick={ () => setMapZoom(0.9) }>
-							-
-						</div>
+						<FilledButton label="New Idea" onClick={ () => setCreatingIdea(true) }/>
 					</div>
-					<FilledButton label="New Idea" onClick={ () => setCreatingIdea(true) }/>
+					{ activeIdea !== undefined &&
+						<div className={ styles.ideaDetailsPanel }>
+							<IdeaDetailCard content={ activeIdea } onClose={ () => { setActiveIdea(undefined); setMapSelected(undefined); } } />
+						</div>
+					}
 				</div>
-				{ activeIdea !== undefined &&
-					<div className={ styles.ideaDetailsPanel }>
-						<IdeaDetailCard content={ activeIdea } onClose={ () => { setActiveIdea(undefined); setMapSelected(undefined); } } />
-					</div>
-				}
 			</div>
 		</div>
 	);
