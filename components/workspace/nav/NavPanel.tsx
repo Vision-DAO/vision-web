@@ -77,7 +77,7 @@ export const NavPanel = ({ items, onProfileClicked, ctx }: NavProps) => {
 
 	// Whether or not the user is connected to an ethereum provider.
 	// Should display an error otherwise
-	const [{ present, connected, initialized, network }, initialize] = useConnStatus(ctx && ctx[1] || undefined);
+	const [{ present, connected, initialized, network }, initialize] = useConnStatus();
 
 	// The user's profile. May be loaded, or may not even exist because the user is disconnected from ceramic
 	// TODO: This bugs out and causes infinite re-renders
@@ -104,36 +104,42 @@ export const NavPanel = ({ items, onProfileClicked, ctx }: NavProps) => {
 
 	// Show a button to initiate authentication if no user info is available
 	let profileDisp = (
-		<OutlinedButton severity="error">
-			<h2>Unable to communicate with the Ethereum network. Check console to troubleshoot.</h2>
-		</OutlinedButton>
+		<div className={ styles.loginBtnContainer }>
+			<OutlinedButton severity="error">
+				<h2>Unable to communicate with the Ethereum network. Check console to troubleshoot.</h2>
+			</OutlinedButton>
+		</div>
 	);
 
 	// Make sure a web3 client is available
 	if (!present) {
 		profileDisp = (
-			<OutlinedButton callback={ () => window.open("https://metamask.io/") } severity="error">
-				<h2>Please install a <b>Web3</b> provider to continue.</h2>
-			</OutlinedButton>
+			<div className={ styles.loginBtnContainer }>
+				<OutlinedButton callback={ () => window.open("https://metamask.io/") } severity="error">
+					<h2>Please install a <b>Web3</b> provider to continue.</h2>
+				</OutlinedButton>
+			</div>
 		);
 	}
 
 	if (connected) {
 		// Make sure the user is connected to the right network
 		profileDisp = (
-			<OutlinedButton callback={ () => {
-				connectMetamask(window.ethereum)
-					.then(() => {
-						initialize();
-						if (network != "polygon-test")
-							return requestChangeNetwork(window.ethereum);
-					})
-					.then(async () => {
-						connect(new EthereumAuthProvider(window.ethereum, (await accounts(window.ethereum))[0]));
-					});
-			}} severity="action">
-				<h2>Connect to <b>Polygon</b></h2>
-			</OutlinedButton>
+			<div className={ styles.loginBtnContainer }>
+				<OutlinedButton callback={ () => {
+					connectMetamask(window.ethereum)
+						.then(() => {
+							initialize();
+							if (network != "polygon-test")
+								return requestChangeNetwork(window.ethereum);
+						})
+						.then(async () => {
+							connect(new EthereumAuthProvider(window.ethereum, (await accounts(window.ethereum))[0]));
+						});
+				}} severity="action">
+					<h2>Connect to <b>Polygon</b></h2>
+				</OutlinedButton>
+			</div>
 		);
 	}
 

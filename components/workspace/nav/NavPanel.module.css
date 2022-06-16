@@ -74,3 +74,8 @@
 .logo {
 	width: 60%;
 }
+
+.loginBtnContainer {
+	padding-left: 1rem;
+	padding-right: 1rem;
+}
