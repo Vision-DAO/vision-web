@@ -16,11 +16,14 @@
 	max-height: 100%;
 	box-sizing: border-box;
 	pointer-events: auto;
+
+	-webkit-box-shadow: 3px 5px 11px 5px rgba(0,0,0,0.36); 
+	box-shadow: 3px 5px 11px 5px rgba(0,0,0,0.36);
 }
 
 .searchContent {
-	padding-left: 1rem;
-	padding-right: 1rem;
+	margin-left: 1rem;
+	margin-right: 1rem;
 }
 
 .resultsArea {
@@ -34,12 +37,6 @@
 	margin: 0;
 
 	font-family: "Roboto Mono", monospace;
-}
-
-.resultsArea>*:first-child {
-	border-top: 0.5px solid rgba(255, 255, 255, 0.25);
-
-	padding-top: 1rem;
 }
 
 .resultsArea>*{
@@ -65,7 +62,7 @@
 	color: rgba(255, 255, 255, 0.5);
 	font-size: 1.5rem;
 
-	transition: 0.3s;
+	transition: 0.3s color;
 
 	margin-bottom: 1rem;
 }
@@ -106,6 +103,11 @@
 	transform: scalex(-1);
 
 	font-size: 2rem;
+}
+
+.queryArea.hasResults {
+	padding-bottom: 1rem;
+	border-bottom: 0.5px solid rgba(255, 255, 255, 0.25);
 }
 
 .expansionTab {

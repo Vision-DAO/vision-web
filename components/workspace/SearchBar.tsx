@@ -36,7 +36,7 @@ export const SearchBar = () => {
 
 	return (
 		<div className={ styles.searchBarContainer }>
-			<div className={ `${styles.queryArea} ${styles.searchContent}` }>
+			<div className={ `${styles.queryArea} ${styles.searchContent} ${expanded && searchResults.length > 0 ? styles.hasResults : ""}` }>
 				<SearchRounded />
 				<input type="text" value={ searchText } onClick={ () => setSearchText("") } onChange={ handleChange } onBlur={ handleExit } />
 			</div>
