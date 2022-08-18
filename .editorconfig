@@ -1,0 +1,5 @@
+[*.{ts,tsx}]
+charset = utf-8
+indent_style = tab
+indent_size = 2
+smart_tabs = true
