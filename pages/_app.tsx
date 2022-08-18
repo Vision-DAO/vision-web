@@ -228,10 +228,7 @@ const App = ({ Component, pageProps }: AppPropsWithLayout) => {
 	return (
 		<>
 			<Head>
-				<meta
-					name="viewport"
-					content="width=device-width, initial-scale=1"
-				/>
+				<meta name="viewport" content="width=device-width, initial-scale=1" />
 			</Head>
 			<Provider
 				client={{ ceramic: "testnet-clay", aliases }}
@@ -259,83 +256,46 @@ const App = ({ Component, pageProps }: AppPropsWithLayout) => {
 					<Web3Context.Provider value={web3}>
 						<IpfsContext.Provider value={ipfs}>
 							<ConnectionContext.Provider value={connStatus}>
-								<ActiveIdeaContext.Provider
-									value={[activeIdea, setActiveIdea]}
-								>
+								<ActiveIdeaContext.Provider value={[activeIdea, setActiveIdea]}>
 									<ProposalsContext.Provider
 										value={[proposalCache, addProposal]}
 									>
 										<ActiveProposalContext.Provider
-											value={[
-												activeProposal,
-
-												setActiveProposal,
-											]}
+											value={[activeProposal, setActiveProposal]}
 										>
-											<ModalContext.Provider
-												value={[modal, setModal]}
-											>
-												{router.pathname !==
-												"/login" ? (
+											<ModalContext.Provider value={[modal, setModal]}>
+												{router.pathname !== "/login" ? (
 													<div
-														className={`${
-															styles.app
-														} ${styles.root}${
-															hasModal
-																? " " +
-																  styles.hidden
-																: ""
+														className={`${styles.app} ${styles.root}${
+															hasModal ? " " + styles.hidden : ""
 														}`}
 													>
-														<div
-															className={
-																styles.navPanel
-															}
-														>
+														<div className={styles.navPanel}>
 															<NavPanel
 																items={navItems}
-																onProfileClicked={(
-																	selfId: string
-																) =>
-																	router.push(
-																		{
-																			pathname:
-																				"/profile/[id]",
-																			query: {
-																				id: selfId,
-																			},
-																		}
-																	)
+																onProfileClicked={(selfId: string) =>
+																	router.push({
+																		pathname: "/profile/[id]",
+																		query: {
+																			id: selfId,
+																		},
+																	})
 																}
 																onSettingsActive={() =>
-																	router.push(
-																		"/settings"
-																	)
+																	router.push("/settings")
 																}
 																ctx={web3}
 															/>
 														</div>
-														<div
-															className={
-																styles.workspace
-															}
-														>
+														<div className={styles.workspace}>
 															<NetworkedWorkspace>
-																{getLayout(
-																	<Component
-																		{...pageProps}
-																	/>
-																)}
+																{getLayout(<Component {...pageProps} />)}
 															</NetworkedWorkspace>
 														</div>
 													</div>
 												) : (
-													<div
-														className={`${styles.app} ${styles.root}`}
-													>
-														<Component
-															{...pageProps}
-														/>
+													<div className={`${styles.app} ${styles.root}`}>
+														<Component {...pageProps} />
 													</div>
 												)}
 											</ModalContext.Provider>
