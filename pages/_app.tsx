@@ -245,7 +245,10 @@ const App = ({ Component, pageProps }: AppPropsWithLayout) => {
 							key: "ethereum",
 							logo: ethereumLogo.src,
 							connectors: [
-								{ key: "injected", logo: metaMaskLogo.src },
+								{
+									key: "injected",
+									logo: metaMaskLogo.src,
+								},
 							],
 						},
 					],
@@ -265,6 +268,7 @@ const App = ({ Component, pageProps }: AppPropsWithLayout) => {
 										<ActiveProposalContext.Provider
 											value={[
 												activeProposal,
+
 												setActiveProposal,
 											]}
 										>
