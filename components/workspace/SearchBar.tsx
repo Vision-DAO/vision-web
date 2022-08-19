@@ -30,6 +30,19 @@ export const SearchEntry = ({
 	onHoverState: (state: boolean) => void;
 }) => {
 	const termStart = title.toLowerCase().indexOf(term);
+	let elems = [<p>{title.substring(termStart + term.length, title.length)}</p>];
+
+	if (term.length > 0)
+		elems = [
+			<p className={styles.activeResult}>
+				<b>{title.substring(termStart, termStart + term.length)}</b>
+			</p>,
+			,
+			...elems,
+		];
+
+	if (termStart !== 0)
+		elems = [<p>{title.substring(0, termStart)}</p>, ...elems];
 
 	return (
 		<div
@@ -38,11 +51,7 @@ export const SearchEntry = ({
 			onMouseEnter={() => onHoverState(true)}
 			onMouseLeave={() => onHoverState(false)}
 		>
-			<p key={addr}>{title.substring(0, termStart)}</p>
-			<p className={styles.activeResult}>
-				<b>{title.substring(termStart, termStart + term.length)}</b>
-			</p>{" "}
-			<p>{title.substring(termStart + term.length, title.length)}</p>
+			{elems}
 		</div>
 	);
 };

@@ -138,6 +138,7 @@
 
 .activeResult {
 	color: white;
+	font-weight: bold;
 }
 
 .resultsRow {
