@@ -14,7 +14,7 @@ import { loadBasicIdeaInfo, IpfsContext } from "../../lib/util/ipfs";
 import { useWeb3 } from "../../lib/util/web3";
 import styles from "./SearchBar.module.css";
 
-const defaultSearchText = '"The next big thing"';
+const defaultSearchText = "The next big thing...";
 
 export const SearchEntry = ({
 	title,
