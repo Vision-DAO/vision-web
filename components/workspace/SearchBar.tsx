@@ -32,16 +32,18 @@ export const SearchEntry = ({
 	const termStart = title.toLowerCase().indexOf(term);
 
 	return (
-		<p
-			key={addr}
+		<div
 			onClick={onClick}
+			className={styles.resultsRow}
 			onMouseEnter={() => onHoverState(true)}
 			onMouseLeave={() => onHoverState(false)}
 		>
-			{title.substring(0, termStart)}
-			<b>{title.substring(termStart, termStart + term.length)}</b>
-			{title.substring(termStart + term.length, title.length)}
-		</p>
+			<p key={addr}>{title.substring(0, termStart)}</p>
+			<p className={styles.activeResult}>
+				<b>{title.substring(termStart, termStart + term.length)}</b>
+			</p>{" "}
+			<p>{title.substring(termStart + term.length, title.length)}</p>
+		</div>
 	);
 };
 
