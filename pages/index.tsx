@@ -1,10 +1,17 @@
 import { useParents, loadExtendedIdeaInfo } from "../lib/util/ipfs";
-import { useOwnedIdeas, useTraversedChildIdeas, ModelTypes } from "../lib/util/discovery";
+import {
+	useOwnedIdeas,
+	useTraversedChildIdeas,
+	ModelTypes,
+} from "../lib/util/discovery";
 import { useWeb3 } from "../lib/util/web3";
 import { IpfsContext } from "../lib/util/ipfs";
 import { ModalContext } from "../lib/util/modal";
 import { serialize } from "bson";
-import { useViewerConnection as useConnection, useViewerRecord } from "@self.id/framework";
+import {
+	useViewerConnection as useConnection,
+	useViewerRecord,
+} from "@self.id/framework";
 import { useState, useEffect, useContext } from "react";
 import { useConnStatus } from "../lib/util/networks";
 import { BasicIdeaInformation } from "../components/workspace/IdeaBubble";
@@ -12,6 +19,7 @@ import { IdeaDetailCard } from "../components/workspace/IdeaDetailCard";
 import { NewIdeaModal } from "../components/status/NewIdeaModal";
 import { FilledButton } from "../components/status/FilledButton";
 import { IdeaMap } from "../components/workspace/IdeaMap";
+import { SearchBar } from "../components/workspace/SearchBar";
 import styles from "./index.module.css";
 
 /**
@@ -21,9 +29,7 @@ import styles from "./index.module.css";
 export const staticIdeas: Map<string, string[]> = new Map([
 	["ethereum", [] as string[]],
 	["polygon", [] as string[]],
-	["polygon-test", [
-		"0x3e515F4C2dfdc0506Fc7174e21aEb68B05561f48",
-	]],
+	["polygon-test", ["0x3e515F4C2dfdc0506Fc7174e21aEb68B05561f48"]],
 ]);
 
 /**
@@ -49,25 +55,38 @@ export const Index = () => {
 	const [activeIdea, setActiveIdea] = useState(undefined);
 	const [web3, eth] = useWeb3();
 	const ipfs = useContext(IpfsContext);
-	const [modal, ] = useContext(ModalContext);
+	const [modal] = useContext(ModalContext);
 	const [conn, ,] = useConnection();
-	const [connStatus, ] = useConnStatus();
+	const [connStatus] = useConnStatus();
 
 	// Ideas are discovered through other peers informing us of them, through
 	// locally existing ones (e.g., that were created on vision.eco),
 	// and through entries in the registry smart contract.
 	const [rootIdeas, pubRootIdea] = useParents(staticIdeas);
-	const userIdeasRecord = useViewerRecord<ModelTypes>("visionOwnedItemAddressesList");
-	const ownedIdeas = useOwnedIdeas(conn.status == "connected" ? conn.selfID.id : "", web3, baseIdeaContract);
+	const userIdeasRecord = useViewerRecord<ModelTypes>(
+		"visionOwnedItemAddressesList"
+	);
+	const ownedIdeas = useOwnedIdeas(
+		conn.status == "connected" ? conn.selfID.id : "",
+		web3,
+		baseIdeaContract
+	);
 
 	// Ideas can either be known through immediate information (i.e., stored on
 	// the device, hardcoded, or received over the network, or through work done
 	// on our own to traverse the graph)
 	const immediateIdeas = [...rootIdeas, ...ownedIdeas];
-	const discoveredIdeas = useTraversedChildIdeas(immediateIdeas.sort(), web3, ipfs, []);
+	const discoveredIdeas = useTraversedChildIdeas(
+		immediateIdeas.sort(),
+		web3,
+		ipfs,
+		[]
+	);
 
 	// Record edges for all ideas that have them, or default to a list of empty edges
-	const allIdeas = [...immediateIdeas].reduce((ideas, ideaAddr) => { return { ...ideas, [ideaAddr]: discoveredIdeas[ideaAddr] ?? {} }; }, {});
+	const allIdeas = [...immediateIdeas].reduce((ideas, ideaAddr) => {
+		return { ...ideas, [ideaAddr]: discoveredIdeas[ideaAddr] ?? {} };
+	}, {});
 
 	// Display items as a map of bubbles
 	const [creatingIdea, setCreatingIdea] = useState(false);
@@ -75,7 +94,12 @@ export const Index = () => {
 	const loadIdeaCard = async (details: BasicIdeaInformation) => {
 		setActiveIdea(null);
 
-		const info = await loadExtendedIdeaInfo(ipfs, connStatus.network, web3, details);
+		const info = await loadExtendedIdeaInfo(
+			ipfs,
+			connStatus.network,
+			web3,
+			details
+		);
 		setActiveIdea(info);
 	};
 
@@ -86,9 +110,11 @@ export const Index = () => {
 		for (const ideaAddr of ownedIdeas) {
 			// Remind other users every n seconds about our sovereign ideas,
 			// and register a PID to cancel after the component is dismounted
-			gossipers.push(setInterval(() => {
-				pubRootIdea(ideaAddr);
-			}, heartbeatPeriod));
+			gossipers.push(
+				setInterval(() => {
+					pubRootIdea(ideaAddr);
+				}, heartbeatPeriod)
+			);
 		}
 
 		// Remove all pubsub publishers after the item is dismounted
@@ -99,45 +125,75 @@ export const Index = () => {
 		};
 	});
 
-	const [setMapSelected, setMapZoom, map] = IdeaMap({ ideas: allIdeas, onClickIdea: (idea) => loadIdeaCard(idea)  });
+	const [setMapSelected, setMapHovered, setMapDehovered, setMapZoom, map] =
+		IdeaMap({
+			ideas: allIdeas,
+			onClickIdea: (idea) => loadIdeaCard(idea),
+		});
 	return (
-		<div className={ styles.browser }>
-			{ map }
-			<div className={ styles.hud }>
-				{ creatingIdea &&
-					<div className={ styles.hudModal }>
-						<NewIdeaModal
-							active={ creatingIdea }
-							onClose={ () => setCreatingIdea(false) }
-							onUpload={ async (data) => (await ipfs.add(new Uint8Array(serialize(data)))).cid.toString() }
-							onDeploy={ () => setCreatingIdea(false) }
-							ctx={ [web3, eth] }
-							ideasBuf={ userIdeasRecord }
+		<div className={styles.browser}>
+			{map}
+			<div className={styles.hudArea}>
+				<div className={styles.hud}>
+					<div className={styles.searchArea}>
+						<SearchBar
+							haystack={Object.keys(allIdeas)}
+							selected={(selected: string) => setMapSelected(selected)}
+							hovered={(hovered: string) => setMapHovered(hovered)}
+							dehovered={(dehovered: string) => setMapDehovered(dehovered)}
 						/>
 					</div>
-				}
-				{
-					modal !== undefined &&
-						<div className={ styles.hudModal }>
-							{ modal }
+					{creatingIdea && (
+						<div className={styles.hudModal}>
+							<NewIdeaModal
+								active={creatingIdea}
+								onClose={() => setCreatingIdea(false)}
+								onUpload={async (data) =>
+									(
+										await ipfs.add(new Uint8Array(serialize(data)))
+									).cid.toString()
+								}
+								onDeploy={() => setCreatingIdea(false)}
+								ctx={[web3, eth]}
+								ideasBuf={userIdeasRecord}
+							/>
 						</div>
-				}
-				<div className={ styles.leftActionButton }>
-					<div className={ styles.zoomButtons }>
-						<div className={ styles.zoomButton } onClick={ () => setMapZoom(1.1) }>
-							+
+					)}
+					{modal !== undefined && (
+						<div className={styles.hudModal}>{modal}</div>
+					)}
+					<div className={styles.leftActionButton}>
+						<div className={styles.zoomButtons}>
+							<div
+								className={styles.zoomButton}
+								onClick={() => setMapZoom(1.4)}
+							>
+								+
+							</div>
+							<div
+								className={styles.zoomButton}
+								onClick={() => setMapZoom(0.9)}
+							>
+								-
+							</div>
 						</div>
-						<div className={ styles.zoomButton } onClick={ () => setMapZoom(0.9) }>
-							-
-						</div>
+						<FilledButton
+							label="New Idea"
+							onClick={() => setCreatingIdea(true)}
+						/>
 					</div>
-					<FilledButton label="New Idea" onClick={ () => setCreatingIdea(true) }/>
+					{activeIdea !== undefined && (
+						<div className={styles.ideaDetailsPanel}>
+							<IdeaDetailCard
+								content={activeIdea}
+								onClose={() => {
+									setActiveIdea(undefined);
+									setMapSelected(undefined);
+								}}
+							/>
+						</div>
+					)}
 				</div>
-				{ activeIdea !== undefined &&
-					<div className={ styles.ideaDetailsPanel }>
-						<IdeaDetailCard content={ activeIdea } onClose={ () => { setActiveIdea(undefined); setMapSelected(undefined); } } />
-					</div>
-				}
 			</div>
 		</div>
 	);

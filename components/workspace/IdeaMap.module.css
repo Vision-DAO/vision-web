@@ -5,8 +5,8 @@
 	overflow: auto;
 
 	grid-row-start: 1;
-	grid-row-end: 65;
+	grid-row-end: 2;
 
 	grid-column-start: 1;
-	grid-column-end: 65;
+	grid-column-end: 2;
 }
