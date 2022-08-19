@@ -37,7 +37,6 @@ export const SearchEntry = ({
 			<p key="middle" className={styles.activeResult}>
 				<b>{title.substring(termStart, termStart + term.length)}</b>
 			</p>,
-			,
 			...elems,
 		];
 
