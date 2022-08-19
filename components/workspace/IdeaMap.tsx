@@ -1,12 +1,24 @@
 import styles from "./IdeaMap.module.css";
 import { BasicIdeaInformation } from "./IdeaBubble";
-import { FundingRate, loadBasicIdeaInfo, IpfsContext } from "../../lib/util/ipfs";
+import {
+	FundingRate,
+	loadBasicIdeaInfo,
+	IpfsContext,
+} from "../../lib/util/ipfs";
 import { useWeb3 } from "../../lib/util/web3";
 import { isIdeaContract } from "../../lib/util/discovery";
 import Idea from "../../value-tree/build/contracts/Idea.json";
 import { baseIdeaContract } from "../../pages/index";
 
-import { useRef, useState, useEffect, Dispatch, SetStateAction, ReactElement, useContext } from "react";
+import {
+	useRef,
+	useState,
+	useEffect,
+	Dispatch,
+	SetStateAction,
+	ReactElement,
+	useContext,
+} from "react";
 import cytoscape from "cytoscape";
 import cola from "cytoscape-cola";
 
@@ -16,20 +28,35 @@ import cola from "cytoscape-cola";
  * - A user clicks an idea on the map
  */
 export interface IdeaMapProps {
-	ideas: { [idea: string]: FundingRate[] },
+	ideas: { [idea: string]: FundingRate[] };
 
-	onClickIdea: (idea: BasicIdeaInformation) => void,
+	onClickIdea: (idea: BasicIdeaInformation) => void;
 }
 
-const blockIdea = (ideaAddr: string, dispatch: Dispatch<SetStateAction<Set<string>>>) => dispatch(ideas => { return new Set([...ideas, ideaAddr]); });
+const blockIdea = (
+	ideaAddr: string,
+	dispatch: Dispatch<SetStateAction<Set<string>>>
+) =>
+	dispatch((ideas) => {
+		return new Set([...ideas, ideaAddr]);
+	});
 
 /**
  * Displays a cytoscape map rendering Idea Bubbles for all of the ideas
  * whose addresses exist in `ideas`, and returns a hook for setting the map's
  * active idea, and setting the zoom level.
  */
-export const IdeaMap = ({ ideas, onClickIdea }: IdeaMapProps): [(ideaAddr: string) => void, (zoom: number) => void, ReactElement] => {
-	const [web3, ] = useWeb3();
+export const IdeaMap = ({
+	ideas,
+	onClickIdea,
+}: IdeaMapProps): [
+	(ideaAddr: string) => void,
+	(ideaAddr: string) => void,
+	(ideaAddr: string) => void,
+	(zoom: number) => void,
+	ReactElement
+] => {
+	const [web3] = useWeb3();
 	const ipfs = useContext(IpfsContext);
 
 	// The container that cytoscape binds to for rendering nodes
@@ -37,7 +64,9 @@ export const IdeaMap = ({ ideas, onClickIdea }: IdeaMapProps): [(ideaAddr: strin
 
 	// States for loading ideas
 	const [blockedIdeas, setBlockedIdeas] = useState<Set<string>>(new Set());
-	const [ideaDetails, setIdeaDetails] = useState<{[ideaAddr: string]: BasicIdeaInformation}>({});
+	const [ideaDetails, setIdeaDetails] = useState<{
+		[ideaAddr: string]: BasicIdeaInformation;
+	}>({});
 
 	// For detecting whether ideas are valid
 	const [ideaContractBytecode, setIdeaContractBytecode] = useState(null);
@@ -46,7 +75,8 @@ export const IdeaMap = ({ ideas, onClickIdea }: IdeaMapProps): [(ideaAddr: strin
 	const [cyx, setCy] = useState(undefined);
 	const [cyNodes, setCyNodes] = useState<Set<string>>(new Set());
 
-	const handleClick = (e: cytoscape.EventObjectNode) => onClickIdea(ideaDetails[e.target.id()]);
+	const handleClick = (e: cytoscape.EventObjectNode) =>
+		onClickIdea(ideaDetails[e.target.id()]);
 
 	// Every time the list of parent nodes expands, part of the component
 	// tree must be rebuilt
@@ -55,37 +85,36 @@ export const IdeaMap = ({ ideas, onClickIdea }: IdeaMapProps): [(ideaAddr: strin
 		if (ideaContractBytecode == null && web3) {
 			setIdeaContractBytecode("");
 
-			web3.eth.getCode(baseIdeaContract)
+			web3.eth
+				.getCode(baseIdeaContract)
 				.then((code) => setIdeaContractBytecode(code));
 		}
 
-		if (cyx)
-			cyx.startBatch();
+		if (cyx) cyx.startBatch();
 
 		for (const ideaAddr of Object.keys(ideas)) {
 			// Cannot continue without an exemplar to compare against
-			if (!ideaContractBytecode || ideaContractBytecode == "")
-				break;
+			if (!ideaContractBytecode || ideaContractBytecode == "") break;
 
 			// Skip all ideas that have been blocked
-			if (blockedIdeas.has(ideaAddr))
-				continue;
+			if (blockedIdeas.has(ideaAddr)) continue;
 
 			// TODO: Allow live updates for basic idea metadata once it is feasible
-			if (ideaAddr in ideaDetails)
-				continue;
+			if (ideaAddr in ideaDetails) continue;
 
 			const contract = new web3.eth.Contract(Idea.abi, ideaAddr);
 
 			// Mark the item as being loaded
-			setIdeaDetails(ideas => { return { ...ideas, [ideaAddr]: null }; } );
+			setIdeaDetails((ideas) => {
+				return { ...ideas, [ideaAddr]: null };
+			});
 
 			// Fetch the basic information of the idea from Ethereum
 			// TODO: Loading of extended metadata from IPFS
 			(async () => {
 				// Filter out any contracts that aren't ideas
 				// TODO: Cover Proposals as well
-				if (!await isIdeaContract(web3, ideaAddr, ideaContractBytecode)) {
+				if (!(await isIdeaContract(web3, ideaAddr, ideaContractBytecode))) {
 					blockIdea(ideaAddr, setBlockedIdeas);
 
 					return;
@@ -93,7 +122,7 @@ export const IdeaMap = ({ ideas, onClickIdea }: IdeaMapProps): [(ideaAddr: strin
 
 				// All ideas must have some metadata stored on IPFS
 				const ipfsAddr = await contract.methods.ipfsAddr().call();
-				
+
 				if (!ipfsAddr) {
 					blockIdea(ideaAddr, setBlockedIdeas);
 
@@ -116,17 +145,17 @@ export const IdeaMap = ({ ideas, onClickIdea }: IdeaMapProps): [(ideaAddr: strin
 				const bubbleContent: BasicIdeaInformation = data;
 
 				// This item is still loading
-				if (!bubbleContent)
-					return;
+				if (!bubbleContent) return;
 
 				// Shallow comparison to check that the bubble info has already been cached
-				const bubblesEqual = (a: BasicIdeaInformation, b: BasicIdeaInformation): boolean => {
-					if (!a || !b)
-						return false;
+				const bubblesEqual = (
+					a: BasicIdeaInformation,
+					b: BasicIdeaInformation
+				): boolean => {
+					if (!a || !b) return false;
 
 					for (const key of Object.keys(a)) {
-						if (a[key] != b[key])
-							return false;
+						if (a[key] != b[key]) return false;
 					}
 
 					return true;
@@ -140,27 +169,34 @@ export const IdeaMap = ({ ideas, onClickIdea }: IdeaMapProps): [(ideaAddr: strin
 							const node = cyx.getElementById(ideaAddr);
 							node.data("label", bubbleContent.title);
 
-							if (bubbleContent.image)
-								node.data("image", bubbleContent.image);
+							if (bubbleContent.image) node.data("image", bubbleContent.image);
 
 							return;
 						}
 
 						// Add the new idea to the cytoscape instance
-						const newNode = { group: "nodes", data: { id: ideaAddr, label: bubbleContent.title, ...(bubbleContent.image ? { image: bubbleContent.image } : {}) } };
+						const newNode = {
+							group: "nodes",
+							data: {
+								id: ideaAddr,
+								label: bubbleContent.title,
+								...(bubbleContent.image ? { image: bubbleContent.image } : {}),
+							},
+						};
 						cyx.add(newNode);
 						cyx.layout({ name: "cola" }).run();
 
-						setCyNodes(nodes => new Set([...nodes, ideaAddr]));
+						setCyNodes((nodes) => new Set([...nodes, ideaAddr]));
 					}
 
-					setIdeaDetails(ideas => { return {...ideas, [ideaAddr]: bubbleContent}; });
+					setIdeaDetails((ideas) => {
+						return { ...ideas, [ideaAddr]: bubbleContent };
+					});
 				}
 			})();
 		}
 
-		if (cyx)
-			cyx.endBatch();
+		if (cyx) cyx.endBatch();
 	});
 
 	// Render a map of ideas
@@ -191,11 +227,11 @@ export const IdeaMap = ({ ideas, onClickIdea }: IdeaMapProps): [(ideaAddr: strin
 						{
 							selector: "node",
 							style: {
-								"label": "data(label)",
+								label: "data(label)",
 								"text-wrap": "ellipsis",
 								"text-max-width": "70%",
 								"text-valign": "center",
-								"color": "white",
+								color: "white",
 								"font-size": "2.75rem",
 								"font-family": "Roboto, Helvetica Neue, sans-serif",
 								"font-weight": "bold",
@@ -229,9 +265,9 @@ export const IdeaMap = ({ ideas, onClickIdea }: IdeaMapProps): [(ideaAddr: strin
 						{
 							selector: "edge",
 							style: {
-								"width": 0.1,
-								"opacity": 0.75,
-							}
+								width: 0.1,
+								opacity: 0.75,
+							},
 						},
 					],
 				});
@@ -239,15 +275,42 @@ export const IdeaMap = ({ ideas, onClickIdea }: IdeaMapProps): [(ideaAddr: strin
 				setCy(cy);
 			}
 
-			if (!cy)
-				return;
+			if (!cy) return;
 
-			const newEdges = Object.entries(ideas).map(([k, v]) => Object.values(v).filter((edge) => edge.sender in ideaDetails && k in ideaDetails && cyNodes.has(edge.sender) && cyNodes.has(k)).map((edge) => { return { data: { id: `${k}${edge.sender}`, source: edge.sender, target: k } }; })).flat().filter(({ data: { id } }) => !cyNodes.has(id));
+			const newEdges = Object.entries(ideas)
+				.map(([k, v]) =>
+					Object.values(v)
+						.filter(
+							(edge) =>
+								edge.sender in ideaDetails &&
+								k in ideaDetails &&
+								cyNodes.has(edge.sender) &&
+								cyNodes.has(k)
+						)
+						.map((edge) => {
+							return {
+								data: {
+									id: `${k}${edge.sender}`,
+									source: edge.sender,
+									target: k,
+								},
+							};
+						})
+				)
+				.flat()
+				.filter(({ data: { id } }) => !cyNodes.has(id));
 
-			cy.add(newEdges.map((edge) => { return { group: "edges", ...edge }; }));
+			cy.add(
+				newEdges.map((edge) => {
+					return { group: "edges", ...edge };
+				})
+			);
 
 			if (newEdges.length > 0)
-				setCyNodes(nodes => new Set([...nodes, ...newEdges.map(({ data: { id } }) => id)]));
+				setCyNodes(
+					(nodes) =>
+						new Set([...nodes, ...newEdges.map(({ data: { id } }) => id)])
+				);
 
 			// When the user puts their mouse over a node
 			const handleHover = (e: cytoscape.EventObjectNode) => {
@@ -262,36 +325,39 @@ export const IdeaMap = ({ ideas, onClickIdea }: IdeaMapProps): [(ideaAddr: strin
 				const fontSizePx = e.target.style("font-size").split("px")[0];
 				e.target.data("originalFontSize", fontSizePx);
 
-				e.target.animate({
-					style: {
-						height: `${sizePx * 1.05}px`,
-						width: `${sizePx * 1.05}px`,
-						"font-size": `${fontSizePx * 1.05}px`,
-						opacity: 0.8,
+				e.target.animate(
+					{
+						style: {
+							height: `${sizePx * 1.05}px`,
+							width: `${sizePx * 1.05}px`,
+							"font-size": `${fontSizePx * 1.05}px`,
+							opacity: 0.8,
+						},
 					},
-				},
-				{
-					duration: 100,
-					easing: "ease-in-out",
-				});
+					{
+						duration: 100,
+						easing: "ease-in-out",
+					}
+				);
 			};
 
 			const handleDehover = (e: cytoscape.EventObjectNode) => {
-				if (e.cy.container())
-					e.cy.container().style.cursor = "default";
+				if (e.cy.container()) e.cy.container().style.cursor = "default";
 
-				e.target.animate({
-					style: {
-						height: `${e.target.data("originalSize")}px`,
-						width: `${e.target.data("originalSize")}px`,
-						"font-size": `${e.target.data("originalFontSize")}px`,
-						opacity: 1,
+				e.target.animate(
+					{
+						style: {
+							height: `${e.target.data("originalSize")}px`,
+							width: `${e.target.data("originalSize")}px`,
+							"font-size": `${e.target.data("originalFontSize")}px`,
+							opacity: 1,
+						},
 					},
-				},
-				{
-					duration: 100,
-					easing: "ease-in-out",
-				});
+					{
+						duration: 100,
+						easing: "ease-in-out",
+					}
+				);
 			};
 
 			cy.on("select", "node", handleClick);
@@ -308,8 +374,22 @@ export const IdeaMap = ({ ideas, onClickIdea }: IdeaMapProps): [(ideaAddr: strin
 		return destructor;
 	});
 
-	return [(addr) => { cyx.nodes().unselect(); if (addr) cyx.getElementById(addr).select();}, (zoom) => cyx.zoom({ level: cyx.zoom() * zoom, renderedPosition: { x: cyx.width() / 2, y: cyx.height() / 2 }}), (
-		<div key="map" className={ styles.mapContainer } ref={ map }>
-		</div>
-	)];
+	return [
+		(addr) => {
+			cyx.nodes().unselect();
+			if (addr) cyx.getElementById(addr).select();
+		},
+		(addr) => {
+			cyx.getElementById(addr).trigger("mouseover");
+		},
+		(addr) => {
+			cyx.getElementById(addr).trigger("mouseout");
+		},
+		(zoom) =>
+			cyx.zoom({
+				level: cyx.zoom() * zoom,
+				renderedPosition: { x: cyx.width() / 2, y: cyx.height() / 2 },
+			}),
+		<div key="map" className={styles.mapContainer} ref={map}></div>,
+	];
 };

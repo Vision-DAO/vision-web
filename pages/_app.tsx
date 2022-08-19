@@ -97,7 +97,7 @@ const whitelist: string[] = [
 	"0xC3dF0b130ECaB8D0D836cFBD9b08DC4856Fe6563",
 	"0x39bee5D198c7F83281C1402A845eB8E2f4622BA2",
 	"0xcFdDa7a46853EeEdA37C4C61f52f93a9D7cb2F24",
-];
+].map((s) => s.toLowerCase());
 
 // pages navigable through the main application
 const pages: Page[] = [
@@ -337,7 +337,7 @@ App.getInitialProps = async ({ ctx: { req, res }, router }) => {
 					EthCrypto.hash.keccak256(
 						`\x19Ethereum Signed Message:\n${LOGIN_ATTESTATION.length}${LOGIN_ATTESTATION}`
 					)
-				)
+				).toLowerCase()
 			)
 		) {
 			return {};

@@ -11,19 +11,24 @@ import { useViewerConnection as useConnection } from "@self.id/framework";
  * - Displays a "wrong network" message if the window.ethereum isn't connected
  * to polygon
  */
-export const NetworkedWorkspace = ({ children }: { children: React.ReactElement }) => {
-	const [{ connected, present, network }, ] = useConnStatus();
+export const NetworkedWorkspace = ({
+	children,
+}: {
+	children: React.ReactElement;
+}) => {
+	const [{ connected, present, network }] = useConnStatus();
 	const [connection, ,] = useConnection();
 	const web3 = useWeb3();
 	const ipfs = useContext(IpfsContext);
-	let content: { title: string, message: string, loading?: boolean } |  null = null;
+	let content: { title: string; message: string; loading?: boolean } | null =
+		null;
 	let child: React.ReactElement = null;
 
 	// Wait for the user to connect to IPFS
 	if (!ipfs) {
 		content = {
-			title: "No IPFS Connection",
-			message: "Please connect to the IPFS network to continue.",
+			title: "Connecting to IPFS",
+			message: "Forming a connection to the IPFS network.",
 			loading: true,
 		};
 	}
@@ -63,11 +68,13 @@ export const NetworkedWorkspace = ({ children }: { children: React.ReactElement 
 	if (!content) {
 		child = children;
 	} else {
-		child = <WarningMessage
-			title={ content.title }
-			message={ content.message }
-			loading={ content.loading }
-		/>;
+		child = (
+			<WarningMessage
+				title={content.title}
+				message={content.message}
+				loading={content.loading}
+			/>
+		);
 	}
 
 	return child;
