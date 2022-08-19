@@ -18,23 +18,23 @@ const defaultSearchText = "The next big thing...";
 
 export const SearchEntry = ({
 	title,
-	addr,
 	term,
 	onClick,
 	onHoverState,
 }: {
 	title: string;
-	addr: string;
 	term: string;
 	onClick: () => void;
 	onHoverState: (state: boolean) => void;
 }) => {
 	const termStart = title.toLowerCase().indexOf(term);
-	let elems = [<p>{title.substring(termStart + term.length, title.length)}</p>];
+	let elems = [
+		<p key="start">{title.substring(termStart + term.length, title.length)}</p>,
+	];
 
 	if (term.length > 0)
 		elems = [
-			<p className={styles.activeResult}>
+			<p key="middle" className={styles.activeResult}>
 				<b>{title.substring(termStart, termStart + term.length)}</b>
 			</p>,
 			,
@@ -42,7 +42,7 @@ export const SearchEntry = ({
 		];
 
 	if (termStart !== 0)
-		elems = [<p>{title.substring(0, termStart)}</p>, ...elems];
+		elems = [<p key="end">{title.substring(0, termStart)}</p>, ...elems];
 
 	return (
 		<div
@@ -99,7 +99,6 @@ export const SearchBar = ({
 					<SearchEntry
 						key={info.addr}
 						title={info.title}
-						addr={info.addr}
 						term={e.target.value.toLocaleLowerCase()}
 						onClick={() => selected(info.addr)}
 						onHoverState={(state: boolean) => {
