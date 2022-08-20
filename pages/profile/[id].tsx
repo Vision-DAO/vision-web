@@ -1,6 +1,11 @@
 import { useState, useEffect, useContext } from "react";
 import { useRouter } from "next/router";
-import { usePublicRecord, useViewerRecord, useViewerConnection as useConnection } from "@self.id/framework";
+import { BasicProfile } from "@datamodels/identity-profile-basic";
+import {
+	usePublicRecord,
+	useViewerRecord,
+	useViewerConnection as useConnection,
+} from "@self.id/framework";
 import { ExtendedProfile } from "../../components/profile/ExtendedProfile";
 import CircularProgress from "@mui/material/CircularProgress";
 import defaultProfileIcon from "../../public/icons/account_circle_white_48dp.svg";
@@ -23,7 +28,8 @@ export const Profile = () => {
 	// The user's profile will only be editable if the user is the same as [id]
 	const [[[pfp, bg], loading], setImages] = useState([[null, null], true]);
 	const [connection, ,] = useConnection();
-	const isUser = connection.status == "connected" && connection.selfID.id == profileId;
+	const isUser =
+		connection.status == "connected" && connection.selfID.id == profileId;
 
 	// Load the indicated user's profile
 	const profile = usePublicRecord("basicProfile", profileId);
@@ -32,11 +38,9 @@ export const Profile = () => {
 	const selfProfile = useViewerRecord("basicProfile");
 
 	// Generate an empty profile if the record doesn't exist
-	if (!profile.content)
-		profile.content = {};
+	if (!profile.content) profile.content = {};
 
-	if (!profile.content.name)
-		profile.content.name = "User Name";
+	if (!profile.content.name) profile.content.name = "User Name";
 
 	// Use a default profile picture if there is no image attached to the user
 	if (!profile.content.image && loading) {
@@ -47,21 +51,19 @@ export const Profile = () => {
 		// Load the user's profile picture if it hasn't already been loaded
 		if (profile.content.image && !pfp && ctx) {
 			// Load in the image
-			getAll(ctx, profile.content.image.original.src)
-				.then((imgBlob) => {
-					// Turn the image data into an src, and update the UI
-					setImages([[blobify(window, imgBlob, defaultProfileIcon), bg], false]);
-				});
+			getAll(ctx, profile.content.image.original.src).then((imgBlob) => {
+				// Turn the image data into an src, and update the UI
+				setImages([[blobify(window, imgBlob, defaultProfileIcon), bg], false]);
+			});
 		}
 
 		// Load the user's background picture if it hasn't already been loaded
 		if (profile.content.background && !bg && ctx) {
 			// Load in the image
-			getAll(ctx, profile.content.background.original.src)
-				.then((imgBlob) => {
-					// Turn the image data into an src, and update the UI
-					setImages([[pfp, blobify(window, imgBlob, defaultBackground)], false]);
-				});
+			getAll(ctx, profile.content.background.original.src).then((imgBlob) => {
+				// Turn the image data into an src, and update the UI
+				setImages([[pfp, blobify(window, imgBlob, defaultBackground)], false]);
+			});
 		}
 	});
 
@@ -71,16 +73,26 @@ export const Profile = () => {
 
 	// The user may trigger a name update from the profile display if their profile is editable.
 	// Assume that if it is editable, that they may use an accessor record to mutate their 3ID record
-	const handleChangeName = (name: string) => {
+	const handleChangeProfile = (profile: BasicProfile) => {
 		// Only proceed to mutate the user's profile if they have the necessary permissions
-		if (!isUser || !selfProfile.isMutable)
-			return;
+		if (!isUser || !selfProfile.isMutable) return;
 
 		// Update the user's name
-		selfProfile.merge({ name: name });
+		selfProfile.merge(profile);
 	};
 
-	return <ExtendedProfile name={ profile.content.name } background={ bg || defaultBackground } profilePicture={ pfp || defaultProfileIcon } editable={ connection.status == "connected" && connection.selfID.id == profileId } onEditName={ handleChangeName }/>;
+	return (
+		<ExtendedProfile
+			name={profile.content.name}
+			bio={profile.content.description}
+			background={bg || defaultBackground}
+			profilePicture={pfp || defaultProfileIcon}
+			editable={
+				connection.status == "connected" && connection.selfID.id == profileId
+			}
+			onEditProfile={handleChangeProfile}
+		/>
+	);
 };
 
 export default Profile;

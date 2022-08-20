@@ -1,5 +1,6 @@
 import { usePublicRecord, ViewerRecord } from "@self.id/framework";
 import { ModelTypeAliases } from "@glazed/types";
+import { CoreModelTypes } from "@self.id/core";
 import { DefinitionContentType } from "@glazed/did-datastore";
 import { useState, useEffect } from "react";
 import { getAllIdeaDescendants, IpfsClient, FundingRate } from "./ipfs";
@@ -19,16 +20,18 @@ export type WatchedItemAddressesList = {
 };
 
 // All model representations of ceramic models depended on by vision
-export type ModelTypes = ModelTypeAliases<
-	{
-		OwnedItemAddressesList: OwnedItemAddressesList;
-		WatchedItemAddressesList: WatchedItemAddressesList;
-	},
-	{
-		visionOwnedItemAddressesList: "OwnedItemAddressesList";
-		visionWatchedItemAddressesList: "WatchedItemAddressesList";
-	}
->;
+export type ModelTypes =
+	| ModelTypeAliases<
+			{
+				OwnedItemAddressesList: OwnedItemAddressesList;
+				WatchedItemAddressesList: WatchedItemAddressesList;
+			},
+			{
+				visionOwnedItemAddressesList: "OwnedItemAddressesList";
+				visionWatchedItemAddressesList: "WatchedItemAddressesList";
+			}
+	  >
+	| CoreModelTypes;
 
 /**
  * Convenience types representing writable ceramic records for a user's
@@ -89,9 +92,7 @@ export const resolveIdeaName = async (
 	conn: ConnStatus,
 	ideaAddr: string
 ): Promise<string> => {
-	const ideaBytecode = await web3.eth.getCode(
-		staticIdeas.get(conn.network)[0]
-	);
+	const ideaBytecode = await web3.eth.getCode(staticIdeas.get(conn.network)[0]);
 
 	if (!ideaBytecode) return ideaAddr;
 
