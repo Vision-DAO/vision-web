@@ -2,10 +2,20 @@ import { create } from "ipfs-core";
 import { serialize, deserialize } from "bson";
 import { blobify } from "./blobify";
 import { createContext, useContext, useEffect, useState } from "react";
-import { useConnStatus, networkIdeasTopic, Network, explorers, ConnStatus } from "./networks";
+import {
+	useConnStatus,
+	networkIdeasTopic,
+	Network,
+	explorers,
+	ConnStatus,
+} from "./networks";
 import { isIdeaContract } from "./discovery";
 import { Message } from "ipfs-core-types/src/pubsub";
-import { MarketMetrics, OnlyIdeaDetailProps, ExtendedIdeaInformation } from "../../components/workspace/IdeaDetailCard";
+import {
+	MarketMetrics,
+	OnlyIdeaDetailProps,
+	ExtendedIdeaInformation,
+} from "../../components/workspace/IdeaDetailCard";
 import { BasicIdeaInformation } from "../../components/workspace/IdeaBubble";
 import { staticIdeas } from "../../pages/index";
 import Idea from "../../value-tree/build/contracts/Idea.json";
@@ -26,7 +36,12 @@ export const IpfsContext: React.Context<IpfsClient> = createContext(undefined);
 /**
  * A global context providing a cache for proposals.
  */
-export const ProposalsContext: React.Context<[{ [addr: string]: GossipProposalInformation[] }, (addr: string, info: GossipProposalInformation) => void]> = createContext([{}, null]);
+export const ProposalsContext: React.Context<
+	[
+		{ [addr: string]: GossipProposalInformation[] },
+		(addr: string, info: GossipProposalInformation) => void
+	]
+> = createContext([{}, null]);
 
 /**
  * Available gossiped data about a proposal.
@@ -35,10 +50,10 @@ export const ProposalsContext: React.Context<[{ [addr: string]: GossipProposalIn
  */
 export interface GossipProposalInformation {
 	/* Metadata attached to the proposal */
-	dataIpfsAddr: string,
+	dataIpfsAddr: string;
 
 	/* The contract address of the proposal */
-	addr: string,
+	addr: string;
 }
 
 /**
@@ -47,7 +62,7 @@ export interface GossipProposalInformation {
  */
 export enum FundingKind {
 	Treasury,
-	Mint
+	Mint,
 }
 
 /**
@@ -73,12 +88,12 @@ export interface FundingRate {
 	lastClaimed: Date;
 
 	/* Where the idea's funds should come from */
-	kind: FundingKind,
+	kind: FundingKind;
 }
 
 /* TODO: Display information regarding votes - counts, who voted for what */
 export interface ExtendedProposalInformation {
-	data: IdeaData[],
+	data: IdeaData[];
 
 	addr: string;
 
@@ -90,7 +105,7 @@ export interface ExtendedProposalInformation {
 
 	rate: FundingRate;
 
-	nVoters: number,
+	nVoters: number;
 
 	/* When the proposal expires */
 	expiry: Date;
@@ -101,27 +116,32 @@ export interface ExtendedProposalInformation {
  */
 export interface ProposalVote {
 	/* The voter's decision */
-	contents: FundingRate,
+	contents: FundingRate;
 
 	/* The nmber of tokens committed to this voted value */
-	weight: number,
+	weight: number;
 }
 
 /* All available information from IPFS and smart contract storage about a
  * Proposal */
-export type AllProposalInformation = GossipProposalInformation & ExtendedProposalInformation;
+export type AllProposalInformation = GossipProposalInformation &
+	ExtendedProposalInformation;
 
 /**
  * A global instance of the currently loaded, expanded idea that is guaranteed
  * to be loaded, if the child is rendered.
  */
-export const ActiveIdeaContext: React.Context<[ExtendedIdeaInformation, (details: ExtendedIdeaInformation) => void]> = createContext(undefined);
+export const ActiveIdeaContext: React.Context<
+	[ExtendedIdeaInformation, (details: ExtendedIdeaInformation) => void]
+> = createContext(undefined);
 
 /**
  * A global instance of the currently loaded, expanded proposal that is
  * guaranteed to be loaded, i fthe child is rendered.
  */
-export const ActiveProposalContext: React.Context<[ExtendedProposalInformation, (details: ExtendedProposalInformation) => void]> = createContext(undefined);
+export const ActiveProposalContext: React.Context<
+	[ExtendedProposalInformation, (details: ExtendedProposalInformation) => void]
+> = createContext(undefined);
 
 /**
  * Types of data recognizable and renderable on the Vision UI.
@@ -134,7 +154,7 @@ export type ItemDataKind = "utf-8" | "image-blob" | "file-blob" | "url-link";
  */
 export interface FileData {
 	path: string;
-	contents: Uint8Array,
+	contents: Uint8Array;
 }
 
 /**
@@ -153,27 +173,37 @@ export interface IdeaData {
 }
 
 export type RawEthPropRate = {
-	token: string,
-	value: string,
-	intervalLength: string,
-	expiry: string,
-	lastClaimed: string,
-	kind: string,
+	token: string;
+	value: string;
+	intervalLength: string;
+	expiry: string;
+	lastClaimed: string;
+	kind: string;
 };
 
 export type RawEthPropVote = {
-	rate: RawEthPropRate,
-	votes: string,
+	rate: RawEthPropRate;
+	votes: string;
 };
 
 // Map ethereum-packed enum types to js enums
 const fundingKinds = [FundingKind.Treasury, FundingKind.Mint];
 
-const extractRawFundingRate = async (nVoters: number, expired: boolean, w: Web3, propContract: Contract): Promise<RawEthPropRate> => {
-	const parentContract = new w.eth.Contract(Idea.abi, await propContract.methods.governed().call());
+const extractRawFundingRate = async (
+	nVoters: number,
+	expired: boolean,
+	w: Web3,
+	propContract: Contract
+): Promise<RawEthPropRate> => {
+	const parentContract = new w.eth.Contract(
+		Idea.abi,
+		await propContract.methods.governed().call()
+	);
 
 	if (nVoters > 0) {
-		const parentEntry = await parentContract.methods.fundedIdeas(await propContract.methods.toFund().call()).call();
+		const parentEntry = await parentContract.methods
+			.fundedIdeas(await propContract.methods.toFund().call())
+			.call();
 
 		if (expired && parentEntry.expiry !== "0") {
 			return parentEntry;
@@ -188,20 +218,39 @@ const extractRawFundingRate = async (nVoters: number, expired: boolean, w: Web3,
 /**
  * Loads all information available about a proposal from IPFS and ethereum.
  */
-export const loadExtendedProposalInfo = async (ipfs: IpfsClient, w: Web3, prop: GossipProposalInformation): Promise<ExtendedProposalInformation> => {
+export const loadExtendedProposalInfo = async (
+	ipfs: IpfsClient,
+	w: Web3,
+	prop: GossipProposalInformation
+): Promise<ExtendedProposalInformation> => {
 	// Details for a proposal are contained:
 	// - on ethereum
 	// - on IPFS
 	// Load both
 	const contract = new w.eth.Contract(Prop.abi, prop.addr);
-	const data = await loadIdeaBinaryData(ipfs, await contract.methods.ipfsAddr().call());
+	const data = await loadIdeaBinaryData(
+		ipfs,
+		await contract.methods.ipfsAddr().call()
+	);
 
 	// Ethereum stores structs as packed arrays. Further processing will be necessary
 	const nVoters = await contract.methods.nVoters().call();
-	const expired = (new Date()) > (await contract.methods.expiresAt().call());
+	const expired = new Date() > (await contract.methods.expiresAt().call());
 
 	// Calculate the final rate, or the null rate, depending on if any users voted
-	const { token, value, intervalLength: interval, expiry, lastClaimed, kind }: RawEthPropRate = await extractRawFundingRate(nVoters, expired, w, contract);
+	const {
+		token,
+		value,
+		intervalLength: interval,
+		expiry,
+		lastClaimed,
+		kind,
+	}: RawEthPropRate = await extractRawFundingRate(
+		nVoters,
+		expired,
+		w,
+		contract
+	);
 
 	const rate: FundingRate = {
 		token,
@@ -224,7 +273,7 @@ export const loadExtendedProposalInfo = async (ipfs: IpfsClient, w: Web3, prop: 
 		title: await contract.methods.title().call(),
 
 		// Unix timestamps are / 10000
-		expiry: new Date(await contract.methods.expiresAt().call() * 1000),
+		expiry: new Date((await contract.methods.expiresAt().call()) * 1000),
 
 		rate,
 	};
@@ -233,26 +282,38 @@ export const loadExtendedProposalInfo = async (ipfs: IpfsClient, w: Web3, prop: 
 /**
  * Gets all of the addresses that voted on a proposal.
  */
-export const loadAllProposalVoters = async (web3: Web3, propAddr: string): Promise<string[]> => {
+export const loadAllProposalVoters = async (
+	web3: Web3,
+	propAddr: string
+): Promise<string[]> => {
 	const contract = new web3.eth.Contract(Prop.abi, propAddr);
 	const nVoters = parseInt(await contract.methods.nVoters().call());
 
 	// Collect all addresses that voted
-	return await Promise.all(Array.from(Array(nVoters).keys()).map((i: number) => contract.methods.voters(i).call()));
+	return await Promise.all(
+		Array.from(Array(nVoters).keys()).map((i: number) =>
+			contract.methods.voters(i).call()
+		)
+	);
 };
 
 /**
  * Loads and parses a vote for a voter for a proposal, or returns NULL if no such
  * vote exists.
  */
-export const loadProposalVote = async (web3: Web3, propAddr: string, voterAddr: string): Promise<ProposalVote> => {
+export const loadProposalVote = async (
+	web3: Web3,
+	propAddr: string,
+	voterAddr: string
+): Promise<ProposalVote> => {
 	const contract = new web3.eth.Contract(Prop.abi, propAddr);
 
 	try {
-		const rawVote: RawEthPropVote = await contract.methods.refunds(voterAddr).call();
+		const rawVote: RawEthPropVote = await contract.methods
+			.refunds(voterAddr)
+			.call();
 
-		if (!rawVote)
-			return null;
+		if (!rawVote) return null;
 
 		return {
 			contents: {
@@ -276,23 +337,37 @@ export const loadProposalVote = async (web3: Web3, propAddr: string, voterAddr: 
 /**
  * Fills out an Idea's bubble info to load the idea's card display.
  */
-export const loadExtendedIdeaInfo = async (ipfs: IpfsClient, network: Network, w: Web3, basicDetails: BasicIdeaInformation): Promise<ExtendedIdeaInformation> => {
+export const loadExtendedIdeaInfo = async (
+	ipfs: IpfsClient,
+	network: Network,
+	w: Web3,
+	basicDetails: BasicIdeaInformation
+): Promise<ExtendedIdeaInformation> => {
 	// TODO: Load market info from uniswap with The Graph,
 	// and use pubsub topics for individual contracts to aggregate info about
 	// market info (don't scan through history if it can be avoided)
-	const metrics: MarketMetrics = { newProposals: 0, deltaPrice: 0, finalizedProposals: 0 };
+	const metrics: MarketMetrics = {
+		newProposals: 0,
+		deltaPrice: 0,
+		finalizedProposals: 0,
+	};
 
 	const contract = new w.eth.Contract(Idea.abi, basicDetails.addr);
 
 	// TODO: Cache using gossip information,
 	// 1000 blocks is not enough to load all info
-	const ideaLogs = await contract.getPastEvents("allEvents", { fromBlock: (await w.eth.getBlockNumber()) - 500, toBlock: "latest" });
+	const ideaLogs = await contract.getPastEvents("allEvents", {
+		fromBlock: (await w.eth.getBlockNumber()) - 500,
+		toBlock: "latest",
+	});
 
 	let creationDate = new Date();
 
 	// The very first event from the contract indicates when it was created
 	for (const log of ideaLogs) {
-		creationDate = new Date((await w.eth.getBlock(log.blockNumber)).timestamp as number * 1000);
+		creationDate = new Date(
+			((await w.eth.getBlock(log.blockNumber)).timestamp as number) * 1000
+		);
 
 		break;
 	}
@@ -320,7 +395,7 @@ export const loadExtendedIdeaInfo = async (ipfs: IpfsClient, network: Network, w
 		price: 0,
 		explorerURI: explorers[network],
 		createdAt: creationDate,
-		nChildren: await contract.methods.numChildren().call()
+		nChildren: await contract.methods.numChildren().call(),
 	};
 
 	return { ...metrics, ...basicDetails, ...extendedInfo };
@@ -329,7 +404,11 @@ export const loadExtendedIdeaInfo = async (ipfs: IpfsClient, network: Network, w
 /**
  * Loads information from IPFS and Ethereum necessary to render a basic idea information bubble.
  */
-export const loadBasicIdeaInfo = async (ipfs: IpfsClient, w: Web3, ideaAddr: string): Promise<BasicIdeaInformation> => {
+export const loadBasicIdeaInfo = async (
+	ipfs: IpfsClient,
+	w: Web3,
+	ideaAddr: string
+): Promise<BasicIdeaInformation> => {
 	const contract = new w.eth.Contract(Idea.abi, ideaAddr);
 
 	// Load the idea's image
@@ -337,13 +416,18 @@ export const loadBasicIdeaInfo = async (ipfs: IpfsClient, w: Web3, ideaAddr: str
 
 	// TODO: Abstract this out to prevent re-render
 	// (binary data is a dependency for both basic information and extended info yikes)
-	const allData = await loadIdeaBinaryData(ipfs, await contract.methods.ipfsAddr().call());
+	const allData = await loadIdeaBinaryData(
+		ipfs,
+		await contract.methods.ipfsAddr().call()
+	);
 
 	// Find image data for the idea, and keep the most recently loaded one
 	for (const d of Object.values(allData)) {
 		if (d.kind === "image-blob") {
 			try {
-				const f: FileData = deserialize(d.data, { promoteBuffers: true }) as FileData;
+				const f: FileData = deserialize(d.data, {
+					promoteBuffers: true,
+				}) as FileData;
 
 				image = blobify(window, f.contents, null);
 			} catch (e) {
@@ -364,17 +448,17 @@ export const loadBasicIdeaInfo = async (ipfs: IpfsClient, w: Web3, ideaAddr: str
 /**
  * Loads all of the IPFS data entries available for an idea.
  */
-export const loadIdeaBinaryData = async (ipfs: IpfsClient, ipfsAddr: string): Promise<IdeaData[]> => {
+export const loadIdeaBinaryData = async (
+	ipfs: IpfsClient,
+	ipfsAddr: string
+): Promise<IdeaData[]> => {
 	const rawData = await getAll(ipfs, ipfsAddr);
 
 	let data: IdeaData[] = [];
 
 	// Data fields are optional for all ideas
 	try {
-		data = deserialize(
-			rawData,
-			{ promoteBuffers: true },
-		) as IdeaData[];
+		data = deserialize(rawData, { promoteBuffers: true }) as IdeaData[];
 	} catch (e) {
 		console.warn(e);
 	}
@@ -395,13 +479,15 @@ export const decodeIdeaDataUTF8 = (d: Uint8Array): string => {
  * A hook providing a component with an up-to-date list of the most popular root ideas on vision,
  * and a hook for advertising new parents on vision.
  */
-export const useParents = (defaults?: Map<string, string[]>): [Set<string>, (ideaAddr: string) => void] => {
+export const useParents = (
+	defaults?: Map<string, string[]>
+): [Set<string>, (ideaAddr: string) => void] => {
 	// IPFS provides a pub/sub mechanism that we can use for discovery
 	const ipfs = useContext(IpfsContext);
 	const [ideas, setIdeas] = useState<Set<string>>(new Set());
 
 	// Segregate IPFS data by network
-	const [connInfo, ] = useConnStatus();
+	const [connInfo] = useConnStatus();
 
 	if (!ipfs)
 		return [new Set([...ideas, ...defaults.get(connInfo.network)]), () => ({})];
@@ -429,13 +515,16 @@ export const useParents = (defaults?: Map<string, string[]>): [Set<string>, (ide
 	});
 
 	// Allow the user to publish ideas via the callback
-	return [new Set([...ideas, ...defaults.get(connInfo.network)]), (ideaAddr: string) => {
-		const enc = new TextEncoder();
+	return [
+		new Set([...ideas, ...defaults.get(connInfo.network)]),
+		(ideaAddr: string) => {
+			const enc = new TextEncoder();
 
-		console.debug(`pub idea ${ideaAddr} -> ${networkIdeasTopic(connInfo)}`);
+			console.debug(`pub idea ${ideaAddr} -> ${networkIdeasTopic(connInfo)}`);
 
-		ipfs.pubsub.publish(networkIdeasTopic(connInfo), enc.encode(ideaAddr));
-	}];
+			ipfs.pubsub.publish(networkIdeasTopic(connInfo), enc.encode(ideaAddr));
+		},
+	];
 };
 
 /**
@@ -444,19 +533,24 @@ export const useParents = (defaults?: Map<string, string[]>): [Set<string>, (ide
  *
  * TODO: Abstract Idea and Proposal pub/sub
  */
-export const useProposals = (ideaAddr: string): [GossipProposalInformation[], (prop: GossipProposalInformation) => void] => {
+export const useProposals = (
+	ideaAddr: string
+): [GossipProposalInformation[], (prop: GossipProposalInformation) => void] => {
 	const ipfs = useContext(IpfsContext);
-	const [proposals, addProposal]: [{ [addr: string]: GossipProposalInformation[] }, (addr: string, prop: GossipProposalInformation) => void] = useContext(ProposalsContext);
+	const [proposals, addProposal]: [
+		{ [addr: string]: GossipProposalInformation[] },
+		(addr: string, prop: GossipProposalInformation) => void
+	] = useContext(ProposalsContext);
 
-	if (!ipfs)
-		return [[], () => ({})];
+	if (!ipfs) return [[], () => ({})];
 
 	const handleProp = (msg: Message) => {
 		try {
-			const prop: GossipProposalInformation = deserialize(msg.data, { promoteBuffers: true }) as GossipProposalInformation;
+			const prop: GossipProposalInformation = deserialize(msg.data, {
+				promoteBuffers: true,
+			}) as GossipProposalInformation;
 
-			if (proposals[ideaAddr].includes(prop))
-				return;
+			if (proposals[ideaAddr].includes(prop)) return;
 
 			// Append the proposal to the list of proposals
 			addProposal(ideaAddr, prop);
@@ -484,11 +578,20 @@ export const useProposals = (ideaAddr: string): [GossipProposalInformation[], (p
 /**
  * Loads basic information and funding rates for all accepted children of the indicated idea.
  */
-export const useFundedChildren = (addr: string, web3: Web3, ipfs: IpfsClient): [{ [addr: string]: FundingRate }, { [addr: string]: BasicIdeaInformation }] => {
+export const useFundedChildren = (
+	addr: string,
+	web3: Web3,
+	ipfs: IpfsClient
+): [
+	{ [addr: string]: FundingRate },
+	{ [addr: string]: BasicIdeaInformation }
+] => {
 	const [isValid, setIsValid] = useState<boolean>(undefined);
-	const [children, setChildren] = useState<[{ [addr: string]: FundingRate }, { [addr: string]: BasicIdeaInformation }]>([{}, {}]);
+	const [children, setChildren] = useState<
+		[{ [addr: string]: FundingRate }, { [addr: string]: BasicIdeaInformation }]
+	>([{}, {}]);
 	const [numChildren, setNchildren] = useState<number>(0);
-	const [conn, ] = useConnStatus();
+	const [conn] = useConnStatus();
 
 	// An example of an idea contract. Used for ensuring that this is a valid Idea
 	// contract, since a hook cannot be called conditionally - the logic inside
@@ -501,12 +604,13 @@ export const useFundedChildren = (addr: string, web3: Web3, ipfs: IpfsClient): [
 			setIsValid(false);
 
 			(async () => {
-				setIsValid(await isIdeaContract(web3, addr, await web3.eth.getCode(exemplar)));
+				setIsValid(
+					await isIdeaContract(web3, addr, await web3.eth.getCode(exemplar))
+				);
 			})();
 		}
 
-		if (!isValid)
-			return;
+		if (!isValid) return;
 
 		(async () => {
 			const contract = new web3.eth.Contract(Idea.abi, addr);
@@ -527,8 +631,7 @@ export const useFundedChildren = (addr: string, web3: Web3, ipfs: IpfsClient): [
 		})();
 	});
 
-	if (!ipfs || !web3)
-		return [{}, {}];
+	if (!ipfs || !web3) return [{}, {}];
 
 	return children;
 };
@@ -539,11 +642,11 @@ export const useFundedChildren = (addr: string, web3: Web3, ipfs: IpfsClient): [
  */
 export interface GraphTraversalState {
 	// The addresses that the traversal engine has already passed over
-	visited: Set<string>,
+	visited: Set<string>;
 
 	// The addresses the graph traversal passed over, with a list of incoming
 	// edges for each node
-	found: { [addr: string]: { [parent: string]: FundingRate } },
+	found: { [addr: string]: { [parent: string]: FundingRate } };
 }
 
 /**
@@ -553,43 +656,75 @@ export interface GraphTraversalState {
  *
  * Pred: `addr` is the address of a valid Idea
  */
-export const getFundedChildren = async (addr: string, web3: Web3, ipfs: IpfsClient, conn: ConnStatus): Promise<[{ [addr: string]: FundingRate }, { [addr: string]: BasicIdeaInformation }]> => {
+export const getFundedChildren = async (
+	addr: string,
+	web3: Web3,
+	ipfs: IpfsClient,
+	conn: ConnStatus
+): Promise<
+	[{ [addr: string]: FundingRate }, { [addr: string]: BasicIdeaInformation }]
+> => {
 	const contract = new web3.eth.Contract(Idea.abi, addr);
 	const exemplar = staticIdeas.get(conn.network)[0];
 	const contractCode = await web3.eth.getCode(exemplar);
 
 	const childAddrs = await getChildAddrs(addr, web3);
-	
-	const childRates: [string, RawEthPropRate][] = await Promise.all(childAddrs.map((addr: string) => contract.methods.fundedIdeas(addr).call().then((rate: RawEthPropRate) => [addr, rate])));
+
+	const childRates: [string, RawEthPropRate][] = await Promise.all(
+		childAddrs.map((addr: string) =>
+			contract.methods
+				.fundedIdeas(addr)
+				.call()
+				.then((rate: RawEthPropRate) => [addr, rate])
+		)
+	);
 
 	const parentAddr = addr;
 
 	// Convert eth ABI rates into actual rates
-	const parsedChildRates: { [addr: string]: FundingRate } = childRates.reduce((prev, [addr, rate]) => { return {
-		...prev,
-		[addr]: {
-			token: rate.token,
-			value: parseInt(rate.value) || 0,
-			interval: parseInt(rate.intervalLength) || 0,
-			expiry: new Date((parseInt(rate.expiry) || 0) * 1000),
-			lastClaimed: new Date((parseInt(rate.lastClaimed) || 0) * 1000),
-			sender: parentAddr,
+	const parsedChildRates: { [addr: string]: FundingRate } = childRates.reduce(
+		(prev, [addr, rate]) => {
+			return {
+				...prev,
+				[addr]: {
+					token: rate.token,
+					value: parseInt(rate.value) || 0,
+					interval: parseInt(rate.intervalLength) || 0,
+					expiry: new Date((parseInt(rate.expiry) || 0) * 1000),
+					lastClaimed: new Date((parseInt(rate.lastClaimed) || 0) * 1000),
+					sender: parentAddr,
 
-			// Enums are represented as indices in Ethereum
-			kind: fundingKinds[rate.kind],
+					// Enums are represented as indices in Ethereum
+					kind: fundingKinds[rate.kind],
+				},
+			};
 		},
-	}; }, {});
+		{}
+	);
 
-	const childIdeaDetails: [string, BasicIdeaInformation][] = await Promise.all(childAddrs.map((addr: string) => {
-		return (async (): Promise<[string, BasicIdeaInformation]> => {
-			if (await isIdeaContract(web3, addr, contractCode))
-				return loadBasicIdeaInfo(ipfs, web3, addr).then((info: BasicIdeaInformation) => { const res: [string, BasicIdeaInformation] = [addr, info]; return res;});
+	const childIdeaDetails: [string, BasicIdeaInformation][] = await Promise.all(
+		childAddrs.map((addr: string) => {
+			return (async (): Promise<[string, BasicIdeaInformation]> => {
+				if (await isIdeaContract(web3, addr, contractCode))
+					return loadBasicIdeaInfo(ipfs, web3, addr).then(
+						(info: BasicIdeaInformation) => {
+							const res: [string, BasicIdeaInformation] = [addr, info];
+							return res;
+						}
+					);
 
-			const res: [string, BasicIdeaInformation] = [addr, { title: `${addr.substring(0, 12)}...`, image: null, addr }];
-			return res;
-		})();
-	}));
-	const parsedChildDetails: { [addr: string]: BasicIdeaInformation } = childIdeaDetails.reduce((prev, [addr, details]) => { return { ...prev, [addr]: details }; }, {});
+				const res: [string, BasicIdeaInformation] = [
+					addr,
+					{ title: `${addr.substring(0, 12)}...`, image: null, addr },
+				];
+				return res;
+			})();
+		})
+	);
+	const parsedChildDetails: { [addr: string]: BasicIdeaInformation } =
+		childIdeaDetails.reduce((prev, [addr, details]) => {
+			return { ...prev, [addr]: details };
+		}, {});
 
 	return [parsedChildRates, parsedChildDetails];
 };
@@ -599,14 +734,21 @@ export const getFundedChildren = async (addr: string, web3: Web3, ipfs: IpfsClie
  *
  * Pred: assumes that `addr` is the address of a valid Idea.
  */
-export const getChildAddrs = async (addr: string, web3: Web3): Promise<string[]> => {
+export const getChildAddrs = async (
+	addr: string,
+	web3: Web3
+): Promise<string[]> => {
 	const contract = new web3.eth.Contract(Idea.abi, addr);
 	const nChildren = parseInt(await contract.methods.numChildren().call());
 
-	const childIndices = Array(nChildren).fill(1).map((v, i) => i);
+	const childIndices = Array(nChildren)
+		.fill(1)
+		.map((v, i) => i);
 
 	// Gets a list of the addresses of children of the contract
-	return await Promise.all(childIndices.map((i) => contract.methods.children(i).call()));
+	return await Promise.all(
+		childIndices.map((i) => contract.methods.children(i).call())
+	);
 };
 
 /**
@@ -616,7 +758,13 @@ export const getChildAddrs = async (addr: string, web3: Web3): Promise<string[]>
  *
  * Pred: `addr` is the address of a valid Idea
  */
-export const getAllIdeaDescendants = async (addr: string, web3: Web3, visited: Set<string>, ipfs: IpfsClient, conn: ConnStatus): Promise<GraphTraversalState> => {
+export const getAllIdeaDescendants = async (
+	addr: string,
+	web3: Web3,
+	visited: Set<string>,
+	ipfs: IpfsClient,
+	conn: ConnStatus
+): Promise<GraphTraversalState> => {
 	// Skip any addresses that should be filtered out
 	if (visited.has(addr)) {
 		return { visited, found: {} };
@@ -639,13 +787,15 @@ export const getAllIdeaDescendants = async (addr: string, web3: Web3, visited: S
 	}
 
 	const found = {};
-	Object.values(children)
-		.map(({ addr }: BasicIdeaInformation) => {
-			found[addr] = { ...found[addr], [edges[addr].sender]: edges[addr] };
-		});
+	Object.values(children).map(({ addr }: BasicIdeaInformation) => {
+		found[addr] = { ...found[addr], [edges[addr].sender]: edges[addr] };
+	});
 
-	for (const child of Object.values(children).map(({ addr }: BasicIdeaInformation) => addr)) {
-		const { visited: childVisited, found: childFound } = await getAllIdeaDescendants(child, web3, visited, ipfs, conn);
+	for (const child of Object.values(children).map(
+		({ addr }: BasicIdeaInformation) => addr
+	)) {
+		const { visited: childVisited, found: childFound } =
+			await getAllIdeaDescendants(child, web3, visited, ipfs, conn);
 		visited = new Set([...visited, ...childVisited]);
 
 		// Merge child edges with edges from other branches
@@ -660,7 +810,10 @@ export const getAllIdeaDescendants = async (addr: string, web3: Web3, visited: S
 /**
  * Loads all available data at a given IPFS path.
  */
-export const getAll = async (ipfs: Awaited<ReturnType<typeof create>>, url: string): Promise<Uint8Array> => {
+export const getAll = async (
+	ipfs: Awaited<ReturnType<typeof create>>,
+	url: string
+): Promise<Uint8Array> => {
 	const stream = ipfs.cat(url);
 	let blob: Uint8Array = new Uint8Array();
 

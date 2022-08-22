@@ -35,11 +35,7 @@
 }
 
 .profilePicContainer {
-	position: relative;
-
 	width: 12vw;
-	height: 0;
-	padding-bottom: 12vw;
 }
 
 .profileName {
@@ -55,6 +51,7 @@
 
 .profileName>* {
 	margin: 0;
+	font-family: "Roboto", "Helvetica Neue", sans-serif
 }
 
 .profileName.editing {
@@ -167,8 +164,9 @@
 	width: 100%;
 
 	font-family: "Roboto", "Helvetica Neue", sans-serif;
+	margin: 0;
 }
 
-.bio:hover {
+.bio.editing:hover {
 	border-bottom: 2px solid #5D5FEF;
 }

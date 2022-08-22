@@ -1,11 +1,15 @@
 import Image from "next/image";
+import { CID } from "multiformats/cid";
 import styles from "./ExtendedProfile.module.css";
+import { ChooseableImage } from "../input/ChooseableImage";
+import { EqDimContainer } from "../input/EqDimContainer";
+import { IpfsContext } from "../../lib/util/ipfs";
 import { BasicProfile } from "@datamodels/identity-profile-basic";
 import DoneIcon from "@mui/icons-material/CheckCircleRounded";
 import EditIcon from "@mui/icons-material/EditRounded";
 import SaveIcon from "@mui/icons-material/SaveRounded";
 import ShareIcon from "@mui/icons-material/ShareRounded";
-import { useState, useRef, useEffect } from "react";
+import { useState, useContext, ChangeEvent } from "react";
 
 export interface ExtendedProfileProps {
 	/**
@@ -51,8 +55,12 @@ export const ExtendedProfile = ({
 	onEditProfile,
 }: ExtendedProfileProps) => {
 	const [formName, setFormName] = useState(name);
+	const [formPfp, setFormPfp] = useState<() => Promise<object>>(async () => {
+		return {};
+	});
 	const [formBio, setFormBio] = useState(bio);
 	const [editing, setEditing] = useState(false);
+	const ipfs = useContext(IpfsContext);
 
 	// Display the user's name, and allow edits if necessary
 	let profileName = (
@@ -80,7 +88,7 @@ export const ExtendedProfile = ({
 		);
 
 		description = (
-			<div className={styles.bio}>
+			<div className={`${styles.bio} ${styles.editing}`}>
 				<textarea
 					value={formBio}
 					placeholder={bio?.length > 0 ? bio : "bio"}
@@ -89,6 +97,20 @@ export const ExtendedProfile = ({
 			</div>
 		);
 	}
+
+	/**
+	 * Uploads the file target of an input event to IPFS, and stores the new src
+	 * in the respective state variable.
+	 */
+	const uploadAndSave = async (
+		e: ChangeEvent<HTMLInputElement>,
+		dispatch: (cid: string) => object
+	): Promise<object> => {
+		if (e.target.files.length === 0) return;
+
+		const { cid } = await ipfs.add(e.target.files[0]);
+		return dispatch(`ipfs://${cid.toString()}`);
+	};
 
 	return (
 		<div
@@ -106,12 +128,31 @@ export const ExtendedProfile = ({
 			</div>
 			<div className={styles.profileInfo}>
 				<div className={styles.profilePicContainer}>
-					<Image
-						layout="fill"
-						objectFit="contain"
-						objectPosition="center center"
-						src={profilePicture}
-					/>
+					<EqDimContainer width="100%">
+						<ChooseableImage
+							width="100%"
+							height="100%"
+							src={profilePicture}
+							style={{ borderRadius: "50%", objectFit: "cover" }}
+							onChange={(e) =>
+								setFormPfp(() => () => {
+									return uploadAndSave(e, (cid) => {
+										return {
+											image: {
+												original: {
+													src: cid,
+													mimeType: e.target.files[0].type,
+													width: 1000,
+													height: 1000,
+												},
+											},
+										};
+									});
+								})
+							}
+							editing={editing}
+						/>
+					</EqDimContainer>
 				</div>
 				<div className={styles.textInfo}>
 					<div className={styles.userInfo}>
@@ -119,9 +160,16 @@ export const ExtendedProfile = ({
 						<div className={styles.actionButtons}>
 							{editing ? (
 								<SaveIcon
-									onClick={() => {
+									onClick={async () => {
 										setEditing(false);
-										onEditProfile({ name: formName, description: formBio });
+
+										const pfp = await formPfp();
+
+										onEditProfile({
+											name: formName,
+											description: formBio,
+											...pfp,
+										});
 									}}
 								/>
 							) : (

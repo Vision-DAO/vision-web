@@ -49,23 +49,29 @@ export const Profile = () => {
 
 	useEffect(() => {
 		// Load the user's profile picture if it hasn't already been loaded
-		if (profile.content.image && !pfp && ctx) {
+		if (profile.content.image && ctx) {
 			// Load in the image
-			getAll(ctx, profile.content.image.original.src).then((imgBlob) => {
+			getAll(
+				ctx,
+				profile.content.image.original.src.replaceAll("ipfs://", "")
+			).then((imgBlob) => {
 				// Turn the image data into an src, and update the UI
 				setImages([[blobify(window, imgBlob, defaultProfileIcon), bg], false]);
 			});
 		}
 
 		// Load the user's background picture if it hasn't already been loaded
-		if (profile.content.background && !bg && ctx) {
+		if (profile.content.background && ctx) {
 			// Load in the image
-			getAll(ctx, profile.content.background.original.src).then((imgBlob) => {
+			getAll(
+				ctx,
+				profile.content.background.original.src.replaceAll("ipfs://", "")
+			).then((imgBlob) => {
 				// Turn the image data into an src, and update the UI
 				setImages([[pfp, blobify(window, imgBlob, defaultBackground)], false]);
 			});
 		}
-	});
+	}, [profile.content]);
 
 	// Show a loading indicator if ceramic hasn't loaded it yet
 	if (profile == null || profile.isLoading || loading || !ctx)
@@ -85,8 +91,8 @@ export const Profile = () => {
 		<ExtendedProfile
 			name={profile.content.name}
 			bio={profile.content.description}
-			background={bg || defaultBackground}
-			profilePicture={pfp || defaultProfileIcon}
+			background={bg || defaultBackground.src}
+			profilePicture={pfp || defaultProfileIcon.src}
 			editable={
 				connection.status == "connected" && connection.selfID.id == profileId
 			}

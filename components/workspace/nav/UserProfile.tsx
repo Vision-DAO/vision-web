@@ -3,6 +3,7 @@ import defaultProfileIcon from "../../../public/icons/round_account_circle_white
 import { CircularProgress } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import { blobify } from "../../../lib/util/blobify";
+import { EqDimContainer } from "../../input/EqDimContainer";
 import Image from "next/image";
 import styles from "./UserProfile.module.css";
 
@@ -11,7 +12,13 @@ import styles from "./UserProfile.module.css";
  * Displays the user's profile picture, a loading icon, or a default profile
  * picture.
  */
-const UserProfile = ({ u, profilePicture }: { u: BasicProfile, profilePicture?: null | Uint8Array | "loading" }) => {
+const UserProfile = ({
+	u,
+	profilePicture,
+}: {
+	u: BasicProfile;
+	profilePicture?: null | string | "loading";
+}) => {
 	// If the user has no profile picture, show the default one
 	let pfp = <Image className={styles.pic} src={defaultProfileIcon} />;
 
@@ -22,18 +29,19 @@ const UserProfile = ({ u, profilePicture }: { u: BasicProfile, profilePicture?: 
 		// If the profile picture is done loading, show it by converting the blob
 		// to an image
 		if (profilePicture != "loading") {
-			// Convert the IPFS data to an image link blob
-			const imgSrc = blobify(window, profilePicture, defaultProfileIcon);
-
-			pfp = <img className={styles.pic} src={imgSrc} />;
+			pfp = (
+				<EqDimContainer width="60%">
+					<img className={styles.pic} src={profilePicture} />
+				</EqDimContainer>
+			);
 		}
 	}
 
 	return (
-		<div className={ `${styles.profileContainer} ${u.name || styles.default}` }>
-			{ pfp }
-			<div className={ styles.username }>
-				<h1>{ u.name || "My Profile"}</h1>
+		<div className={`${styles.profileContainer} ${u.name || styles.default}`}>
+			{pfp}
+			<div className={styles.username}>
+				<h1>{u.name || "My Profile"}</h1>
 			</div>
 		</div>
 	);
