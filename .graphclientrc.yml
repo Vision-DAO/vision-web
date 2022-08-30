@@ -10,3 +10,4 @@ plugins:
 
 documents:
   - ./lib/queries/map.graphql
+  - ./lib/queries/search.graphql
