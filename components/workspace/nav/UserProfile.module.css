@@ -6,27 +6,45 @@
 	justify-content: center;
 	align-items: center;
 
+	opacity: 1;
+	transition: 0.3s;
+
 	cursor: pointer;
 }
 
+.profileContainer:hover {
+	opacity: 0.8;
+}
+
 .username {
-	border-bottom: 1px white;
-
 	margin: 0.5rem;
-
-	border-bottom: 1px solid white;
 
 	display: flex;
 
-	flex-flow: row nowrap;
+	flex-flow: column nowrap;
 
 	justify-content: center;
 	align-items: center;
+
+	width: 100%;
 }
 
 .username h1 {
 	font-size: 1.75rem;
 	margin: 0;
+}
+
+.username p {
+	width: 80%;
+
+	text-overflow: ellipsis;
+	overflow: hidden;
+
+	font-weight: bold;
+	opacity: 0.5;
+
+	margin: 0;
+	margin-top: 0.25em;
 }
 
 .pic {

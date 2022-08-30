@@ -12,7 +12,5 @@ export const blobify = (
 	// polyfills)
 	if (!gen) return fallback;
 
-	console.trace(gen.createObjectURL(new Blob([data])));
-
 	return gen.createObjectURL(new Blob([data]));
 };

@@ -9,7 +9,8 @@ import { ThemeProvider } from "@mui/material";
 import { createTheme } from "@mui/material/styles";
 
 import { ModelTypesToAliases } from "@glazed/types";
-import { Provider } from "@self.id/framework";
+import { Provider, EthereumAuthProvider } from "@self.id/framework";
+import { IDX } from "@ceramicstudio/idx";
 import closeIcon from "../public/icons/icon-close.svg";
 import selectedIcon from "../public/icons/icon-selected.svg";
 import ethereumLogo from "../public/icons/ethereum.png";
@@ -34,7 +35,12 @@ import {
 	ProposalsContext,
 	GossipProposalInformation,
 } from "../lib/util/ipfs";
-import { ConnectionContext, provideConnStatus } from "../lib/util/networks";
+import {
+	ConnectionContext,
+	provideConnStatus,
+	AuthContext,
+	IdxContext,
+} from "../lib/util/networks";
 import { ModalContext } from "../lib/util/modal";
 import { ModelTypes } from "../lib/util/discovery";
 import modelAliases from "../lib/schema/model.json";
@@ -144,6 +150,10 @@ const App = ({ Component, pageProps }: AppPropsWithLayout) => {
 
 	// Create a global connection status state
 	const connStatus = provideConnStatus(web3 ? web3[1] : undefined);
+
+	// Wait, globally, for someone to connect to ceramic
+	const authContext = useState<EthereumAuthProvider | null>(null);
+	const idxContext = useState<IDX | null>(null);
 
 	// Multiple pages share info about the currently expanded idea (i.e., the
 	// idea on the second figma page)
@@ -258,52 +268,58 @@ const App = ({ Component, pageProps }: AppPropsWithLayout) => {
 					<Web3Context.Provider value={web3}>
 						<IpfsContext.Provider value={ipfs}>
 							<ConnectionContext.Provider value={connStatus}>
-								<ActiveIdeaContext.Provider value={[activeIdea, setActiveIdea]}>
-									<ProposalsContext.Provider
-										value={[proposalCache, addProposal]}
-									>
-										<ActiveProposalContext.Provider
-											value={[activeProposal, setActiveProposal]}
+								<AuthContext.Provider value={authContext}>
+									<IdxContext.Provider value={idxContext}>
+										<ActiveIdeaContext.Provider
+											value={[activeIdea, setActiveIdea]}
 										>
-											<ModalContext.Provider value={[modal, setModal]}>
-												{router.pathname !== "/login" ? (
-													<div
-														className={`${styles.app} ${styles.root}${
-															hasModal ? " " + styles.hidden : ""
-														}`}
-													>
-														<div className={styles.navPanel}>
-															<NavPanel
-																items={navItems}
-																onProfileClicked={(selfId: string) =>
-																	router.push({
-																		pathname: "/profile/[id]",
-																		query: {
-																			id: selfId,
-																		},
-																	})
-																}
-																onSettingsActive={() =>
-																	router.push("/settings")
-																}
-																ctx={web3}
-															/>
-														</div>
-														<div className={styles.workspace}>
-															<NetworkedWorkspace>
-																{getLayout(<Component {...pageProps} />)}
-															</NetworkedWorkspace>
-														</div>
-													</div>
-												) : (
-													<div className={`${styles.app} ${styles.root}`}>
-														<Component {...pageProps} />
-													</div>
-												)}
-											</ModalContext.Provider>
-										</ActiveProposalContext.Provider>
-									</ProposalsContext.Provider>
-								</ActiveIdeaContext.Provider>
+											<ProposalsContext.Provider
+												value={[proposalCache, addProposal]}
+											>
+												<ActiveProposalContext.Provider
+													value={[activeProposal, setActiveProposal]}
+												>
+													<ModalContext.Provider value={[modal, setModal]}>
+														{router.pathname !== "/login" ? (
+															<div
+																className={`${styles.app} ${styles.root}${
+																	hasModal ? " " + styles.hidden : ""
+																}`}
+															>
+																<div className={styles.navPanel}>
+																	<NavPanel
+																		items={navItems}
+																		onProfileClicked={(selfId: string) =>
+																			router.push({
+																				pathname: "/profile/[id]",
+																				query: {
+																					id: selfId,
+																				},
+																			})
+																		}
+																		onSettingsActive={() =>
+																			router.push("/settings")
+																		}
+																		ctx={web3}
+																	/>
+																</div>
+																<div className={styles.workspace}>
+																	<NetworkedWorkspace>
+																		{getLayout(<Component {...pageProps} />)}
+																	</NetworkedWorkspace>
+																</div>
+															</div>
+														) : (
+															<div className={`${styles.app} ${styles.root}`}>
+																<Component {...pageProps} />
+															</div>
+														)}
+													</ModalContext.Provider>
+												</ActiveProposalContext.Provider>
+											</ProposalsContext.Provider>
+										</ActiveIdeaContext.Provider>
+									</IdxContext.Provider>
+								</AuthContext.Provider>
 							</ConnectionContext.Provider>
 						</IpfsContext.Provider>
 					</Web3Context.Provider>

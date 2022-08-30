@@ -1,10 +1,21 @@
 import React from "react";
-import { useContext } from "react";
+import { useContext, useEffect, useState } from "react";
 import { IpfsContext } from "../../lib/util/ipfs";
-import { useConnStatus } from "../../lib/util/networks";
+import { Caip10Link } from "@ceramicnetwork/stream-caip10-link";
+import { CeramicApi } from "@ceramicnetwork/common";
+import {
+	useConnStatus,
+	accounts as getAccounts,
+	AuthContext,
+} from "../../lib/util/networks";
 import { useWeb3 } from "../../lib/util/web3";
 import { WarningMessage } from "../status/WarningMessage";
-import { useViewerConnection as useConnection } from "@self.id/framework";
+import {
+	useClient,
+	useViewerConnection as useConnection,
+	useViewerRecord,
+	EthereumAuthProvider,
+} from "@self.id/framework";
 
 /**
  * - Displays a "no Ethereum provider" message if there is no window.ethereum
@@ -17,9 +28,12 @@ export const NetworkedWorkspace = ({
 	children: React.ReactElement;
 }) => {
 	const [{ connected, present, network }] = useConnStatus();
+	const client = useClient();
 	const [connection, ,] = useConnection();
+	const [accountsSynced, setAccountsSynced] = useState(false);
 	const web3 = useWeb3();
 	const ipfs = useContext(IpfsContext);
+	const [auth] = useContext(AuthContext);
 	let content: { title: string; message: string; loading?: boolean } | null =
 		null;
 	let child: React.ReactElement = null;
@@ -76,6 +90,27 @@ export const NetworkedWorkspace = ({
 			/>
 		);
 	}
+
+	// Check that the user has their Ethereum address registered, and if not, register it
+	useEffect(() => {
+		if (accountsSynced) return;
+		if (!client.ceramic.context.did) return;
+		if (auth === null) return;
+
+		(async () => {
+			setAccountsSynced(true);
+
+			// Register a reverse-DNS-like link for ETH addr -> ceramic
+			const ceramic = client.ceramic;
+			const accountId = await auth.accountId();
+			const accountLink = await Caip10Link.fromAccount(
+				ceramic as unknown as CeramicApi,
+				accountId.toString()
+			);
+
+			await accountLink.setDid(ceramic.context.did, auth);
+		})();
+	}, [client.ceramic.context.did]);
 
 	return child;
 };

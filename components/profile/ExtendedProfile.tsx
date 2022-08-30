@@ -9,9 +9,15 @@ import DoneIcon from "@mui/icons-material/CheckCircleRounded";
 import EditIcon from "@mui/icons-material/EditRounded";
 import SaveIcon from "@mui/icons-material/SaveRounded";
 import ShareIcon from "@mui/icons-material/ShareRounded";
+import { AddrOrEns } from "../status/AddrOrEns";
 import { useState, useContext, ChangeEvent } from "react";
 
 export interface ExtendedProfileProps {
+	/**
+	 * The user's ethereum address.
+	 */
+	addr: string;
+
 	/**
 	 * The user's username.
 	 */
@@ -48,6 +54,7 @@ export interface ExtendedProfileProps {
  */
 export const ExtendedProfile = ({
 	name,
+	addr,
 	bio,
 	background,
 	profilePicture,
@@ -55,9 +62,8 @@ export const ExtendedProfile = ({
 	onEditProfile,
 }: ExtendedProfileProps) => {
 	const [formName, setFormName] = useState(name);
-	const [formPfp, setFormPfp] = useState<() => Promise<object>>(async () => {
-		return {};
-	});
+	const [formPfp, setFormPfp] = useState<() => Promise<object>>(null);
+	const [formBg, setFormBg] = useState<() => Promise<object>>(null);
 	const [formBio, setFormBio] = useState(bio);
 	const [editing, setEditing] = useState(false);
 	const ipfs = useContext(IpfsContext);
@@ -119,11 +125,28 @@ export const ExtendedProfile = ({
 			}`}
 		>
 			<div className={styles.banner}>
-				<Image
-					layout="fill"
-					objectFit="cover"
-					objectPosition="center center"
+				<ChooseableImage
+					width="100%"
+					height="100%"
 					src={background}
+					style={{ objectFit: "cover" }}
+					editing={editing}
+					onChange={(e) =>
+						setFormBg(() => () => {
+							return uploadAndSave(e, (cid) => {
+								return {
+									background: {
+										original: {
+											src: cid,
+											mimeType: e.target.files[0].type,
+											width: 1070,
+											height: 190,
+										},
+									},
+								};
+							});
+						})
+					}
 				/>
 			</div>
 			<div className={styles.profileInfo}>
@@ -163,12 +186,14 @@ export const ExtendedProfile = ({
 									onClick={async () => {
 										setEditing(false);
 
-										const pfp = await formPfp();
+										const pfp = formPfp !== null ? await formPfp() : {};
+										const bg = formBg !== null ? await formBg() : {};
 
 										onEditProfile({
 											name: formName,
 											description: formBio,
 											...pfp,
+											...bg,
 										});
 									}}
 								/>
@@ -178,6 +203,7 @@ export const ExtendedProfile = ({
 							<ShareIcon />
 						</div>
 					</div>
+					<AddrOrEns className={styles.addrLabel} addr={addr} />
 					{description}
 				</div>
 			</div>

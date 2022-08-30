@@ -1,10 +1,16 @@
 import type { BasicProfile } from "@datamodels/identity-profile-basic";
+import { useViewerID } from "@self.id/framework";
 import defaultProfileIcon from "../../../public/icons/round_account_circle_white_48dp.png";
-import { CircularProgress } from "@mui/material";
+import { Skeleton, CircularProgress } from "@mui/material";
+import namehash from "@ensdomains/eth-ens-namehash";
+import { useEffect, useState } from "react";
 import EditIcon from "@mui/icons-material/Edit";
 import { blobify } from "../../../lib/util/blobify";
+import { useWeb3 } from "../../../lib/util/web3";
+import { accounts } from "../../../lib/util/networks";
 import { EqDimContainer } from "../../input/EqDimContainer";
 import Image from "next/image";
+import { AddrOrEns } from "../../status/AddrOrEns";
 import styles from "./UserProfile.module.css";
 
 /**
@@ -19,6 +25,32 @@ const UserProfile = ({
 	u: BasicProfile;
 	profilePicture?: null | string | "loading";
 }) => {
+	const [web3, eth] = useWeb3();
+	const id = useViewerID();
+
+	// The user's ENS name or their ethereum address
+	const [addr, setAddr] = useState<string | null>(null);
+
+	useEffect(() => {
+		if (addr !== null) return;
+
+		(async () => {
+			const rawAddr = (await accounts(eth))[0];
+			setAddr(rawAddr);
+
+			// Convert the user's eth address to an ENS address
+			try {
+				const q = rawAddr.toLowerCase().substring(2) + ".addr.reverse";
+				const resolver = await web3.eth.ens.getResolver(q);
+				const nh = namehash.hash(q);
+
+				setAddr(await resolver.methods.name(nh).call());
+			} catch (e) {
+				console.warn(e);
+			}
+		})();
+	}, []);
+
 	// If the user has no profile picture, show the default one
 	let pfp = <Image className={styles.pic} src={defaultProfileIcon} />;
 
@@ -42,6 +74,7 @@ const UserProfile = ({
 			{pfp}
 			<div className={styles.username}>
 				<h1>{u.name || "My Profile"}</h1>
+				{id === null ? <Skeleton variant="text" /> : <AddrOrEns addr={addr} />}
 			</div>
 		</div>
 	);

@@ -9,12 +9,16 @@ import {
 	useViewerConnection as useConnection,
 	useViewerRecord,
 	EthereumAuthProvider,
+	useClient,
 } from "@self.id/framework";
+import { IDX } from "@ceramicstudio/idx";
 import {
 	useConnStatus,
 	requestChangeNetwork,
 	connectMetamask,
 	accounts,
+	AuthContext,
+	IdxContext,
 } from "../../../lib/util/networks";
 import { getAll, IpfsContext } from "../../../lib/util/ipfs";
 import { blobify } from "../../../lib/util/blobify";
@@ -68,9 +72,13 @@ export const NavPanel = ({ items, onProfileClicked, ctx }: NavProps) => {
 
 	// Whether we are currently connected to ceramic, hooks to connect/disconnect
 	const [connection, connect] = useConnection();
+	const client = useClient();
 
 	// For loading the user's profile
 	const ipfs = useContext(IpfsContext);
+	const [, setAuth] = useContext(AuthContext);
+	const [, setIdx] = useContext(IdxContext);
+	const [activeAddr, setActiveAddr] = useState(null);
 
 	// Whether or not the user is connected to an ethereum provider.
 	// Should display an error otherwise
@@ -160,11 +168,14 @@ export const NavPanel = ({ items, onProfileClicked, ctx }: NavProps) => {
 									return requestChangeNetwork(window.ethereum);
 							})
 							.then(async () => {
-								connect(
-									new EthereumAuthProvider(
-										window.ethereum,
-										(await accounts(window.ethereum))[0]
-									)
+								const active = (await accounts(window.ethereum))[0];
+								setActiveAddr(active);
+								const auth = new EthereumAuthProvider(window.ethereum, active);
+
+								connect(auth);
+								setAuth(auth);
+								setIdx(
+									new IDX({ ceramic: client.ceramic as unknown as CeramicApi })
 								);
 							});
 					}}
@@ -184,8 +195,7 @@ export const NavPanel = ({ items, onProfileClicked, ctx }: NavProps) => {
 		profileDisp = (
 			<div
 				onClick={() =>
-					connection.status == "connected" &&
-					onProfileClicked(connection.selfID.id)
+					connection.status == "connected" && onProfileClicked(activeAddr)
 				}
 			>
 				<UserProfile u={{ name: "" }} />
@@ -201,7 +211,7 @@ export const NavPanel = ({ items, onProfileClicked, ctx }: NavProps) => {
 
 			if (profile != "loading" && connection.status == "connected")
 				profileDisp = (
-					<div onClick={() => onProfileClicked(connection.selfID.id)}>
+					<div onClick={() => onProfileClicked(activeAddr)}>
 						<UserProfile u={profile} profilePicture={pfp} />
 					</div>
 				);
