@@ -141,6 +141,12 @@
 	font-weight: bold;
 }
 
+.resultsEntry {
+	display: flex;
+	flex-flow: row nowrap;
+	justify-content: flex-start;
+}
+
 .resultsRow {
 	display: flex;
 	flex-flow: row nowrap;

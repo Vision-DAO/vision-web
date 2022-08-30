@@ -1,6 +1,7 @@
 import { create } from "ipfs-core";
 import { deserialize } from "bson";
 import { createContext } from "react";
+import { blobify } from "./blobify";
 
 /**
  * An alias for the type of the IPFS constructor.
@@ -11,6 +12,13 @@ export type IpfsClient = Awaited<ReturnType<typeof create>>;
  * A global context providing an instance of IPFS.
  */
 export const IpfsContext: React.Context<IpfsClient> = createContext(undefined);
+
+/**
+ * A global cache storing object mappings for requested CID's.
+ */
+export const IpfsStoreContext: React.Context<
+	[{ [cid: string]: unknown }, (cid: string, key: string, v: unknown) => void]
+> = createContext(null);
 
 /**
  * Types of data recognizable and renderable on the Vision UI.
@@ -40,6 +48,21 @@ export interface IdeaData {
 	 */
 	data: Uint8Array;
 }
+
+/**
+ * Extracts the image attached to an idea.
+ */
+export const loadIdeaImageSrc = async (
+	ipfs: IpfsClient,
+	ipfsAddr: string
+): Promise<string | undefined> => {
+	const data = await loadIdeaBinaryData(ipfs, ipfsAddr);
+
+	for (const d of data) {
+		if (d.kind === "image-blob") return blobify(window, d.data, null);
+	}
+	return undefined;
+};
 
 /**
  * Loads all of the IPFS data entries available for an idea.

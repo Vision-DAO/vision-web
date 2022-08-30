@@ -1,8 +1,9 @@
 import { useWeb3 } from "../lib/util/web3";
 import { IpfsContext } from "../lib/util/ipfs";
 import { ModalContext } from "../lib/util/modal";
+import { orSingleIter } from "../lib/util/graph";
 import { serialize } from "bson";
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import { BasicIdeaInformation } from "../components/workspace/IdeaBubble";
 import { IdeaDetailCard } from "../components/workspace/IdeaDetailCard";
 import { NewIdeaModal } from "../components/status/NewIdeaModal";
@@ -10,6 +11,13 @@ import { FilledButton } from "../components/status/FilledButton";
 import { IdeaMap } from "../components/workspace/IdeaMap";
 import { SearchBar } from "../components/workspace/SearchBar";
 import styles from "./index.module.css";
+
+import {
+	GetMapItemsDocument,
+	GetMapItemsQuery,
+	subscribe,
+	execute,
+} from "../.graphclient";
 
 /**
  * Registries deployed to different networks (used for bootstrapping).
@@ -31,11 +39,20 @@ export const Index = () => {
 	const [web3, eth] = useWeb3();
 	const ipfs = useContext(IpfsContext);
 	const [modal] = useContext(ModalContext);
+	const [allIdeas, setAllIdeas] = useState<GetMapItemsQuery | null>({
+		ideas: [],
+		props: [],
+	});
 
-	// Record edges for all ideas that have them, or default to a list of empty edges
-	const allIdeas = [...immediateIdeas].reduce((ideas, ideaAddr) => {
-		return { ...ideas, [ideaAddr]: discoveredIdeas[ideaAddr] ?? {} };
-	}, {});
+	useEffect(() => {
+		(async () => {
+			const stream = await subscribe(GetMapItemsDocument, {});
+
+			for await (const map of orSingleIter(stream)) {
+				setAllIdeas(map.data);
+			}
+		})();
+	}, []);
 
 	// Display items as a map of bubbles
 	const [creatingIdea, setCreatingIdea] = useState(false);
@@ -60,7 +77,6 @@ export const Index = () => {
 				<div className={styles.hud}>
 					<div className={styles.searchArea}>
 						<SearchBar
-							haystack={Object.keys(allIdeas)}
 							selected={(selected: string) => setMapSelected(selected)}
 							hovered={(hovered: string) => setMapHovered(hovered)}
 							dehovered={(dehovered: string) => setMapDehovered(dehovered)}

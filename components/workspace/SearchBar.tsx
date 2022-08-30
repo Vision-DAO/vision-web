@@ -2,26 +2,32 @@ import {
 	useState,
 	ChangeEvent,
 	FocusEvent,
-	useEffect,
 	useContext,
 	ReactElement,
 } from "react";
 import SearchRounded from "@mui/icons-material/SearchRounded";
 import ExpandMore from "@mui/icons-material/ExpandMoreRounded";
 import ExpandLess from "@mui/icons-material/ExpandLessRounded";
-import { BasicIdeaInformation } from "../workspace/IdeaBubble";
-import { loadBasicIdeaInfo, IpfsContext } from "../../lib/util/ipfs";
+import { IpfsContext, IpfsStoreContext } from "../../lib/util/ipfs";
 import { useWeb3 } from "../../lib/util/web3";
 import styles from "./SearchBar.module.css";
+import {
+	SearchQuery,
+	SearchDocument,
+	SearchQueryVariables,
+	execute,
+} from "../../.graphclient";
 
 const defaultSearchText = "The next big thing...";
 
 export const SearchEntry = ({
+	icon,
 	title,
 	term,
 	onClick,
 	onHoverState,
 }: {
+	icon?: string;
 	title: string;
 	term: string;
 	onClick: () => void;
@@ -46,11 +52,12 @@ export const SearchEntry = ({
 	return (
 		<div
 			onClick={onClick}
-			className={styles.resultsRow}
+			className={styles.resultsEntry}
 			onMouseEnter={() => onHoverState(true)}
 			onMouseLeave={() => onHoverState(false)}
 		>
-			{elems}
+			{icon && <img src={icon} />}
+			<div className={styles.resultsRow}>{elems}</div>
 		</div>
 	);
 };
@@ -60,57 +67,58 @@ export const SearchEntry = ({
  * the input criteria below it.
  */
 export const SearchBar = ({
-	haystack,
 	selected,
 	hovered,
 	dehovered,
 }: {
-	haystack: string[];
 	selected: (selected: string) => void;
 	hovered: (selected: string) => void;
 	dehovered: (dehovered: string) => void;
 }) => {
 	const [searchText, setSearchText] = useState<string>(defaultSearchText);
 	const [searchResults, setSearchResults] = useState<ReactElement[]>([]);
-	const [ideaInfo, setIdeaInfo] = useState<{
-		[ideaAddr: string]: BasicIdeaInformation | null;
-	}>({});
 
 	const ipfs = useContext(IpfsContext);
+	const [ipfsStore, setIpfsStore] = useContext(IpfsStoreContext);
+
 	const [web3] = useWeb3();
 
 	// The search bar can be minimized
 	const [expanded, setExpanded] = useState<boolean>(true);
 
 	// Recalculate the displayed query results
-	const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+	const handleChange = async (e: ChangeEvent<HTMLInputElement>) => {
 		setExpanded(true);
 		setSearchText(e.target.value);
+
+		// Assume the user wants results with all keywords
+		const query: SearchQueryVariables = {
+			text: searchText.replaceAll(" ", " & "),
+		};
+
+		const res = await execute(SearchDocument, query);
+		const data: SearchQuery = res.data?.ideaPropSearch ?? {
+			ideaPropSearch: [],
+		};
+
 		setSearchResults(
-			Object.values(ideaInfo)
-				.filter((info) => info !== null)
-				.filter((info) =>
-					info.title
-						.toLocaleLowerCase()
-						.includes(e.target.value.toLocaleLowerCase())
-				)
-				.map((info) => (
-					<SearchEntry
-						key={info.addr}
-						title={info.title}
-						term={e.target.value.toLocaleLowerCase()}
-						onClick={() => selected(info.addr)}
-						onHoverState={(state: boolean) => {
-							if (state) {
-								hovered(info.addr);
+			data.ideaPropSearch.map((info) => (
+				<SearchEntry
+					key={info.id}
+					title={info.name}
+					term={e.target.value.toLocaleLowerCase()}
+					onClick={() => selected(info.id)}
+					onHoverState={(state: boolean) => {
+						if (state) {
+							hovered(info.id);
 
-								return;
-							}
+							return;
+						}
 
-							dehovered(info.addr);
-						}}
-					/>
-				))
+						dehovered(info.id);
+					}}
+				/>
+			))
 		);
 	};
 
@@ -120,26 +128,6 @@ export const SearchBar = ({
 			setSearchResults([]);
 		}
 	};
-
-	useEffect(() => {
-		(async () => {
-			for (const idea of haystack) {
-				// Check that the idea has not already been loaded
-				if (idea in ideaInfo) continue;
-
-				// Mark the idea as being loaded
-				setIdeaInfo((allInfo) => {
-					return { ...allInfo, [idea]: null };
-				});
-
-				// Load the ideap
-				const info = await loadBasicIdeaInfo(ipfs, web3, idea);
-				setIdeaInfo((allInfo) => {
-					return { ...allInfo, [idea]: info };
-				});
-			}
-		})();
-	}, [haystack]);
 
 	// Toggles the expansion state
 	const handleExpand = () => setExpanded((expanded) => !expanded);
