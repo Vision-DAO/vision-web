@@ -29,7 +29,7 @@ import styles from "./index.module.css";
 export const staticIdeas: Map<string, string[]> = new Map([
 	["ethereum", [] as string[]],
 	["polygon", [] as string[]],
-	["polygon-test", ["0x3e515F4C2dfdc0506Fc7174e21aEb68B05561f48"]],
+	["polygon-test", ["0xA48a6A6cA47a9A30DEEDC36a60e450291f60cbE4"]],
 ]);
 
 /**
