@@ -1,0 +1,8 @@
+sources:
+  - name: vision-v1-subgraph
+    handler:
+      graphql:
+        endpoint: https://api.thegraph.com/subgraphs/name/dowlandaiello/vision-v1-subgraph
+
+documents:
+  - ./lib/queries/map.graphql

@@ -74,11 +74,13 @@
     ]
   },
   "devDependencies": {
+    "@graphprotocol/client-cli": "^2.2.3",
     "@types/cytoscape": "^3.19.4",
     "@types/cytoscape-dagre": "^2.3.0",
     "@typescript-eslint/eslint-plugin": "^5.15.0",
     "@typescript-eslint/parser": "^5.15.0",
     "eslint": "^8.11.0",
-    "eslint-plugin-react": "^7.29.4"
+    "eslint-plugin-react": "^7.29.4",
+    "graphql": "^16.6.0"
   }
 }

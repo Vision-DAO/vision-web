@@ -1,19 +1,8 @@
-import { useParents, loadExtendedIdeaInfo } from "../lib/util/ipfs";
-import {
-	useOwnedIdeas,
-	useTraversedChildIdeas,
-	ModelTypes,
-} from "../lib/util/discovery";
 import { useWeb3 } from "../lib/util/web3";
 import { IpfsContext } from "../lib/util/ipfs";
 import { ModalContext } from "../lib/util/modal";
 import { serialize } from "bson";
-import {
-	useViewerConnection as useConnection,
-	useViewerRecord,
-} from "@self.id/framework";
-import { useState, useEffect, useContext } from "react";
-import { useConnStatus } from "../lib/util/networks";
+import { useState, useContext } from "react";
 import { BasicIdeaInformation } from "../components/workspace/IdeaBubble";
 import { IdeaDetailCard } from "../components/workspace/IdeaDetailCard";
 import { NewIdeaModal } from "../components/status/NewIdeaModal";
@@ -23,27 +12,13 @@ import { SearchBar } from "../components/workspace/SearchBar";
 import styles from "./index.module.css";
 
 /**
- * Ideas deployed by Vision eco for different networks.
- * Bootstraps for subsequent children.
+ * Registries deployed to different networks (used for bootstrapping).
  */
-export const staticIdeas: Map<string, string[]> = new Map([
-	["ethereum", [] as string[]],
-	["polygon", [] as string[]],
-	["polygon-test", ["0xA48a6A6cA47a9A30DEEDC36a60e450291f60cbE4"]],
+export const registries: Map<string, string | null> = new Map([
+	["ethereum", null],
+	["polygon", null],
+	["polygon-test", "0x3BD4E81dE7b927aCCe907dC5A4C0d3a77D35d7f0"],
 ]);
-
-/**
- * Every 5 seconds, remind other users that this root idea exists.
- */
-const heartbeatPeriod = 5000;
-
-/**
- * A known instance of the vision Idea contract against which bytecodes are
- * compared to determine parenthood.
- *
- * TODO: This does not work for mainnet at the moment
- */
-export const baseIdeaContract = staticIdeas.get("polygon-test")[0];
 
 /**
  * A navigable page rendering a mind map of ideas minted on vision.
@@ -56,32 +31,6 @@ export const Index = () => {
 	const [web3, eth] = useWeb3();
 	const ipfs = useContext(IpfsContext);
 	const [modal] = useContext(ModalContext);
-	const [conn, ,] = useConnection();
-	const [connStatus] = useConnStatus();
-
-	// Ideas are discovered through other peers informing us of them, through
-	// locally existing ones (e.g., that were created on vision.eco),
-	// and through entries in the registry smart contract.
-	const [rootIdeas, pubRootIdea] = useParents(staticIdeas);
-	const userIdeasRecord = useViewerRecord<ModelTypes>(
-		"visionOwnedItemAddressesList"
-	);
-	const ownedIdeas = useOwnedIdeas(
-		conn.status == "connected" ? conn.selfID.id : "",
-		web3,
-		baseIdeaContract
-	);
-
-	// Ideas can either be known through immediate information (i.e., stored on
-	// the device, hardcoded, or received over the network, or through work done
-	// on our own to traverse the graph)
-	const immediateIdeas = [...rootIdeas, ...ownedIdeas];
-	const discoveredIdeas = useTraversedChildIdeas(
-		immediateIdeas.sort(),
-		web3,
-		ipfs,
-		[]
-	);
 
 	// Record edges for all ideas that have them, or default to a list of empty edges
 	const allIdeas = [...immediateIdeas].reduce((ideas, ideaAddr) => {
@@ -94,36 +43,10 @@ export const Index = () => {
 	const loadIdeaCard = async (details: BasicIdeaInformation) => {
 		setActiveIdea(null);
 
-		const info = await loadExtendedIdeaInfo(
-			ipfs,
-			connStatus.network,
-			web3,
-			details
-		);
-		setActiveIdea(info);
+		//TODO: RETARD
+
+		setActiveIdea(null);
 	};
-
-	useEffect(() => {
-		// Set gossip providers for all of the user's self-hosted ideas
-		const gossipers = [];
-
-		for (const ideaAddr of ownedIdeas) {
-			// Remind other users every n seconds about our sovereign ideas,
-			// and register a PID to cancel after the component is dismounted
-			gossipers.push(
-				setInterval(() => {
-					pubRootIdea(ideaAddr);
-				}, heartbeatPeriod)
-			);
-		}
-
-		// Remove all pubsub publishers after the item is dismounted
-		return () => {
-			for (const gossiper of gossipers) {
-				clearInterval(gossiper);
-			}
-		};
-	});
 
 	const [setMapSelected, setMapHovered, setMapDehovered, setMapZoom, map] =
 		IdeaMap({
@@ -155,7 +78,6 @@ export const Index = () => {
 								}
 								onDeploy={() => setCreatingIdea(false)}
 								ctx={[web3, eth]}
-								ideasBuf={userIdeasRecord}
 							/>
 						</div>
 					)}
