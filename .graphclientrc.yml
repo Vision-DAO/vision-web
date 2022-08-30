@@ -4,5 +4,9 @@ sources:
       graphql:
         endpoint: https://api.thegraph.com/subgraphs/name/dowlandaiello/vision-v1-subgraph
 
+plugins:
+  - pollingLive:
+      defaultInterval: 1000
+
 documents:
   - ./lib/queries/map.graphql
