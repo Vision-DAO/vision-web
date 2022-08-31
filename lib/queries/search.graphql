@@ -6,3 +6,4 @@ query Search($text: String!) {
     ticker
   }
 }
+

@@ -16,6 +16,7 @@ import selectedIcon from "../public/icons/icon-selected.svg";
 import ethereumLogo from "../public/icons/ethereum.png";
 import metaMaskLogo from "../public/icons/metamask.png";
 import { create, multiaddr } from "ipfs-core";
+import { create as createHttp } from "ipfs-http-client";
 
 import type { AppProps } from "next/app";
 import Head from "next/head";
@@ -34,6 +35,8 @@ import {
 	provideConnStatus,
 	AuthContext,
 	IdxContext,
+	VisContext,
+	visTokenAddr,
 } from "../lib/util/networks";
 import { ModalContext } from "../lib/util/modal";
 import { ModelTypes } from "../lib/util/discovery";
@@ -144,6 +147,7 @@ const App = ({ Component, pageProps }: AppPropsWithLayout) => {
 
 	// Create a global connection status state
 	const connStatus = provideConnStatus(web3 ? web3[1] : undefined);
+	const visAddr = visTokenAddr[connStatus[0].network];
 
 	// Wait, globally, for someone to connect to ceramic
 	const authContext = useState<EthereumAuthProvider | null>(null);
@@ -180,16 +184,8 @@ const App = ({ Component, pageProps }: AppPropsWithLayout) => {
 	useEffect(() => {
 		if (ipfs === undefined) {
 			setIpfs(null);
+
 			create({ EXPERIMENTAL: { ipnsPubsub: true } }).then((ipfs) => {
-				window.ipfs = ipfs;
-
-				console.log("DONE!");
-
-				// TODO: Auto-generate this testing peer on testing environments
-				//
-				// TODO: Figure out why IPFS isn't properly subscribing.
-				// Suspect IPFS are just a bunch of dumbfucks that can't write good
-				// software
 				setIpfs(ipfs);
 			});
 		}
@@ -262,52 +258,54 @@ const App = ({ Component, pageProps }: AppPropsWithLayout) => {
 			>
 				<ThemeProvider theme={theme}>
 					<Web3Context.Provider value={web3}>
-						<IpfsContext.Provider value={ipfs}>
-							<IpfsStoreContext.Provider value={[ipfsStore, storeMutater]}>
-								<ConnectionContext.Provider value={connStatus}>
-									<AuthContext.Provider value={authContext}>
-										<IdxContext.Provider value={idxContext}>
-											<ModalContext.Provider value={[modal, setModal]}>
-												{router.pathname !== "/login" ? (
-													<div
-														className={`${styles.app} ${styles.root}${
-															hasModal ? " " + styles.hidden : ""
-														}`}
-													>
-														<div className={styles.navPanel}>
-															<NavPanel
-																items={navItems}
-																onProfileClicked={(selfId: string) =>
-																	router.push({
-																		pathname: "/profile/[id]",
-																		query: {
-																			id: selfId,
-																		},
-																	})
-																}
-																onSettingsActive={() =>
-																	router.push("/settings")
-																}
-																ctx={web3}
-															/>
+						<VisContext.Provider value={visAddr}>
+							<IpfsContext.Provider value={ipfs}>
+								<IpfsStoreContext.Provider value={[ipfsStore, storeMutater]}>
+									<ConnectionContext.Provider value={connStatus}>
+										<AuthContext.Provider value={authContext}>
+											<IdxContext.Provider value={idxContext}>
+												<ModalContext.Provider value={[modal, setModal]}>
+													{router.pathname !== "/login" ? (
+														<div
+															className={`${styles.app} ${styles.root}${
+																hasModal ? " " + styles.hidden : ""
+															}`}
+														>
+															<div className={styles.navPanel}>
+																<NavPanel
+																	items={navItems}
+																	onProfileClicked={(selfId: string) =>
+																		router.push({
+																			pathname: "/profile/[id]",
+																			query: {
+																				id: selfId,
+																			},
+																		})
+																	}
+																	onSettingsActive={() =>
+																		router.push("/settings")
+																	}
+																	ctx={web3}
+																/>
+															</div>
+															<div className={styles.workspace}>
+																<NetworkedWorkspace>
+																	{getLayout(<Component {...pageProps} />)}
+																</NetworkedWorkspace>
+															</div>
 														</div>
-														<div className={styles.workspace}>
-															<NetworkedWorkspace>
-																{getLayout(<Component {...pageProps} />)}
-															</NetworkedWorkspace>
+													) : (
+														<div className={`${styles.app} ${styles.root}`}>
+															<Component {...pageProps} />
 														</div>
-													</div>
-												) : (
-													<div className={`${styles.app} ${styles.root}`}>
-														<Component {...pageProps} />
-													</div>
-												)}
-											</ModalContext.Provider>
-										</IdxContext.Provider>
-									</AuthContext.Provider>
-								</ConnectionContext.Provider>
-							</IpfsStoreContext.Provider>
-						</IpfsContext.Provider>
+													)}
+												</ModalContext.Provider>
+											</IdxContext.Provider>
+										</AuthContext.Provider>
+									</ConnectionContext.Provider>
+								</IpfsStoreContext.Provider>
+							</IpfsContext.Provider>
+						</VisContext.Provider>
 					</Web3Context.Provider>
 				</ThemeProvider>
 			</Provider>

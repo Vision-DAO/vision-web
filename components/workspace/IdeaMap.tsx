@@ -27,7 +27,7 @@ import cola from "cytoscape-cola";
 export interface IdeaMapProps {
 	ideas: GetMapItemsQuery;
 
-	onClickIdea: (idea: GetMapItemsQuery["ideas"][0]) => void;
+	onClickIdea: (idea: string) => void;
 }
 
 const blockIdea = (
@@ -72,7 +72,7 @@ export const IdeaMap = ({
 	const [cyNodes, setCyNodes] = useState<Set<string>>(new Set());
 
 	const handleClick = (e: cytoscape.EventObjectNode) =>
-		onClickIdea(ideaDetails[e.target.id()]);
+		onClickIdea(e.target.id());
 
 	// Every time the list of parent nodes expands, part of the component
 	// tree must be rebuilt
@@ -95,14 +95,14 @@ export const IdeaMap = ({
 				}
 
 				// Load the image of the blob if it hasn't already been loaded
-				let imgBlob = ipfsCache[idea.ipfsAddr]["icon"];
-
-				if (imgBlob === undefined) {
+				if (!(idea.ipfsAddr in ipfsCache)) {
 					// Make the image of the blob as loading, and then update it
 					setIpfsCache(idea.ipfsAddr, "icon", null);
 					const imgBlob = await loadIdeaImageSrc(ipfs, idea.ipfsAddr);
 					setIpfsCache(idea.ipfsAddr, "icon", imgBlob);
 				}
+
+				const imgBlob = ipfsCache[idea.ipfsAddr]["icon"];
 
 				// Load the image attached to the idea
 				const bubbleContent: BasicIdeaInformation = {

@@ -23,12 +23,16 @@ const defaultSearchText = "The next big thing...";
 export const SearchEntry = ({
 	icon,
 	title,
+	ticker,
+	addr,
 	term,
 	onClick,
 	onHoverState,
 }: {
 	icon?: string;
 	title: string;
+	ticker: string;
+	addr: string;
 	term: string;
 	onClick: () => void;
 	onHoverState: (state: boolean) => void;
@@ -57,7 +61,9 @@ export const SearchEntry = ({
 			onMouseLeave={() => onHoverState(false)}
 		>
 			{icon && <img src={icon} />}
-			<div className={styles.resultsRow}>{elems}</div>
+			<p style={{ fontWeight: "bold" }}>{title}</p>
+			<p style={{ opacity: "0.6" }}>{ticker}</p>
+			<p style={{ flexGrow: 2, textAlign: "end" }}>{addr}</p>
 		</div>
 	);
 };
@@ -77,6 +83,9 @@ export const SearchBar = ({
 }) => {
 	const [searchText, setSearchText] = useState<string>(defaultSearchText);
 	const [searchResults, setSearchResults] = useState<ReactElement[]>([]);
+	const [queuedQuery, setQueuedQuery] = useState<ReturnType<setTimeout> | null>(
+		null
+	);
 
 	const ipfs = useContext(IpfsContext);
 	const [ipfsStore, setIpfsStore] = useContext(IpfsStoreContext);
@@ -91,34 +100,43 @@ export const SearchBar = ({
 		setExpanded(true);
 		setSearchText(e.target.value);
 
-		// Assume the user wants results with all keywords
-		const query: SearchQueryVariables = {
-			text: searchText.replaceAll(" ", " & "),
-		};
+		// Wait 2 seconds after typing has stopped to search
+		if (queuedQuery) clearTimeout(queuedQuery);
 
-		const res = await execute(SearchDocument, query);
-		const data: SearchQuery = res.data?.ideaPropSearch ?? {
-			ideaPropSearch: [],
-		};
+		setQueuedQuery(
+			setTimeout(async () => {
+				// Assume the user wants results with all keywords
+				const query: SearchQueryVariables = {
+					text: e.target.value.replaceAll(" ", " & "),
+				};
 
-		setSearchResults(
-			data.ideaPropSearch.map((info) => (
-				<SearchEntry
-					key={info.id}
-					title={info.name}
-					term={e.target.value.toLocaleLowerCase()}
-					onClick={() => selected(info.id)}
-					onHoverState={(state: boolean) => {
-						if (state) {
-							hovered(info.id);
+				const res = await execute(SearchDocument, query);
+				const data: SearchQuery = res.data ?? {
+					ideaPropSearch: [],
+				};
 
-							return;
-						}
+				setSearchResults(
+					data.ideaPropSearch.map((info) => (
+						<SearchEntry
+							key={info.id}
+							addr={info.id}
+							ticker={info.ticker}
+							title={info.name}
+							term={e.target.value.toLocaleLowerCase()}
+							onClick={() => selected(info.id)}
+							onHoverState={(state: boolean) => {
+								if (state) {
+									hovered(info.id);
 
-						dehovered(info.id);
-					}}
-				/>
-			))
+									return;
+								}
+
+								dehovered(info.id);
+							}}
+						/>
+					))
+				);
+			}, 500)
 		);
 	};
 

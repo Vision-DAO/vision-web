@@ -16,11 +16,23 @@ export const staticProposals: { [net: string]: string } = {
 };
 
 /**
+ * Address of the Vision token on different networks.
+ */
+export const visTokenAddr: { [net: string]: string } = {
+	"polygon-test": "0xa102110e13be7dbe997f0bc47531cbcb28c699f1",
+};
+
+/**
  * Instantiated when the user is requested to connect with ceramic.
  */
 export const AuthContext: Context<
 	[EthereumAuthProvider | null, (e: EthereumAuthProvider) => void]
 > = createContext([null, null]);
+
+/**
+ * Instantiated when the user connects to ethereum.
+ */
+export const VisContext: Context<string> = createContext(null);
 
 export const ConnectionContext: Context<[ConnStatus, () => void]> =
 	createContext([
@@ -86,6 +98,12 @@ export const connectMetamask = async (ethProvider: any): Promise<void> => {
 };
 
 /**
+ * Produces a locale string suitable to ERC-20 balances.
+ */
+export const formatErc = (n: number): string =>
+	(n / Math.pow(10, 18)).toLocaleString();
+
+/**
  * Gets a list of the user's active accounts.
  */
 export const accounts = (ethProvider: any): Promise<string[]> =>
@@ -126,6 +144,11 @@ export const requestChangeNetwork = async (ethProvider: any): Promise<void> => {
  */
 export const useConnStatus = (): [ConnStatus, () => void] =>
 	useContext(ConnectionContext);
+
+/**
+ * Consumes the global Vision token address.
+ */
+export const useVisAddr = (): string => useContext(VisContext);
 
 /**
  * Gets the ethereum chain ID from the ethereum provider.

@@ -1,0 +1,27 @@
+query UserStats($id:ID!) @live {
+  user(id:$id) {
+    id,
+    ideas {
+      dao {
+        id
+      },
+      props {
+        props {
+          id
+        },
+      },
+      votes {
+        votes {
+          votes,
+        },
+      },
+      tokens {
+        dao {
+          id
+        },
+        balance,
+      },
+    },
+  },
+}
+

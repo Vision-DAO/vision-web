@@ -14,13 +14,14 @@ export const AddrOrEns = ({
 	const [web3] = useWeb3();
 
 	useEffect(() => {
-		if (ens === null || ens === "none") return;
+		if (ens !== undefined) return;
 
 		(async () => {
 			try {
 				setEns(null);
 
 				const lookup = addr.substring(2, addr.length) + ".addr.reverse";
+
 				const resolver = await web3.eth.ens.getResolver(lookup);
 
 				const nh = namehash.hash(lookup);

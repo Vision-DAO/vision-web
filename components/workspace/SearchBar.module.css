@@ -42,13 +42,13 @@
 .resultsArea>*{
 	margin-top: 0.5rem;
 
-	color: rgba(255, 255, 255, 0.5);
+	color: white;
 
 	transition: 0.15s;
 }
 
 .resultsArea>*:hover {
-	color: white;
+	opacity: 0.6;
 }
 
 .queryArea {
@@ -145,15 +145,11 @@
 	display: flex;
 	flex-flow: row nowrap;
 	justify-content: flex-start;
+
+	width: 100%;
 }
 
-.resultsRow {
-	display: flex;
-	flex-flow: row nowrap;
-	justify-content: flex-start;
-}
-
-.resultsRow>*:not(:first-child) {
+.resultsEntry>*:not(:first-child) {
 	margin-right: 0.5em;
 	margin-left: 0.5em;
 }

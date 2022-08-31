@@ -51,7 +51,7 @@
     "web3": "1.7.1"
   },
   "scripts": {
-    "dev": "next dev",
+    "dev": "ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin '[\"http://localhost:3000\", \"http://127.0.0.1:5001\"]' && ipfs daemon & next dev",
     "build": "next build",
     "start": "next start"
   },
@@ -81,6 +81,7 @@
     "@typescript-eslint/parser": "^5.15.0",
     "eslint": "^8.11.0",
     "eslint-plugin-react": "^7.29.4",
-    "graphql": "^16.6.0"
+    "graphql": "^16.6.0",
+    "ipfs-http-client": "56.0.1"
   }
 }

@@ -16,7 +16,6 @@ import {
 	GetMapItemsDocument,
 	GetMapItemsQuery,
 	subscribe,
-	execute,
 } from "../.graphclient";
 
 /**

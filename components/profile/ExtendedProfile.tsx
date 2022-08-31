@@ -1,16 +1,16 @@
-import Image from "next/image";
-import { CID } from "multiformats/cid";
 import styles from "./ExtendedProfile.module.css";
 import { ChooseableImage } from "../input/ChooseableImage";
 import { EqDimContainer } from "../input/EqDimContainer";
 import { IpfsContext } from "../../lib/util/ipfs";
+import { getVisBalance } from "../../lib/util/graph";
+import { useVisAddr, formatErc } from "../../lib/util/networks";
 import { BasicProfile } from "@datamodels/identity-profile-basic";
-import DoneIcon from "@mui/icons-material/CheckCircleRounded";
 import EditIcon from "@mui/icons-material/EditRounded";
 import SaveIcon from "@mui/icons-material/SaveRounded";
 import ShareIcon from "@mui/icons-material/ShareRounded";
 import { AddrOrEns } from "../status/AddrOrEns";
 import { useState, useContext, ChangeEvent } from "react";
+import { UserStatsQuery } from "../../.graphclient";
 
 export interface ExtendedProfileProps {
 	/**
@@ -32,6 +32,11 @@ export interface ExtendedProfileProps {
 	 * The src of the user's profile picture.
 	 */
 	profilePicture: string;
+
+	/**
+	 * Basic info about the user's interactions.
+	 */
+	stats: UserStatsQuery;
 
 	/**
 	 * The src of the user's bg banner.
@@ -58,6 +63,7 @@ export const ExtendedProfile = ({
 	bio,
 	background,
 	profilePicture,
+	stats,
 	editable,
 	onEditProfile,
 }: ExtendedProfileProps) => {
@@ -67,6 +73,7 @@ export const ExtendedProfile = ({
 	const [formBio, setFormBio] = useState(bio);
 	const [editing, setEditing] = useState(false);
 	const ipfs = useContext(IpfsContext);
+	const visAddr = useVisAddr();
 
 	// Display the user's name, and allow edits if necessary
 	let profileName = (
@@ -103,6 +110,17 @@ export const ExtendedProfile = ({
 			</div>
 		);
 	}
+
+	// Summarize vote counts and prop counts for all DAO's we are involved in
+	const { voteCount, propCount } = stats.user?.ideas.reduce(
+		({ voteCount, propCount }, { props: { props }, votes: { votes } }) => {
+			return {
+				voteCount: voteCount + votes.reduce((sum, v) => sum + v.votes, 0),
+				propCount: propCount + props.length,
+			};
+		},
+		{ voteCount: 0, propCount: 0 }
+	);
 
 	/**
 	 * Uploads the file target of an input event to IPFS, and stores the new src
@@ -203,7 +221,23 @@ export const ExtendedProfile = ({
 							<ShareIcon />
 						</div>
 					</div>
-					<AddrOrEns className={styles.addrLabel} addr={addr} />
+					<div className={styles.infoRow}>
+						<p className={styles.primaryLabel}>
+							{formatErc(getVisBalance(stats, visAddr.toLowerCase()))}{" "}
+							<b>VIS</b>
+						</p>
+						<p>
+							{stats.user?.ideas.length ?? 0}{" "}
+							<b>{(stats.user?.ideas.length ?? 0) === 1 ? "Idea" : "Ideas"}</b>
+						</p>
+						<p>
+							{propCount} <b>{propCount === 1 ? "Proposal" : "Proposals"}</b>
+						</p>
+						<p>
+							{voteCount} <b>{voteCount === 1 ? "Vote cast" : "Votes cast"}</b>
+						</p>
+						<AddrOrEns className={styles.addrLabel} addr={addr} />
+					</div>
 					{description}
 				</div>
 			</div>
