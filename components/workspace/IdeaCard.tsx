@@ -9,6 +9,7 @@ import styles from "./IdeaCard.module.css";
 import { Skeleton } from "@mui/material";
 import { useContext, useEffect } from "react";
 import MapIcon from "@mui/icons-material/Map";
+import FullscreenIcon from "@mui/icons-material/Fullscreen";
 
 /**
  * A compact card showing limited information about a DAO, including a user's
@@ -18,10 +19,12 @@ export const IdeaCard = ({
 	idea,
 	balance,
 	onShowMap,
+	onShowIdea,
 }: {
 	idea: UserFeedDaoRepr;
 	balance: number;
 	onShowMap: (id: string) => void;
+	onShowIdea: (id: string) => void;
 }) => {
 	const ipfs = useContext(IpfsContext);
 	const [ipfsStore, setIpfsStore] = useContext(IpfsStoreContext);
@@ -49,11 +52,18 @@ export const IdeaCard = ({
 		<div className={styles.card}>
 			<div className={`${styles.infoLine} ${styles.spread}`}>
 				<h2>{idea.name}</h2>
-				<MapIcon
-					className={styles.svgButton}
-					fontSize="small"
-					onClick={onShowMap}
-				/>
+				<div className={styles.compoundLabel}>
+					<MapIcon
+						className={styles.svgButton}
+						fontSize="small"
+						onClick={() => onShowMap(idea.id)}
+					/>
+					<FullscreenIcon
+						className={styles.svgButton}
+						fontSize="small"
+						onClick={() => onShowIdea(idea.id)}
+					/>
+				</div>
 			</div>
 			{description === "" ? (
 				<div className={styles.loadingContainer}>

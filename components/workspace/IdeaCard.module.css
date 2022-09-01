@@ -73,7 +73,7 @@
 
 .svgButton {
 	opacity: 1;
-	transition: 0.1s;
+	transition: 0.3s;
 
 	cursor: pointer;
 }

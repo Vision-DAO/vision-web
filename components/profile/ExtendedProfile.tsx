@@ -12,6 +12,7 @@ import { AddrOrEns } from "../status/AddrOrEns";
 import { useState, useContext, ChangeEvent } from "react";
 import { UserStatsQuery, UserFeedQuery } from "../../.graphclient";
 import { IdeaCard } from "../workspace/IdeaCard";
+import { useRouter } from "next/router";
 
 export interface ExtendedProfileProps {
 	/**
@@ -81,6 +82,7 @@ export const ExtendedProfile = ({
 	const [editing, setEditing] = useState(false);
 	const ipfs = useContext(IpfsContext);
 	const visAddr = useVisAddr();
+	const router = useRouter();
 
 	// Display the user's name, and allow edits if necessary
 	let profileName = (
@@ -138,6 +140,7 @@ export const ExtendedProfile = ({
 				idea={idea}
 				balance={balance}
 				onShowMap={() => {}}
+				onShowIdea={(id) => router.push(`/ideas/${id}/about`)}
 			/>
 		)) ?? [];
 
