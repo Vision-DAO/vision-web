@@ -10,7 +10,8 @@ import SaveIcon from "@mui/icons-material/SaveRounded";
 import ShareIcon from "@mui/icons-material/ShareRounded";
 import { AddrOrEns } from "../status/AddrOrEns";
 import { useState, useContext, ChangeEvent } from "react";
-import { UserStatsQuery } from "../../.graphclient";
+import { UserStatsQuery, UserFeedQuery } from "../../.graphclient";
+import { IdeaCard } from "../workspace/IdeaCard";
 
 export interface ExtendedProfileProps {
 	/**
@@ -39,6 +40,11 @@ export interface ExtendedProfileProps {
 	stats: UserStatsQuery;
 
 	/**
+	 * Extended info about the user's interactions.
+	 */
+	feed: UserFeedQuery;
+
+	/**
 	 * The src of the user's bg banner.
 	 */
 	background: string;
@@ -64,6 +70,7 @@ export const ExtendedProfile = ({
 	background,
 	profilePicture,
 	stats,
+	feed,
 	editable,
 	onEditProfile,
 }: ExtendedProfileProps) => {
@@ -103,6 +110,7 @@ export const ExtendedProfile = ({
 		description = (
 			<div className={`${styles.bio} ${styles.editing}`}>
 				<textarea
+					className={styles.description}
 					value={formBio}
 					placeholder={bio?.length > 0 ? bio : "bio"}
 					onChange={(e) => setFormBio(e.target.value)}
@@ -121,6 +129,17 @@ export const ExtendedProfile = ({
 		},
 		{ voteCount: 0, propCount: 0 }
 	);
+
+	// Create a card for each DAO the user participates in
+	const daoCards =
+		feed.user?.ideas.map(({ tokens: { dao: idea, balance } }) => (
+			<IdeaCard
+				key={idea.id}
+				idea={idea}
+				balance={balance}
+				onShowMap={() => {}}
+			/>
+		)) ?? [];
 
 	/**
 	 * Uploads the file target of an input event to IPFS, and stores the new src
@@ -234,12 +253,16 @@ export const ExtendedProfile = ({
 							{propCount} <b>{propCount === 1 ? "Proposal" : "Proposals"}</b>
 						</p>
 						<p>
-							{voteCount} <b>{voteCount === 1 ? "Vote cast" : "Votes cast"}</b>
+							{voteCount} <b>{voteCount === 1 ? "Vote cast" : "Votes Cast"}</b>
 						</p>
 						<AddrOrEns className={styles.addrLabel} addr={addr} />
 					</div>
 					{description}
 				</div>
+			</div>
+			<div className={styles.infoSection}>
+				<h2>Ideas</h2>
+				<div className={styles.daoCarousel}>{daoCards}</div>
 			</div>
 		</div>
 	);

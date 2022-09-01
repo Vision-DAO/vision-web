@@ -12,14 +12,14 @@ export type Network = "ethereum" | "polygon" | "polygon-test" | "unknown";
  * contracts.
  */
 export const staticProposals: { [net: string]: string } = {
-	"polygon-test": "0xe8d1141D509e1274BD323D1f4a0d735402D25d64",
+	"polygon-test": "0x60eAECdc85E291B90FFd6F76Ba2eE2Bc162B880d",
 };
 
 /**
  * Address of the Vision token on different networks.
  */
 export const visTokenAddr: { [net: string]: string } = {
-	"polygon-test": "0xa102110e13be7dbe997f0bc47531cbcb28c699f1",
+	"polygon-test": "0xF4896B0650B65966A48f42C484708BF30cC4d990",
 };
 
 /**

@@ -95,7 +95,10 @@ export const IdeaMap = ({
 				}
 
 				// Load the image of the blob if it hasn't already been loaded
-				if (!(idea.ipfsAddr in ipfsCache)) {
+				if (
+					!(idea.ipfsAddr in ipfsCache) ||
+					!("icon" in ipfsCache[idea.ipfsAddr])
+				) {
 					// Make the image of the blob as loading, and then update it
 					setIpfsCache(idea.ipfsAddr, "icon", null);
 					const imgBlob = await loadIdeaImageSrc(ipfs, idea.ipfsAddr);

@@ -1,4 +1,10 @@
-import { UserStatsQuery } from "../../.graphclient";
+import { UserStatsQuery, UserFeedQuery } from "../../.graphclient";
+
+/**
+ * The representation of a DAO extracted from user feeds.
+ */
+export type UserFeedDaoRepr =
+	UserFeedQuery["user"]["ideas"][0]["tokens"]["dao"];
 
 async function* yieldThing<T>(thing: T) {
 	yield thing;

@@ -14,7 +14,9 @@ import { IpfsContext, getAll } from "../../lib/util/ipfs";
 import { orSingleIter } from "../../lib/util/graph";
 import {
 	UserStatsQuery,
+	UserFeedQuery,
 	UserStatsDocument,
+	UserFeedDocument,
 	subscribe,
 } from "../../.graphclient";
 
@@ -43,6 +45,7 @@ export const UserProfile = ({ id, addr }: { id: string; addr: string }) => {
 	const [stats, setStats] = useState<UserStatsQuery>({
 		user: { ideas: [], id: addr },
 	});
+	const [feed, setFeed] = useState<UserFeedQuery>({ user: { ideas: [] } });
 
 	// Generate an empty profile if the record doesn't exist
 	if (!profile.content) profile.content = {};
@@ -58,6 +61,16 @@ export const UserProfile = ({ id, addr }: { id: string; addr: string }) => {
 				if (stat.data === null) return;
 
 				setStats(stat.data);
+			}
+		})();
+
+		(async () => {
+			const stream = await subscribe(UserFeedDocument, { id: addr });
+
+			for await (const feed of orSingleIter(stream)) {
+				if (feed.data === null) return;
+
+				setFeed(feed.data);
 			}
 		})();
 	}, []);
@@ -114,6 +127,7 @@ export const UserProfile = ({ id, addr }: { id: string; addr: string }) => {
 			addr={addr}
 			bio={profile.content.description}
 			stats={stats}
+			feed={feed}
 			background={bg || defaultBackground.src}
 			profilePicture={pfp || defaultProfileIcon.src}
 			editable={connection.status == "connected" && connection.selfID.id == id}

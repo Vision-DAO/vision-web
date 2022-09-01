@@ -1,0 +1,83 @@
+.card {
+	display: flex;
+
+	flex-flow: column nowrap;
+	justify-content: flex-start;
+	align-items: flex-start;
+
+	background-color: #1D1D1D;
+	border-radius: 5px;
+
+	padding: 1em;
+
+	width: 20vw;
+	height: 10vw;
+}
+
+.card h1, .card h2, .card p {
+	margin: 0;
+	padding: 0;
+}
+
+.card p {
+	font-size: 1.125em;
+}
+
+.card>*:not(:first-child) {
+	margin-top: 0.5em;
+}
+
+.infoLine {
+	display: flex;
+
+	flex-flow: row nowrap;
+	justify-content: flex-start;
+	align-items: center;
+}
+
+.infoLine>*:not(:first-child) {
+	margin-left: 0.5em;
+}
+
+.spread {
+	justify-content: space-between;
+	width: 100%;
+}
+
+.secondary {
+	opacity: 0.6;
+}
+
+.compoundLabel {
+	display: flex;
+
+	flex-flow: row nowrap;
+}
+
+.compoundLabel>*:not(:first-child) {
+	margin-left: 0.25em;
+}
+
+.loadingContainer {
+	display: flex;
+
+	flex-flow: column nowrap;
+	justify-content: flex-start;
+	align-items: stretch;
+
+	overflow: clip;
+
+	height: 100%;
+	width: 100%;
+}
+
+.svgButton {
+	opacity: 1;
+	transition: 0.1s;
+
+	cursor: pointer;
+}
+
+.svgButton:hover {
+	opacity: 0.6;
+}

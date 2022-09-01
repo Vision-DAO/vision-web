@@ -17,7 +17,10 @@ export const IpfsContext: React.Context<IpfsClient> = createContext(undefined);
  * A global cache storing object mappings for requested CID's.
  */
 export const IpfsStoreContext: React.Context<
-	[{ [cid: string]: unknown }, (cid: string, key: string, v: unknown) => void]
+	[
+		{ [cid: string]: { [kind: string]: unknown } },
+		(cid: string, key: string, v: unknown) => void
+	]
 > = createContext(null);
 
 /**
@@ -60,6 +63,21 @@ export const loadIdeaImageSrc = async (
 
 	for (const d of data) {
 		if (d.kind === "image-blob") return blobify(window, d.data, null);
+	}
+	return undefined;
+};
+
+/**
+ * Extracts the description attached to an idea.
+ */
+export const loadIdeaDescription = async (
+	ipfs: IpfsClient,
+	ipfsAddr: string
+): Promise<string | undefined> => {
+	const data = await loadIdeaBinaryData(ipfs, ipfsAddr);
+
+	for (const d of data) {
+		if (d.kind === "utf-8") return decodeIdeaDataUTF8(d.data);
 	}
 	return undefined;
 };

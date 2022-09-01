@@ -1,15 +1,7 @@
-import {
-	useState,
-	ChangeEvent,
-	FocusEvent,
-	useContext,
-	ReactElement,
-} from "react";
+import { useState, ChangeEvent, FocusEvent, ReactElement } from "react";
 import SearchRounded from "@mui/icons-material/SearchRounded";
 import ExpandMore from "@mui/icons-material/ExpandMoreRounded";
 import ExpandLess from "@mui/icons-material/ExpandLessRounded";
-import { IpfsContext, IpfsStoreContext } from "../../lib/util/ipfs";
-import { useWeb3 } from "../../lib/util/web3";
 import styles from "./SearchBar.module.css";
 import {
 	SearchQuery,
@@ -83,14 +75,9 @@ export const SearchBar = ({
 }) => {
 	const [searchText, setSearchText] = useState<string>(defaultSearchText);
 	const [searchResults, setSearchResults] = useState<ReactElement[]>([]);
-	const [queuedQuery, setQueuedQuery] = useState<ReturnType<setTimeout> | null>(
-		null
-	);
-
-	const ipfs = useContext(IpfsContext);
-	const [ipfsStore, setIpfsStore] = useContext(IpfsStoreContext);
-
-	const [web3] = useWeb3();
+	const [queuedQuery, setQueuedQuery] = useState<ReturnType<
+		typeof setTimeout
+	> | null>(null);
 
 	// The search bar can be minimized
 	const [expanded, setExpanded] = useState<boolean>(true);

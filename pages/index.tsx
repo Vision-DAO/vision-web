@@ -24,7 +24,7 @@ import {
 export const registries: Map<string, string | null> = new Map([
 	["ethereum", null],
 	["polygon", null],
-	["polygon-test", "0x3BD4E81dE7b927aCCe907dC5A4C0d3a77D35d7f0"],
+	["polygon-test", "0x704289F005639D5D327897ddb251Fdbea4b80510"],
 ]);
 
 /**
