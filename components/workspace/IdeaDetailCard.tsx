@@ -32,7 +32,9 @@ export interface MarketMetrics {
 	finalizedProposals: number;
 }
 
-export type ExtendedIdeaInformation = BasicIdeaInformation & OnlyIdeaDetailProps & MarketMetrics;
+export type ExtendedIdeaInformation = BasicIdeaInformation &
+	OnlyIdeaDetailProps &
+	MarketMetrics;
 
 /**
  * Extended metadata required, and optional, for displaying an Idea's card
@@ -52,16 +54,18 @@ export interface IdeaDetailProps {
 export const IdeaDetailCard = ({ content, onClose }: IdeaDetailProps) => {
 	const [loaded, setLoaded] = useState(false);
 	const [closed, setClosed] = useState(false);
-	const rootStyles = loaded && !closed ? styles.cardContainer : `${ styles.cardContainer } ${ styles.invisible }`;
+	const rootStyles =
+		loaded && !closed
+			? styles.cardContainer
+			: `${styles.cardContainer} ${styles.invisible}`;
 
 	// An idea's basic information is shown on a card, but a card has a button
 	// "Enter Community" that opens a standalone page with information about the
 	// community
 	const router = useRouter();
-	
+
 	useEffect(() => {
-		if (!loaded && !closed)
-			setLoaded(true);
+		if (!loaded && !closed) setLoaded(true);
 	});
 
 	const close = () => {
@@ -74,14 +78,14 @@ export const IdeaDetailCard = ({ content, onClose }: IdeaDetailProps) => {
 	// Display a loading indicator if the item hasn't loaded in yet
 	if (!content) {
 		return (
-			<div className={ rootStyles }>
-				<div className={ styles.cardTitleInfo }>
-					<div className={ styles.cardMainTitle }>
-						<h1 className={ styles.cardTitle }>Idea Details</h1>
-						<CloseRounded className={ styles.closeButton } onClick={ close }/>
+			<div className={rootStyles}>
+				<div className={styles.cardTitleInfo}>
+					<div className={styles.cardMainTitle}>
+						<h1 className={styles.cardTitle}>Idea Details</h1>
+						<CloseRounded className={styles.closeButton} onClick={close} />
 					</div>
 				</div>
-				<div className={ styles.cardLoading }>
+				<div className={styles.cardLoading}>
 					<CircularProgress />
 				</div>
 			</div>
@@ -91,15 +95,19 @@ export const IdeaDetailCard = ({ content, onClose }: IdeaDetailProps) => {
 	const { title, addr } = content;
 
 	return (
-		<div className={ rootStyles }>
-			<div className={ styles.cardMainTitle }>
-				<h1 className={ styles.cardTitle }>Idea Details</h1>
-				<CloseRounded onClick={ close }/>
+		<div className={rootStyles}>
+			<div className={styles.cardMainTitle}>
+				<h1 className={styles.cardTitle}>Idea Details</h1>
+				<CloseRounded onClick={close} />
 			</div>
-			<IdeaInfoPanel idea={ content } />
-			<div className={ styles.cardActions }>
-				<FilledButton label="Enter Community" className={ styles.goButton } onClick={ () => router.push(`/ideas/${ addr }/about`) } />
-				<FilledButton className={ styles.buyButton } label={ `Buy ${ title }` } />
+			<IdeaInfoPanel idea={content} />
+			<div className={styles.cardActions}>
+				<FilledButton
+					label="Enter Community"
+					className={styles.goButton}
+					onClick={() => router.push(`/ideas/${addr}/about`)}
+				/>
+				<FilledButton className={styles.buyButton} label={`Buy ${title}`} />
 			</div>
 		</div>
 	);

@@ -47,6 +47,7 @@ export const IdeaMap = ({
 	ideas,
 	onClickIdea,
 }: IdeaMapProps): [
+	unknown | undefined,
 	(ideaAddr: string) => void,
 	(ideaAddr: string) => void,
 	(ideaAddr: string) => void,
@@ -95,17 +96,19 @@ export const IdeaMap = ({
 				}
 
 				// Load the image of the blob if it hasn't already been loaded
+				let imgBlob: string;
+
 				if (
 					!(idea.ipfsAddr in ipfsCache) ||
 					!("icon" in ipfsCache[idea.ipfsAddr])
 				) {
 					// Make the image of the blob as loading, and then update it
 					setIpfsCache(idea.ipfsAddr, "icon", null);
-					const imgBlob = await loadIdeaImageSrc(ipfs, idea.ipfsAddr);
+					imgBlob = await loadIdeaImageSrc(ipfs, idea.ipfsAddr);
 					setIpfsCache(idea.ipfsAddr, "icon", imgBlob);
+				} else {
+					imgBlob = ipfsCache[idea.ipfsAddr]["icon"] as string;
 				}
-
-				const imgBlob = ipfsCache[idea.ipfsAddr]["icon"];
 
 				// Load the image attached to the idea
 				const bubbleContent: BasicIdeaInformation = {
@@ -126,6 +129,8 @@ export const IdeaMap = ({
 						return;
 					}
 
+					setCyNodes((nodes) => new Set([...nodes, idea.id]));
+
 					// Add the new idea to the cytoscape instance
 					const newNode = {
 						group: "nodes",
@@ -137,14 +142,12 @@ export const IdeaMap = ({
 					};
 					cyx.add(newNode);
 					cyx.layout({ name: "cola" }).run();
-
-					setCyNodes((nodes) => new Set([...nodes, idea.id]));
 				}
 			})();
 		}
 
 		if (cyx) cyx.endBatch();
-	});
+	}, [ideas]);
 
 	// Render a map of ideas
 	useEffect(() => {
@@ -319,7 +322,9 @@ export const IdeaMap = ({
 	});
 
 	return [
+		cyx,
 		(addr) => {
+			console.log(addr);
 			cyx.nodes().unselect();
 			if (addr) cyx.getElementById(addr).select();
 		},

@@ -10,6 +10,7 @@ import { NewIdeaModal } from "../components/status/NewIdeaModal";
 import { FilledButton } from "../components/status/FilledButton";
 import { IdeaMap } from "../components/workspace/IdeaMap";
 import { SearchBar } from "../components/workspace/SearchBar";
+import { useRouter } from "next/router";
 import styles from "./index.module.css";
 
 import {
@@ -37,6 +38,7 @@ export const Index = () => {
 	const [activeIdea, setActiveIdea] = useState(undefined);
 	const [web3, eth] = useWeb3();
 	const ipfs = useContext(IpfsContext);
+	const router = useRouter();
 	const [modal] = useContext(ModalContext);
 	const [allIdeas, setAllIdeas] = useState<GetMapItemsQuery | null>({
 		ideas: [],
@@ -56,19 +58,29 @@ export const Index = () => {
 	// Display items as a map of bubbles
 	const [creatingIdea, setCreatingIdea] = useState(false);
 
-	const loadIdeaCard = async (details: BasicIdeaInformation) => {
+	const loadIdeaCard = async (id: string) => {
 		setActiveIdea(null);
-
-		//TODO: RETARD
 
 		setActiveIdea(null);
 	};
 
-	const [setMapSelected, setMapHovered, setMapDehovered, setMapZoom, map] =
+	const [cyx, setMapSelected, setMapHovered, setMapDehovered, setMapZoom, map] =
 		IdeaMap({
 			ideas: allIdeas,
 			onClickIdea: (idea) => loadIdeaCard(idea),
 		});
+
+	// Every time the user refreshes the page, show the idea slected in the URL
+	useEffect(() => {
+		if ("idea" in router.query && cyx !== undefined) {
+			const { idea } = router.query;
+			const id = Array.isArray(idea) ? idea[0] : idea;
+
+			setMapSelected(id);
+			loadIdeaCard(id);
+		}
+	}, [cyx === undefined, router]);
+
 	return (
 		<div className={styles.browser}>
 			{map}

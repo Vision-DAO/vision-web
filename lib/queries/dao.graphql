@@ -1,0 +1,27 @@
+query GetDaoInfo($id:ID!) {
+  idea(id:$id) {
+    id
+    ipfsAddr
+    ticker
+    name
+    supply
+    children {
+      id
+    }
+    activeProps {
+      id
+    }
+    parents {
+      id
+    }
+    users {
+      id
+    }
+    treasury {
+      token {
+        id
+      }
+      balance
+    }
+  }
+}

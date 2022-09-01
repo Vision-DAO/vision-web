@@ -139,7 +139,9 @@ export const ExtendedProfile = ({
 				key={idea.id}
 				idea={idea}
 				balance={balance}
-				onShowMap={() => {}}
+				onShowMap={() =>
+					router.push({ pathname: "/", query: { idea: idea.id } })
+				}
 				onShowIdea={(id) => router.push(`/ideas/${id}/about`)}
 			/>
 		)) ?? [];

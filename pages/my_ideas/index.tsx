@@ -121,7 +121,7 @@ export const Index = () => {
 		};
 	});
 
-	const [setMapSelected, , , setMapZoom, map] = IdeaMap({
+	const [, setMapSelected, , , setMapZoom, map] = IdeaMap({
 		ideas: allIdeas,
 		onClickIdea: (idea) => loadIdeaCard(idea),
 	});
