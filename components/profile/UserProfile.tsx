@@ -11,13 +11,12 @@ import defaultProfileIcon from "../../public/icons/account_circle_white_48dp.svg
 import defaultBackground from "../../public/images/default_background.jpg";
 import { blobify } from "../../lib/util/blobify";
 import { IpfsContext, getAll } from "../../lib/util/ipfs";
-import { orSingleIter } from "../../lib/util/graph";
+import { useStream } from "../../lib/util/graph";
 import {
 	UserStatsQuery,
 	UserFeedQuery,
 	UserStatsDocument,
 	UserFeedDocument,
-	subscribe,
 } from "../../.graphclient";
 
 /**
@@ -42,38 +41,23 @@ export const UserProfile = ({ id, addr }: { id: string; addr: string }) => {
 	const selfProfile = useViewerRecord("basicProfile");
 
 	// Post counts, balances
-	const [stats, setStats] = useState<UserStatsQuery>({
-		user: { ideas: [], id: addr },
-	});
-	const [feed, setFeed] = useState<UserFeedQuery>({ user: { ideas: [] } });
+	const stats = useStream<UserStatsQuery>(
+		{
+			user: { ideas: [], id: addr },
+		},
+		UserStatsDocument,
+		{ id: addr }
+	);
+	const feed = useStream<UserFeedQuery>(
+		{ user: { ideas: [] } },
+		UserFeedDocument,
+		{ id: addr }
+	);
 
 	// Generate an empty profile if the record doesn't exist
 	if (!profile.content) profile.content = {};
 
 	if (!profile.content.name) profile.content.name = "User Name";
-
-	// Receive live updates of the user's balances
-	useEffect(() => {
-		(async () => {
-			const stream = await subscribe(UserStatsDocument, { id: addr });
-
-			for await (const stat of orSingleIter(stream)) {
-				if (stat.data === null) return;
-
-				setStats(stat.data);
-			}
-		})();
-
-		(async () => {
-			const stream = await subscribe(UserFeedDocument, { id: addr });
-
-			for await (const feed of orSingleIter(stream)) {
-				if (feed.data === null) return;
-
-				setFeed(feed.data);
-			}
-		})();
-	}, []);
 
 	useEffect(() => {
 		// Load the user's profile picture if it hasn't already been loaded

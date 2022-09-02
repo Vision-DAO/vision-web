@@ -12,3 +12,4 @@ documents:
   - ./lib/queries/map.graphql
   - ./lib/queries/search.graphql
   - ./lib/queries/user.graphql
+  - ./lib/queries/dao.graphql

@@ -1,13 +1,8 @@
 import { UserFeedDaoRepr } from "../../lib/util/graph";
-import {
-	IpfsStoreContext,
-	IpfsContext,
-	loadIdeaDescription,
-} from "../../lib/util/ipfs";
+import { useIdeaDescription } from "../../lib/util/ipfs";
 import { formatErc } from "../../lib/util/networks";
 import styles from "./IdeaCard.module.css";
 import { Skeleton } from "@mui/material";
-import { useContext, useEffect } from "react";
 import MapIcon from "@mui/icons-material/Map";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
 
@@ -26,27 +21,7 @@ export const IdeaCard = ({
 	onShowMap: (id: string) => void;
 	onShowIdea: (id: string) => void;
 }) => {
-	const ipfs = useContext(IpfsContext);
-	const [ipfsStore, setIpfsStore] = useContext(IpfsStoreContext);
-
-	useEffect(() => {
-		if (idea.ipfsAddr in ipfsStore && "description" in ipfsStore[idea.ipfsAddr])
-			return;
-
-		// Trigger a load of the description of the DAO
-		(async () => {
-			const res = await loadIdeaDescription(ipfs, idea.ipfsAddr);
-
-			if (res === undefined) return;
-
-			setIpfsStore(idea.ipfsAddr, "description", res);
-		})();
-	}, [idea.ipfsAddr]);
-
-	const description =
-		idea.ipfsAddr in ipfsStore && "description" in ipfsStore[idea.ipfsAddr]
-			? ipfsStore[idea.ipfsAddr]["description"]
-			: "";
+	const description = useIdeaDescription(idea.ipfsAddr);
 
 	return (
 		<div className={styles.card}>
@@ -65,7 +40,7 @@ export const IdeaCard = ({
 					/>
 				</div>
 			</div>
-			{description === "" ? (
+			{description === undefined ? (
 				<div className={styles.loadingContainer}>
 					<Skeleton />
 					<Skeleton />

@@ -104,6 +104,15 @@ export const formatErc = (n: number): string =>
 	(n / Math.pow(10, 18)).toLocaleString();
 
 /**
+ * Extracts the month, day, and year from a UNIX timestamp.
+ */
+export const formatDate = (n: number): string => {
+	const date = new Date(n * 1000);
+
+	return `${date.getMonth()}/${date.getDay()}/${date.getFullYear()}`;
+};
+
+/**
  * Gets a list of the user's active accounts.
  */
 export const accounts = (ethProvider: any): Promise<string[]> =>

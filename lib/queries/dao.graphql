@@ -1,15 +1,33 @@
-query GetDaoInfo($id:ID!) {
+query GetDaoInfo($id:ID!) @live {
   idea(id:$id) {
     id
     ipfsAddr
     ticker
     name
     supply
+    createdAt
     children {
       id
     }
     activeProps {
       id
+      createdAt
+      votes {
+        id
+      }
+    }
+    acceptedProps {
+      id
+      finalizedAt
+      votes {
+        id
+      }
+    }
+    rejectedProps {
+      id
+      votes {
+        id
+      }
     }
     parents {
       id

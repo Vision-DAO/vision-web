@@ -1,6 +1,6 @@
 import { create } from "ipfs-core";
 import { deserialize } from "bson";
-import { createContext } from "react";
+import { createContext, useContext, useEffect } from "react";
 import { blobify } from "./blobify";
 
 /**
@@ -131,4 +131,30 @@ export const getAll = async (
 	}
 
 	return blob;
+};
+
+/**
+ * Loads the description of the DAO via IPFS.
+ */
+export const useIdeaDescription = (ipfsAddr: string): string | undefined => {
+	const [ipfsCache, setIpfsCache] = useContext(IpfsStoreContext);
+	const ipfs = useContext(IpfsContext);
+
+	// The description of the DAO is stored on IPFS, off-chain
+	useEffect(() => {
+		if (ipfsAddr in ipfsCache && "description" in ipfsCache[ipfsAddr]) return;
+
+		// Trigger a load of the description of the DAO
+		(async () => {
+			const res = await loadIdeaDescription(ipfs, ipfsAddr);
+
+			if (res === undefined) return;
+
+			setIpfsCache(ipfsAddr, "description", res);
+		})();
+	}, [ipfsAddr]);
+
+	return ipfsAddr in ipfsCache && "description" in ipfsCache[ipfsAddr]
+		? (ipfsCache[ipfsAddr]["description"] as string)
+		: undefined;
 };

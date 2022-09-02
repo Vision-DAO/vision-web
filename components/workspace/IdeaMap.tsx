@@ -47,7 +47,7 @@ export const IdeaMap = ({
 	ideas,
 	onClickIdea,
 }: IdeaMapProps): [
-	unknown | undefined,
+	Set<string> | undefined,
 	(ideaAddr: string) => void,
 	(ideaAddr: string) => void,
 	(ideaAddr: string) => void,
@@ -78,8 +78,6 @@ export const IdeaMap = ({
 	// Every time the list of parent nodes expands, part of the component
 	// tree must be rebuilt
 	useEffect(() => {
-		if (cyx) cyx.startBatch();
-
 		for (const idea of ideas.ideas) {
 			// Skip all ideas that have been blocked
 			if (blockedIdeas.has(idea.id)) continue;
@@ -145,9 +143,7 @@ export const IdeaMap = ({
 				}
 			})();
 		}
-
-		if (cyx) cyx.endBatch();
-	}, [ideas]);
+	}, [ideas.ideas.length]);
 
 	// Render a map of ideas
 	useEffect(() => {
@@ -322,9 +318,8 @@ export const IdeaMap = ({
 	});
 
 	return [
-		cyx,
+		cyx !== undefined ? cyNodes : undefined,
 		(addr) => {
-			console.log(addr);
 			cyx.nodes().unselect();
 			if (addr) cyx.getElementById(addr).select();
 		},
