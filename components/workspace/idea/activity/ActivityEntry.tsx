@@ -29,7 +29,7 @@ const properLabels = {
 
 export interface ActivityEntryProps {
 	kind: string;
-	label: string;
+	label: ReactElement;
 	timestamp: Date;
 }
 
@@ -52,7 +52,7 @@ export const ActivityEntry = ({
 }: {
 	key?: string;
 	kind: string;
-	label: string;
+	label: ReactElement;
 	timestamp: Date;
 }) => {
 	return (
@@ -61,7 +61,7 @@ export const ActivityEntry = ({
 				{icons[kind]}
 				<p>{properLabels[kind]}</p>
 			</div>
-			<p>{label}</p>
+			{label}
 			<p>{formatTime12Hr(timestamp)}</p>
 		</OutlinedListEntry>
 	);

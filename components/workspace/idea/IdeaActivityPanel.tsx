@@ -34,16 +34,20 @@ export const IdeaActivityPanel = ({
 
 	const transferSender = (
 		e: GetDaoAboutQuery["idea"]["recentTransfers"][0]
-	): string => {
-		if ("sendUser" in e) return e.sendDao.id;
-		else if ("sendDao" in e) return e.sendDao.name;
+	): { url: string; label: string } => {
+		if ("sendUser" in e)
+			return { url: `/profile/${e.sendUser.id}`, label: e.sendUser.id };
+		else if ("sendDao" in e)
+			return { url: `/ideas/${e.sendDao.id}`, label: e.sendDao.name };
 	};
 
 	const transferRecip = (
 		e: GetDaoAboutQuery["idea"]["recentTransfers"][0]
-	): string => {
-		if ("recipUser" in e) return e.recipUser.id;
-		else if ("recipDao" in e) return e.recipDao.name;
+	): { url: string; label: string } => {
+		if ("recipUser" in e)
+			return { url: `/profile/${e.recipUser.id}`, label: e.recipUser.id };
+		else if ("recipDao" in e)
+			return { url: `/ideas/${e.recipDao.id}`, label: e.recipDao.name };
 	};
 
 	const events = [
@@ -56,7 +60,7 @@ export const IdeaActivityPanel = ({
 		.map((e) => {
 			let timestamp = new Date();
 			let event = "NewProposal";
-			let title = "";
+			let title = <p></p>;
 
 			if ("finalizedAt" in e) {
 				timestamp = new Date(e.finalizedAt * 1000);
@@ -67,11 +71,19 @@ export const IdeaActivityPanel = ({
 			if ("createdAt" in e) timestamp = new Date(e.createdAt * 1000);
 
 			if ("title" in e) {
-				title = e.title;
+				title = <p>e.title</p>;
 			} else if ("sendUser" in e) {
-				title = `${formatErc(e.value)} ${idea.ticker} from ${transferSender(
-					e
-				)} to ${transferRecip(e)}`;
+				const { url: sUrl, label: sLabel } = transferSender(e);
+				const { url: rUrl, label: rLabel } = transferRecip(e);
+				title = (
+					<p>
+						{formatErc(e.value)} {idea.ticker} from{" "}
+						<a className={styles.actorLabel} href={sUrl}>
+							{sLabel}
+						</a>{" "}
+						to <a href={rUrl}>{rLabel}</a>`
+					</p>
+				);
 			}
 
 			return {
@@ -85,7 +97,7 @@ export const IdeaActivityPanel = ({
 	if (ideaCreatedAt > dayStart)
 		events.push({
 			kind: "IdeaRecorded",
-			label: `Idea Recorded: ${idea.name}`,
+			label: <p>{`Idea Recorded: ${idea.name}`}</p>,
 			timestamp: ideaCreatedAt,
 		});
 

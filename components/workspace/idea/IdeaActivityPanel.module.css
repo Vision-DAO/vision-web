@@ -36,3 +36,9 @@
 .activityList>*:not(:first-child) {
 	margin-top: 0.5em;
 }
+
+.actorLabel {
+	text-decoration: none;
+	color: #5D5FEF;
+	font-weight: bold;
+}

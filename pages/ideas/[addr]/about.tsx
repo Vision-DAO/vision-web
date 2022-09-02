@@ -19,8 +19,6 @@ import {
 export const About = () => {
 	const [idea] = useContext(ActiveIdeaContext);
 
-	console.log(idea);
-
 	// See NavigatorLayout container. This will never be NULL
 	return (
 		<div className={styles.infoContainers}>

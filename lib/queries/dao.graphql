@@ -52,6 +52,9 @@ query GetDaoAbout($id: ID!, $dayStart: BigInt!) @live {
   idea(id:$id) {
     ...DaoCardInfo
     users {
+      user {
+        id
+      }
       tokens {
         id
         balance
