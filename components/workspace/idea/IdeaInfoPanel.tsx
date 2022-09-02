@@ -151,17 +151,21 @@ export const IdeaInfoPanel = ({ idea }: { idea: DAOStatsRepr }) => {
 	return (
 		<div className={styles.cardInfo}>
 			<div className={styles.cardTitleInfo}>
-				<div>
+				<div className={styles.cardHeader}>
 					<h2>
 						{idea.name} ({idea.ticker})
 					</h2>
-					{description ? (
-						<p>{description}</p>
-					) : (
-						<Skeleton variant="text" width="100%" />
-					)}
+					<WatchIdeaButton ideaAddr={idea.id} />
 				</div>
-				<WatchIdeaButton ideaAddr={idea.id} />
+				{description ? (
+					<p className={styles.description}>{description}</p>
+				) : (
+					<div className={styles.description}>
+						<Skeleton variant="text" width="100%" />
+						<Skeleton variant="text" width="100%" />
+						<Skeleton variant="text" width="80%" />
+					</div>
+				)}
 			</div>
 			<div>
 				<h2>Info</h2>

@@ -37,11 +37,11 @@
 }
 
 .action {
-	background-color: rgba(93, 95, 239, 0.75);
+	background-color: #5d5fef;
 }
 
 .action:hover {
-	background-color: #5d5fef;
+	background-color: rgba(93, 95, 239, 0.75);
 }
 
 .error {
