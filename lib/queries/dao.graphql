@@ -1,45 +1,97 @@
+fragment DaoCardInfo on Idea {
+  id
+  ipfsAddr
+  ticker
+  name
+  supply
+  createdAt
+  children {
+    id
+  }
+  activeProps {
+    id
+    createdAt
+    votes {
+      id
+    }
+  }
+  acceptedProps {
+    id
+    finalizedAt
+    votes {
+      id
+    }
+  }
+  rejectedProps {
+    id
+    votes {
+      id
+    }
+  }
+  parents {
+    id
+  }
+  users {
+    id
+  }
+  treasury {
+    token {
+      id
+    }
+    balance
+  }
+}
+
 query GetDaoInfo($id:ID!) @live {
   idea(id:$id) {
-    id
-    ipfsAddr
-    ticker
-    name
-    supply
-    createdAt
-    children {
-      id
-    }
-    activeProps {
-      id
-      createdAt
-      votes {
-        id
-      }
-    }
-    acceptedProps {
-      id
-      finalizedAt
-      votes {
-        id
-      }
-    }
-    rejectedProps {
-      id
-      votes {
-        id
-      }
-    }
-    parents {
-      id
-    }
+    ...DaoCardInfo
+  }
+}
+
+query GetDaoAbout($id: ID!, $dayStart: BigInt!) @live {
+  idea(id:$id) {
+    ...DaoCardInfo
     users {
-      id
+      tokens {
+        id
+        balance
+      }
+      props {
+        props {
+          id
+        }
+      }
     }
-    treasury {
-      token {
+    recentAccepted: acceptedProps(where: {finalizedAt_gt: $dayStart}) {
+      title
+      finalizedAt
+      status
+    }
+    recentRejected: rejectedProps(where: {finalizedAt_gt: $dayStart}) {
+      title
+      finalizedAt
+      status
+    }
+    recentCreated: activeProps(where: {finalizedAt_gt: $dayStart}) {
+      title
+      createdAt
+    }
+    recentTransfers: transfers(where: {createdAt_gt: $dayStart}) {
+      sendUser {
         id
       }
-      balance
+      sendDao {
+        id
+        name
+      }
+      recipDao {
+        id
+        name
+      }
+      recipUser {
+        id
+      }
+      value
     }
   }
 }

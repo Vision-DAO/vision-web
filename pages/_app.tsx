@@ -15,8 +15,7 @@ import closeIcon from "../public/icons/icon-close.svg";
 import selectedIcon from "../public/icons/icon-selected.svg";
 import ethereumLogo from "../public/icons/ethereum.png";
 import metaMaskLogo from "../public/icons/metamask.png";
-import { create, multiaddr } from "ipfs-core";
-import { create as createHttp } from "ipfs-http-client";
+import { create } from "ipfs-core";
 
 import type { AppProps } from "next/app";
 import Head from "next/head";
@@ -30,6 +29,7 @@ import navStyles from "../components/workspace/nav/NavPanel.module.css";
 import { Web3Context, provideWeb3 } from "../lib/util/web3";
 import EthCrypto from "eth-crypto";
 import { IpfsContext, IpfsStoreContext } from "../lib/util/ipfs";
+import { ActiveIdeaContext } from "../lib/util/ideas/module";
 import {
 	ConnectionContext,
 	provideConnStatus,
@@ -68,13 +68,6 @@ interface Page {
 
 	icon: React.ReactElement;
 }
-
-/**
- * An IPFS node hosted on AWS. A domain name and SSL cert are required because
- * web clients cannot resolve non-secure domain names (mozilla particularly).
- */
-const BOOTSTRAP_NODE =
-	"/dns4/visiondaodev.com/tcp/4003/wss/p2p/12D3KooWE2ofDNP9omeVFvvmPD4ihyGW9p7nXEtzkdwKxuo47yYc";
 
 /**
  * Signed data indicating the user is who they say they are.
@@ -155,29 +148,12 @@ const App = ({ Component, pageProps }: AppPropsWithLayout) => {
 
 	// Keep the global IPFS intance up to date
 	const [ipfs, setIpfs] = useState(undefined);
+	const ideaContext = useState(undefined);
 
 	const [ipfsStore, setIpfsStore] = useState({});
 	const storeMutater = (cid: string, key: string, v: unknown) => {
 		setIpfsStore((store) => {
 			return { [cid]: { ...(store[cid] ?? {}), [key]: v }, ...store };
-		});
-	};
-
-	// A global cache for props
-	const [proposalCache, setProposals] = useState<{
-		[addr: string]: GossipProposalInformation[];
-	}>({});
-
-	const addProposal = (addr: string, prop: GossipProposalInformation) => {
-		setProposals((props) => {
-			return {
-				...props,
-				[addr]: props[addr]
-					? props[addr].includes(prop)
-						? props[addr]
-						: [...props[addr], prop]
-					: [prop],
-			};
 		});
 	};
 
@@ -263,44 +239,46 @@ const App = ({ Component, pageProps }: AppPropsWithLayout) => {
 								<IpfsStoreContext.Provider value={[ipfsStore, storeMutater]}>
 									<ConnectionContext.Provider value={connStatus}>
 										<AuthContext.Provider value={authContext}>
-											<IdxContext.Provider value={idxContext}>
-												<ModalContext.Provider value={[modal, setModal]}>
-													{router.pathname !== "/login" ? (
-														<div
-															className={`${styles.app} ${styles.root}${
-																hasModal ? " " + styles.hidden : ""
-															}`}
-														>
-															<div className={styles.navPanel}>
-																<NavPanel
-																	items={navItems}
-																	onProfileClicked={(selfId: string) =>
-																		router.push({
-																			pathname: "/profile/[id]",
-																			query: {
-																				id: selfId,
-																			},
-																		})
-																	}
-																	onSettingsActive={() =>
-																		router.push("/settings")
-																	}
-																	ctx={web3}
-																/>
+											<ActiveIdeaContext.Provider value={ideaContext}>
+												<IdxContext.Provider value={idxContext}>
+													<ModalContext.Provider value={[modal, setModal]}>
+														{router.pathname !== "/login" ? (
+															<div
+																className={`${styles.app} ${styles.root}${
+																	hasModal ? " " + styles.hidden : ""
+																}`}
+															>
+																<div className={styles.navPanel}>
+																	<NavPanel
+																		items={navItems}
+																		onProfileClicked={(selfId: string) =>
+																			router.push({
+																				pathname: "/profile/[id]",
+																				query: {
+																					id: selfId,
+																				},
+																			})
+																		}
+																		onSettingsActive={() =>
+																			router.push("/settings")
+																		}
+																		ctx={web3}
+																	/>
+																</div>
+																<div className={styles.workspace}>
+																	<NetworkedWorkspace>
+																		{getLayout(<Component {...pageProps} />)}
+																	</NetworkedWorkspace>
+																</div>
 															</div>
-															<div className={styles.workspace}>
-																<NetworkedWorkspace>
-																	{getLayout(<Component {...pageProps} />)}
-																</NetworkedWorkspace>
+														) : (
+															<div className={`${styles.app} ${styles.root}`}>
+																<Component {...pageProps} />
 															</div>
-														</div>
-													) : (
-														<div className={`${styles.app} ${styles.root}`}>
-															<Component {...pageProps} />
-														</div>
-													)}
-												</ModalContext.Provider>
-											</IdxContext.Provider>
+														)}
+													</ModalContext.Provider>
+												</IdxContext.Provider>
+											</ActiveIdeaContext.Provider>
 										</AuthContext.Provider>
 									</ConnectionContext.Provider>
 								</IpfsStoreContext.Provider>
