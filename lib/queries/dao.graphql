@@ -43,7 +43,7 @@ fragment DaoCardInfo on Idea {
   }
 }
 
-query GetDaoInfo($id:ID!) @live {
+query GetDaoInfo($id: ID!) @live {
   idea(id:$id) {
     ...DaoCardInfo
   }
@@ -96,6 +96,40 @@ query GetDaoAbout($id: ID!, $dayStart: BigInt!) @live {
         id
       }
       value
+    }
+  }
+}
+
+fragment PropInformation on Prop {
+  id
+  title
+  ipfsAddr
+  author {
+    id
+  }
+  createdAt
+  votesFor
+  votesAgainst
+  expiration
+  toFund
+  status
+  finalizedAt
+  rate {
+    token
+    value
+    intervalLength
+    expiry
+    kind
+  }
+}
+
+query GetProps($id: ID!) {
+  idea(id:$id) {
+    activeProps {
+      ...PropInformation
+    }
+    children {
+      ...PropInformation
     }
   }
 }
