@@ -68,14 +68,13 @@ export const DetailNavigatorLayout = <T,>({
 			<WarningMessage title="Error 404" message="Idea Does Not Exist" />
 		);
 	} else {
-		console.log("rendering child", ideaInfo);
 		toRender = children;
 	}
 
 	// Navigates to a page under the current, active idea
 	// router.push will replace [addr] in the address by default
 	const navigatePage = (page: string) => {
-		router.push(`${router.pathname.replace("about", page)}`);
+		router.push(`/ideas/${addr}/${page}`);
 	};
 
 	// Where the user should be redirected for info about the idea

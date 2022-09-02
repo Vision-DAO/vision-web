@@ -1,13 +1,6 @@
-import { ExtendedIdeaInformation } from "../../../components/workspace/IdeaDetailCard";
 import { FilledButton } from "../../../components/status/FilledButton";
 import { GeneralModal } from "../../../components/status/GeneralModal";
-import {
-	useProposals,
-	useFundedChildren,
-	IpfsContext,
-	AllProposalInformation,
-	GossipProposalInformation,
-} from "../../../lib/util/ipfs";
+import { IpfsContext } from "../../../lib/util/ipfs";
 import { useWeb3 } from "../../../lib/util/web3";
 import { ModalContext } from "../../../lib/util/modal";
 import { DetailNavigatorLayout } from "../../../components/workspace/DetailNavigatorLayout";
@@ -22,6 +15,7 @@ import {
 	pages,
 	loader,
 	ActiveIdeaContext,
+	titleExtractor,
 } from "../../../lib/util/ideas/module";
 
 /**
@@ -29,26 +23,13 @@ import {
  */
 export const Proposals = () => {
 	// See NavigatorLayout container. This will never be NULL
-	const [idea]: [ExtendedIdeaInformation, unknown] =
-		useContext(ActiveIdeaContext);
-	const [proposals, pub] = useProposals(idea.addr);
+	const [idea] = useContext(ActiveIdeaContext);
 	const [web3, eth] = useWeb3();
 	const ipfs = useContext(IpfsContext);
-	const [rates, ideas] = useFundedChildren(idea.addr, web3, ipfs);
 	const router = useRouter();
 
 	// When the user deploys a new proposal, this modal is used
 	const [, setModal] = useContext(ModalContext);
-
-	const pubProposal = (prop: AllProposalInformation) => {
-		const propData: GossipProposalInformation = {
-			dataIpfsAddr: prop.dataIpfsAddr,
-			addr: prop.addr,
-		};
-
-		pub(propData);
-		setModal(null);
-	};
 
 	const newPropModalContent = (
 		<GeneralModal title="New Proposal">
@@ -56,11 +37,22 @@ export const Proposals = () => {
 				ipfs={ipfs}
 				web3={web3}
 				eth={eth}
-				onSubmit={pubProposal}
-				parentAddr={idea.addr}
+				parentAddr={idea.id}
 			/>
 		</GeneralModal>
 	);
+
+	/*
+					<div className={styles.proposalList}>
+					<h2>Funded Ideas</h2>
+					<IdeaChildrenList
+						parentAddr={idea.id}
+						rates={idea.children}
+						ideas={idea.children}
+						web3={web3}
+						eth={eth}
+					/>
+				</div>*/
 
 	return (
 		<div className={`${dashStyles.infoContainers} ${styles.infoContainers}`}>
@@ -71,18 +63,8 @@ export const Proposals = () => {
 						eth={eth}
 						ipfs={ipfs}
 						web3={web3}
-						proposals={proposals}
+						proposals={idea.activeProps}
 						onSelectProp={(addr) => router.push(`/proposals/${addr}/about`)}
-					/>
-				</div>
-				<div className={styles.proposalList}>
-					<h2>Funded Ideas</h2>
-					<IdeaChildrenList
-						parentAddr={idea.addr}
-						rates={rates}
-						ideas={ideas}
-						web3={web3}
-						eth={eth}
 					/>
 				</div>
 			</div>
@@ -100,6 +82,7 @@ export const Proposals = () => {
 Proposals.getLayout = (page: ReactElement) => (
 	<DetailNavigatorLayout
 		title="Idea"
+		contentTitle={titleExtractor}
 		pages={pages}
 		loader={loader}
 		ctx={ActiveIdeaContext}
