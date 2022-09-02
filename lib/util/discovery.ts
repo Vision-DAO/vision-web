@@ -1,4 +1,4 @@
-import { usePublicRecord, ViewerRecord } from "@self.id/framework";
+import { useViewerRecord, ViewerRecord } from "@self.id/framework";
 import { ModelTypeAliases } from "@glazed/types";
 import { CoreModelTypes } from "@self.id/core";
 
@@ -56,6 +56,7 @@ export const watchIdea = async (
 	ideaAddr: string,
 	record: WatchedIdeasRecord
 ): Promise<void> => {
+	console.log(ideaAddr, record);
 	// TODO: Work on identifying cryptographic non-guarantees, and terminating this
 	// non-null document link
 	return await record.set({
@@ -82,11 +83,10 @@ export const unwatchIdea = async (
  * Gets a list of the addresses of idea contracts owned by the given
  * address from ceramic.
  */
-export const useOwnedIdeas = (did: string): Set<string> =>
+export const useOwnedIdeas = (): Set<string> =>
 	new Set(
-		usePublicRecord<ModelTypes, "visionOwnedItemAddressesList">(
-			"visionOwnedItemAddressesList",
-			did
+		useViewerRecord<ModelTypes, "visionOwnedItemAddressesList">(
+			"visionOwnedItemAddressesList"
 		).content?.items ?? []
 	);
 
@@ -94,10 +94,9 @@ export const useOwnedIdeas = (did: string): Set<string> =>
  * Gets a list of the addresses of idea contracts watched by the given
  * address from ceramic.
  */
-export const useWatchedIdeas = (did: string): Set<string> =>
+export const useWatchedIdeas = (): Set<string> =>
 	new Set(
-		usePublicRecord<ModelTypes, "visionWatchedItemAddressesList">(
-			"visionWatchedItemAddressesList",
-			did
+		useViewerRecord<ModelTypes, "visionWatchedItemAddressesList">(
+			"visionWatchedItemAddressesList"
 		).content?.items ?? []
 	);

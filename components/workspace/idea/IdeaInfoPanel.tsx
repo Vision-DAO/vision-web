@@ -75,18 +75,14 @@ const WatchIdeaButton = ({ ideaAddr }: { ideaAddr: string }) => {
 		ModelTypes,
 		"visionWatchedItemAddressesList"
 	>("visionWatchedItemAddressesList");
-	const [watched, setWatched] = useState(
-		watchingRecord?.content?.items.includes(ideaAddr) ?? false
-	);
+	const watched = watchingRecord?.content?.items.includes(ideaAddr) ?? false;
 
 	const watchIdeaCallback = () => {
 		if (watched) {
-			setWatched(false);
 			unwatchIdea(ideaAddr, watchingRecord);
 			return;
 		}
 
-		setWatched(true);
 		watchIdea(ideaAddr, watchingRecord);
 	};
 

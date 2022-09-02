@@ -12,3 +12,18 @@ query GetMapItems @live {
     toFund
   }
 }
+
+query GetMapItemsOwned($id:ID!) @live {
+  user(id:$id) {
+    ideas {
+      dao {
+        id
+        ipfsAddr
+        name
+      }
+      tokens {
+        balance
+      }
+    }
+  }
+}
