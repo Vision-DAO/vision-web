@@ -152,6 +152,9 @@ export const IdeaInfoPanel = ({ idea }: { idea: DAOStatsRepr }) => {
 		"Finalized Proposals": idea.acceptedProps.filter(
 			(prop) => prop.finalizedAt !== undefined && isLast24(prop.finalizedAt)
 		).length,
+		"Rejected Proposals": idea.rejectedProps.filter(
+			(prop) => prop.finalizedAt !== undefined && isLast24(prop.finalizedAt)
+		).length,
 	};
 
 	return (

@@ -24,6 +24,7 @@ fragment DaoCardInfo on Idea {
   }
   rejectedProps {
     id
+    finalizedAt
     votes {
       id
     }
