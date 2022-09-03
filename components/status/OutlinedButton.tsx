@@ -9,23 +9,29 @@ export interface ButtonProps {
 /**
  * A button with 3ID branding that allows the user to click, with a callback.
  */
-export const OutlinedButton: React.FC<ButtonProps> = ({ callback, severity = "info", children }) => {
+export const OutlinedButton: React.FC<
+	ButtonProps & React.HTMLProps<HTMLDivElement>
+> = ({ callback, severity = "info", children, ...props }) => {
 	let styling = "";
 
 	switch (severity) {
-	case "action":
-		styling = " " + styles.action;
+		case "action":
+			styling = " " + styles.action;
 
-		break;
-	case "error":
-		styling = " " + styles.error;
+			break;
+		case "error":
+			styling = " " + styles.error;
 
-		break;
+			break;
 	}
 
 	return (
-		<div className={ `${styles.outlinedButton + styling}` } onClick={callback}>
-			{ children }
+		<div
+			{...props}
+			className={`${props.className ?? ""} ${styles.outlinedButton + styling}`}
+			onClick={callback}
+		>
+			{children}
 		</div>
 	);
 };
