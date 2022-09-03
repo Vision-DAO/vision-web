@@ -81,7 +81,9 @@ export const SearchEntry = ({
 			) : (
 				icon === undefined && <Skeleton variant="circular" />
 			)}
-			<p style={{ fontWeight: "bold" }}>{title}</p>
+			<p className={styles.formalText} style={{ fontWeight: "bold" }}>
+				{title}
+			</p>
 			{ticker && <p style={{ opacity: "0.6" }}>{ticker}</p>}
 			<p style={{ flexGrow: 2, textAlign: "end" }}>{addr}</p>
 		</div>

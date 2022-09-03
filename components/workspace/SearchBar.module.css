@@ -167,3 +167,10 @@
 
 	margin-right: 0.5em;
 }
+
+.formalText {
+	font-family: "Roboto", "Helvetica Neue", sans-serif;
+
+	font-size: 1.25em;
+	font-weight: 500;
+}
