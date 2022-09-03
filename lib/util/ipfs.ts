@@ -1,7 +1,11 @@
 import { create } from "ipfs-core";
 import { deserialize } from "bson";
-import { createContext, useContext, useEffect } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
+import { usePublicRecord, useClient } from "@self.id/framework";
 import { blobify } from "./blobify";
+import { useWeb3 } from "./web3";
+import { chainId } from "./networks";
+import { Caip10Link } from "@ceramicnetwork/stream-caip10-link";
 
 /**
  * An alias for the type of the IPFS constructor.
@@ -134,6 +138,28 @@ export const getAll = async (
 };
 
 /**
+ * Loads the image of the DAO via IPFS.
+ */
+export const useIdeaImage = (ipfsAddr: string): string | undefined => {
+	const [cache, setCache] = useContext(IpfsStoreContext);
+	const ipfs = useContext(IpfsContext);
+
+	useEffect(() => {
+		if (ipfsAddr in cache && "icon" in cache[ipfsAddr]) return;
+
+		(async () => {
+			const icon = await loadIdeaImageSrc(ipfs, ipfsAddr);
+			setCache(ipfsAddr, "icon", icon);
+		})();
+	}, [ipfsAddr]);
+
+	if (ipfsAddr in cache && "icon" in cache[ipfsAddr])
+		return cache[ipfsAddr]["icon"] as string;
+
+	return undefined;
+};
+
+/**
  * Loads the description of the DAO via IPFS.
  */
 export const useIdeaDescription = (ipfsAddr: string): string | undefined => {
@@ -157,4 +183,56 @@ export const useIdeaDescription = (ipfsAddr: string): string | undefined => {
 	return ipfsAddr in ipfsCache && "description" in ipfsCache[ipfsAddr]
 		? (ipfsCache[ipfsAddr]["description"] as string)
 		: undefined;
+};
+
+/**
+ * Displays the profile picture of the user with the indicated address, or
+ * returns undefined.
+ */
+export const useUserPic = (addr: string): string | undefined => {
+	const [image, setImage] = useState<string | undefined>(undefined);
+	const [id, setId] = useState<string | undefined>(undefined);
+	const profile = usePublicRecord("basicProfile", id);
+
+	const [, eth] = useWeb3();
+	const client = useClient();
+	const ipfs = useContext(IpfsContext);
+	const [ipfsCache, setIpfsCache] = useContext(IpfsStoreContext);
+
+	// Load the user's ceramic ID for getting their profile picture
+	useEffect(() => {
+		(async () => {
+			const netV = await chainId(eth);
+			const link = await Caip10Link.fromAccount(
+				client.ceramic,
+				`eip155:${netV}:${addr}`
+			);
+
+			setId(link.did);
+		})();
+	}, []);
+
+	// Load the user's profile picture
+	useEffect(() => {
+		if (!profile.content?.image.original.src) return;
+
+		const imgCid = profile.content.image.original.src;
+
+		if (imgCid in ipfsCache && "icon" in ipfsCache[imgCid]) {
+			setImage(ipfsCache[imgCid]["icon"] as string);
+
+			return;
+		}
+
+		// Load in the image
+		getAll(ipfs, imgCid.replaceAll("ipfs://", "")).then((imgBlob) => {
+			// Turn the image data into an src, and update the UI
+			const blob = blobify(window, imgBlob, null);
+
+			setIpfsCache(imgCid, "icon", blob);
+			setImage(blob);
+		});
+	}, [profile.content?.image.original.src]);
+
+	return image;
 };

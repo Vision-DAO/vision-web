@@ -55,3 +55,12 @@
 	color: #44BF39;
 	border-bottom-color: #44BF39;
 }
+
+.propRow {
+	display: flex;
+
+	flex-flow: row nowrap;
+
+	justify-content: space-between;
+	align-items: center;
+}

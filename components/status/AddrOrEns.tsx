@@ -36,5 +36,5 @@ export const AddrOrEns = ({
 
 	if (ens === null || ens === undefined) return <Skeleton variant="text" />;
 
-	return <p {...props}>{ens !== "none" ? ens : addr}</p>;
+	return <p {...props}>{ens !== "none" ? `@${ens}` : addr}</p>;
 };

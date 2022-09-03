@@ -6,7 +6,6 @@ import { ModalContext } from "../../../lib/util/modal";
 import { DetailNavigatorLayout } from "../../../components/workspace/DetailNavigatorLayout";
 import { ProposalsList } from "../../../components/workspace/prop/ProposalsList";
 import { useContext, ReactElement } from "react";
-import { IdeaChildrenList } from "../../../components/workspace/idea/IdeaChildrenList";
 import { NewProposalPanel } from "../../../components/workspace/prop/NewProposalPanel";
 import dashStyles from "./about.module.css";
 import styles from "./proposals.module.css";

@@ -101,3 +101,7 @@
 
 	font-weight: bold;
 }
+
+.pfpBubble {
+	object-fit: cover;
+}

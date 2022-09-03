@@ -38,7 +38,7 @@ export const IdeaActivityPanel = ({
 		if ("sendUser" in e)
 			return { url: `/profile/${e.sendUser.id}`, label: e.sendUser.id };
 		else if ("sendDao" in e)
-			return { url: `/ideas/${e.sendDao.id}`, label: e.sendDao.name };
+			return { url: `/ideas/${e.sendDao.id}/about`, label: e.sendDao.name };
 	};
 
 	const transferRecip = (
@@ -47,7 +47,7 @@ export const IdeaActivityPanel = ({
 		if ("recipUser" in e)
 			return { url: `/profile/${e.recipUser.id}`, label: e.recipUser.id };
 		else if ("recipDao" in e)
-			return { url: `/ideas/${e.recipDao.id}`, label: e.recipDao.name };
+			return { url: `/ideas/${e.recipDao.id}/about`, label: e.recipDao.name };
 	};
 
 	const events = [
