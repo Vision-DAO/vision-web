@@ -4,6 +4,7 @@ import { ActivityEntry } from "./activity/ActivityEntry";
 import CircularProgress from "@mui/material/CircularProgress";
 import { GetDaoAboutQuery } from "../../../.graphclient";
 import { formatErc } from "../../../lib/util/networks";
+import Link from "next/link";
 
 type Event =
 	| GetDaoAboutQuery["idea"]["recentAccepted"][0]
@@ -78,10 +79,13 @@ export const IdeaActivityPanel = ({
 				title = (
 					<p>
 						{formatErc(e.value)} {idea.ticker} from{" "}
-						<a className={styles.actorLabel} href={sUrl}>
-							{sLabel}
-						</a>{" "}
-						to <a href={rUrl}>{rLabel}</a>`
+						<Link href={sUrl}>
+							<a className={styles.actorLabel}>{sLabel}</a>
+						</Link>{" "}
+						to{" "}
+						<Link href={rUrl}>
+							<a className={styles.actorLabel}>{rLabel}</a>
+						</Link>
 					</p>
 				);
 			}

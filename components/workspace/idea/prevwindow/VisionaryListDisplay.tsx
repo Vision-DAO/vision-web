@@ -6,6 +6,7 @@ import CircularProgress from "@mui/material/CircularProgress";
 import { GetDaoAboutQuery } from "../../../../.graphclient";
 import { useUserName } from "../../../../lib/util/ipfs";
 import { formatErc } from "../../../../lib/util/networks";
+import Link from "next/link";
 
 interface listState {
 	/* The number of visionaries */
@@ -70,9 +71,11 @@ export const VisionaryListDisplay = ({
 						</div>
 						{selectedVisionary && (
 							<div className={styles.activeVisionaryInfo}>
-								<p className={styles.visionaryName}>
-									{visionaryName ?? selectedVisionary}
-								</p>
+								<Link href={`/profile/${selectedVisionary}`}>
+									<a className={styles.visionaryName}>
+										{visionaryName ?? selectedVisionary}
+									</a>
+								</Link>
 								<div className={styles.listItem}>
 									<p>Stake</p>
 									<p>

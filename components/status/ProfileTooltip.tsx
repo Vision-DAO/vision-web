@@ -7,6 +7,7 @@ import { useUserPic } from "../../lib/util/ipfs";
 import { useWeb3 } from "../../lib/util/web3";
 import { Caip10Link } from "@ceramicnetwork/stream-caip10-link";
 import { Skeleton } from "@mui/material";
+import Link from "next/link";
 
 /**
  * Renders a clickable link displaying the username of the user, their profile
@@ -38,13 +39,15 @@ export const ProfileTooltip = ({ addr }: { addr: string }) => {
 	return (
 		<div className={styles.row}>
 			{image ? <img src={image} /> : <Skeleton variant="circular" />}
-			<a href={`/profile/${addr}`}>
-				{profile.content?.name !== undefined ? (
-					<p>profile.content.name</p>
-				) : (
-					<AddrOrEns addr={addr} />
-				)}
-			</a>
+			<Link href={`/profile/${addr}`}>
+				<a>
+					{profile.content?.name !== undefined ? (
+						<p>profile.content.name</p>
+					) : (
+						<AddrOrEns addr={addr} />
+					)}
+				</a>
+			</Link>
 		</div>
 	);
 };
