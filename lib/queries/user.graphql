@@ -49,3 +49,9 @@ query UserFeed($id:ID!) @live {
     }
   }
 }
+
+query GetAllUsers @live {
+  users {
+    id
+  }
+}
