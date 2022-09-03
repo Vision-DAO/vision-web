@@ -186,20 +186,15 @@ export const useIdeaDescription = (ipfsAddr: string): string | undefined => {
 };
 
 /**
- * Displays the profile picture of the user with the indicated address, or
- * returns undefined.
+ * Gets the ceramic profile of the user.
  */
-export const useUserPic = (addr: string): string | undefined => {
-	const [image, setImage] = useState<string | undefined>(undefined);
+export const useCeramicId = (addr: string): string | undefined => {
 	const [id, setId] = useState<string | undefined>(undefined);
-	const profile = usePublicRecord("basicProfile", id);
 
 	const [, eth] = useWeb3();
 	const client = useClient();
-	const ipfs = useContext(IpfsContext);
-	const [ipfsCache, setIpfsCache] = useContext(IpfsStoreContext);
 
-	// Load the user's ceramic ID for getting their profile picture
+	// Load the user's ceramic ID
 	useEffect(() => {
 		(async () => {
 			const netV = await chainId(eth);
@@ -211,6 +206,31 @@ export const useUserPic = (addr: string): string | undefined => {
 			setId(link.did);
 		})();
 	}, []);
+
+	return id;
+};
+
+/**
+ * Gets the username of the user with the indicated ethereum address.
+ */
+export const useUserName = (addr: string): string | undefined => {
+	const id = useCeramicId(addr);
+	const profile = usePublicRecord("basicProfile", id);
+
+	return profile.content?.name ?? undefined;
+};
+
+/**
+ * Displays the profile picture of the user with the indicated address, or
+ * returns undefined.
+ */
+export const useUserPic = (addr: string): string | undefined => {
+	const [image, setImage] = useState<string | undefined>(undefined);
+	const id = useCeramicId(addr);
+	const profile = usePublicRecord("basicProfile", id);
+
+	const ipfs = useContext(IpfsContext);
+	const [ipfsCache, setIpfsCache] = useContext(IpfsStoreContext);
 
 	// Load the user's profile picture
 	useEffect(() => {

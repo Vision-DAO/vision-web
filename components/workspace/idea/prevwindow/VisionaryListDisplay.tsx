@@ -4,6 +4,7 @@ import styles from "./VisionaryListDisplay.module.css";
 import { useState, useEffect, useRef } from "react";
 import CircularProgress from "@mui/material/CircularProgress";
 import { GetDaoAboutQuery } from "../../../../.graphclient";
+import { useUserName } from "../../../../lib/util/ipfs";
 import { formatErc } from "../../../../lib/util/networks";
 
 interface listState {
@@ -39,6 +40,7 @@ export const VisionaryListDisplay = ({
 		{ visionaries: {}, visionaryCount: 0 }
 	);
 	const [selectedVisionary, setSelectedVisionary] = useState<string>(null);
+	const visionaryName = useUserName(selectedVisionary);
 	const [canvasHeight, setCanvasHeight] = useState<number>(0);
 	const canvasRef = useRef(null);
 
@@ -68,7 +70,9 @@ export const VisionaryListDisplay = ({
 						</div>
 						{selectedVisionary && (
 							<div className={styles.activeVisionaryInfo}>
-								<p className={styles.visionaryName}>{selectedVisionary}</p>
+								<p className={styles.visionaryName}>
+									{visionaryName ?? selectedVisionary}
+								</p>
 								<div className={styles.listItem}>
 									<p>Stake</p>
 									<p>
