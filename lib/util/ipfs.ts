@@ -4,8 +4,9 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { usePublicRecord, useClient } from "@self.id/framework";
 import { blobify } from "./blobify";
 import { useWeb3 } from "./web3";
-import { chainId } from "./networks";
+import { chainId, IdxContext } from "./networks";
 import { Caip10Link } from "@ceramicnetwork/stream-caip10-link";
+import { BasicProfile } from "@datamodels/identity-profile-basic";
 
 /**
  * An alias for the type of the IPFS constructor.
@@ -203,6 +204,8 @@ export const useCeramicId = (addr: string): string | undefined => {
 				`eip155:${netV}:${addr}`
 			);
 
+			if (!link || !link.did) return;
+
 			setId(link.did);
 		})();
 	}, []);
@@ -255,4 +258,45 @@ export const useUserPic = (addr: string): string | undefined => {
 	}, [profile.content?.image.original.src]);
 
 	return image;
+};
+
+/**
+ * Loads the profiles of all users specified.
+ */
+export const useProfiles = (
+	addrs: string[]
+): { [addr: string]: BasicProfile } => {
+	const [profiles, setProfiles] = useState<{ [addr: string]: BasicProfile }>(
+		{}
+	);
+	const [, eth] = useWeb3();
+	const [idx] = useContext(IdxContext);
+	const client = useClient();
+
+	// Loads the cermaic profiles of all specified users
+	useEffect(() => {
+		(async () => {
+			const netV = await chainId(eth);
+
+			// Load user ID's in parallel
+			await Promise.all(
+				addrs.map(async (addr: string) => {
+					const link = await Caip10Link.fromAccount(
+						client.ceramic,
+						`eip155:${netV}:${addr}`
+					);
+					if (!link || !link.did) return;
+
+					const profile = await idx.get("basicProfile", link.did);
+					if (!profile) return;
+
+					setProfiles((profiles) => {
+						return { ...profiles, [addr]: profile as BasicProfile };
+					});
+				})
+			);
+		})();
+	}, [addrs.length]);
+
+	return profiles;
 };

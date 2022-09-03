@@ -1,49 +1,73 @@
-import { useState, ChangeEvent, FocusEvent, ReactElement } from "react";
+import {
+	useState,
+	useEffect,
+	ChangeEvent,
+	FocusEvent,
+	useContext,
+	ReactElement,
+} from "react";
 import SearchRounded from "@mui/icons-material/SearchRounded";
 import ExpandMore from "@mui/icons-material/ExpandMoreRounded";
 import ExpandLess from "@mui/icons-material/ExpandLessRounded";
+import { Skeleton } from "@mui/material";
 import styles from "./SearchBar.module.css";
 import {
 	SearchQuery,
 	SearchDocument,
 	SearchQueryVariables,
+	GetAllUsersQuery,
+	GetAllUsersDocument,
 	execute,
 } from "../../.graphclient";
+import { useStream } from "../../lib/util/graph";
+import { blobify } from "../../lib/util/blobify";
+import {
+	useProfiles,
+	IpfsStoreContext,
+	IpfsContext,
+	getAll,
+} from "../../lib/util/ipfs";
+import { useRouter } from "next/router";
 
 const defaultSearchText = "The next big thing...";
 
 export const SearchEntry = ({
-	icon,
+	iconSrc,
 	title,
 	ticker,
 	addr,
-	term,
 	onClick,
 	onHoverState,
 }: {
-	icon?: string;
+	iconSrc?: string;
 	title: string;
-	ticker: string;
+	ticker?: string;
 	addr: string;
-	term: string;
 	onClick: () => void;
 	onHoverState: (state: boolean) => void;
 }) => {
-	const termStart = title.toLowerCase().indexOf(term);
-	let elems = [
-		<p key="start">{title.substring(termStart + term.length, title.length)}</p>,
-	];
+	const [ipfsCache, setIpfsCache] = useContext(IpfsStoreContext);
+	const ipfs = useContext(IpfsContext);
+	const [icon, setIcon] = useState<string | undefined | null>(undefined);
 
-	if (term.length > 0)
-		elems = [
-			<p key="middle" className={styles.activeResult}>
-				<b>{title.substring(termStart, termStart + term.length)}</b>
-			</p>,
-			...elems,
-		];
+	useEffect(() => {
+		if (!iconSrc) return;
 
-	if (termStart !== 0)
-		elems = [<p key="end">{title.substring(0, termStart)}</p>, ...elems];
+		if (iconSrc in ipfsCache && "icon" in ipfsCache[iconSrc]) {
+			setIcon(ipfsCache[iconSrc]["icon"] as string);
+
+			return;
+		}
+
+		// Load the icon
+		getAll(ipfs, iconSrc).then((imgBlob) => {
+			// Turn the image data into an src, and update the UI
+			const blob = blobify(window, imgBlob, null);
+
+			setIpfsCache(iconSrc, "icon", blob);
+			setIcon(blob);
+		});
+	}, [iconSrc]);
 
 	return (
 		<div
@@ -52,9 +76,13 @@ export const SearchEntry = ({
 			onMouseEnter={() => onHoverState(true)}
 			onMouseLeave={() => onHoverState(false)}
 		>
-			{icon && <img src={icon} />}
+			{icon ? (
+				<img src={icon} className={styles.resultIcon} />
+			) : (
+				icon === undefined && <Skeleton variant="circular" />
+			)}
 			<p style={{ fontWeight: "bold" }}>{title}</p>
-			<p style={{ opacity: "0.6" }}>{ticker}</p>
+			{ticker && <p style={{ opacity: "0.6" }}>{ticker}</p>}
 			<p style={{ flexGrow: 2, textAlign: "end" }}>{addr}</p>
 		</div>
 	);
@@ -73,6 +101,17 @@ export const SearchBar = ({
 	hovered: (selected: string) => void;
 	dehovered: (dehovered: string) => void;
 }) => {
+	// Allow searching through user profiles, as well
+	const users = useStream<GetAllUsersQuery>(
+		{ users: [] },
+		GetAllUsersDocument,
+		{}
+	);
+	const profiles = useProfiles(
+		users.users.map((user: GetAllUsersQuery["users"][0]) => user.id)
+	);
+	const router = useRouter();
+
 	const [searchText, setSearchText] = useState<string>(defaultSearchText);
 	const [searchResults, setSearchResults] = useState<ReactElement[]>([]);
 	const [queuedQuery, setQueuedQuery] = useState<ReturnType<
@@ -97,19 +136,26 @@ export const SearchBar = ({
 					text: e.target.value.replaceAll(" ", " & "),
 				};
 
+				const terms = e.target.value.toLowerCase().split(" ");
+
 				const res = await execute(SearchDocument, query);
 				const data: SearchQuery = res.data ?? {
 					ideaPropSearch: [],
 				};
 
-				setSearchResults(
-					data.ideaPropSearch.map((info) => (
+				const matchingProfiles = Object.entries(profiles)
+					.filter(([, profile]) => profile.name !== undefined)
+					.filter(([, profile]) =>
+						terms.every((term) => profile.name.toLowerCase().includes(term))
+					);
+
+				setSearchResults([
+					...data.ideaPropSearch.map((info) => (
 						<SearchEntry
 							key={info.id}
 							addr={info.id}
 							ticker={info.ticker}
 							title={info.name}
-							term={e.target.value.toLocaleLowerCase()}
 							onClick={() => selected(info.id)}
 							onHoverState={(state: boolean) => {
 								if (state) {
@@ -121,8 +167,17 @@ export const SearchBar = ({
 								dehovered(info.id);
 							}}
 						/>
-					))
-				);
+					)),
+					...matchingProfiles.map(([addr, profile]) => (
+						<SearchEntry
+							title={profile.name}
+							addr={addr}
+							onClick={() => router.push(`/profile/${addr}`)}
+							onHoverState={() => {}}
+							iconSrc={profile.image?.original.src.replaceAll("ipfs://", "")}
+						/>
+					)),
+				]);
 			}, 500)
 		);
 	};

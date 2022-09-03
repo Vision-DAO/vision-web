@@ -145,6 +145,9 @@
 	display: flex;
 	flex-flow: row nowrap;
 	justify-content: flex-start;
+	align-items: center;
+
+	cursor: pointer;
 
 	width: 100%;
 }
@@ -152,4 +155,15 @@
 .resultsEntry>*:not(:first-child) {
 	margin-right: 0.5em;
 	margin-left: 0.5em;
+}
+
+.resultIcon {
+	height: 2em;
+	width: 2em;
+
+	object-fit: cover;
+
+	border-radius: 50%;
+
+	margin-right: 0.5em;
 }
