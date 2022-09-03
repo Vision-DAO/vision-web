@@ -6,6 +6,8 @@
 	align-items: stretch;
 
 	overflow: auto;
+
+	margin-bottom: 2em;
 }
 
 .mediaInputLabel {

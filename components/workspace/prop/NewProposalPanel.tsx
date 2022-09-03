@@ -6,6 +6,7 @@ import {
 import { accounts } from "../../../lib/util/networks";
 import { MultiTypeInput } from "../../input/MultiTypeInput";
 import { UnderlinedInput } from "../../input/UnderlinedInput";
+import { MultiPageInput } from "../../input/MultiPageInput";
 import { OutlinedOptionSelector } from "../../input/OutlinedOptionSelector";
 import { useState } from "react";
 import { serialize } from "bson";
@@ -14,6 +15,7 @@ import styles from "./NewProposalPanel.module.css";
 import Proposal from "../../../value-tree/build/contracts/Prop.json";
 import LinearProgress from "@mui/material/LinearProgress";
 import Web3 from "web3";
+import { GetDaoAboutQuery } from "../../../.graphclient";
 
 // Fields that must not be null on submission
 const requiredFields = [
@@ -44,11 +46,13 @@ export const NewProposalPanel = ({
 	eth,
 	ipfs,
 	parentAddr,
+	parent,
 }: {
 	web3: Web3;
 	eth: any;
 	ipfs: IpfsClient;
 	parentAddr: string;
+	parent: GetDaoAboutQuery["idea"];
 }) => {
 	const [statusMessage, setStatusMessage] = useState<string>("");
 	const [deploying, setDeploying] = useState<boolean>(false);
@@ -77,6 +81,13 @@ export const NewProposalPanel = ({
 		data: [],
 		addr: "",
 	});
+
+	const mutatePropField =
+		<T,>(field: string) =>
+		(val: T) =>
+			setPropDetails((details) => {
+				return { [field]: val, ...details };
+			});
 
 	// Handles uploading the metadata from the new proposal form to IPFS.
 	const metadataUploader = async (data: IdeaData[]) => {
@@ -179,84 +190,30 @@ export const NewProposalPanel = ({
 		setParsedExpiry(num);
 	};
 
+	const inputs = [
+		"Make your proposal stand out by describing what it will do.",
+		`Who will ${parent.name} be funding, and for how long?`,
+		`How much will ${parent.name} pay, and how will it pay?`,
+	];
+
 	return (
-		<div className={styles.formContainer}>
-			<div className={`${styles.formItem} ${styles.fullFormItem}`}>
-				<h1>Title</h1>
-				<UnderlinedInput
-					className={styles.fullWidthInput}
-					placeholder="Give Jane Money for Lemons"
-					startingValue=""
-					onChange={(val) =>
-						setPropDetails((details: AllProposalInformation) => {
-							return { ...details, title: val };
-						})
-					}
-				/>
-			</div>
-			<div className={styles.formItemList}>
-				<div className={styles.formItem}>
-					<h2>Contract to Fund</h2>
+		<MultiPageInput labels={inputs} onSubmit={deployContract}>
+			<div className={styles.formContainer}>
+				<div className={`${styles.formItem} ${styles.fullFormItem}`}>
+					<h1>Title</h1>
 					<UnderlinedInput
-						placeholder="0xABCDEFG"
+						className={styles.fullWidthInput}
+						placeholder="Give LEMON to Joe for lemonade stand expansion"
 						startingValue=""
-						onChange={(toFund) =>
-							setPropDetails((details: AllProposalInformation) => {
-								return { ...details, destAddr: toFund };
-							})
-						}
+						onChange={mutatePropField("title")}
 					/>
 				</div>
 				<div className={styles.formItem}>
-					<h2>Funding Token (ERC20)</h2>
-					<UnderlinedInput
-						placeholder="0xABCDEFG"
-						startingValue=""
-						onChange={(token) =>
-							setPropDetails((details: AllProposalInformation) => {
-								return { ...details, rate: { ...details.rate, token: token } };
-							})
-						}
-					/>
+					<MultiTypeInput label="Info" onChange={metadataUploader} />
 				</div>
 			</div>
-			<div className={`${styles.formItem}`}>
-				<h2>Expires In</h2>
-				<div className={styles.formLine}>
-					<UnderlinedInput
-						placeholder="1"
-						startingValue=""
-						onChange={setExpiry}
-					/>
-					<OutlinedOptionSelector
-						options={Object.keys(timeMultipliers)}
-						onChange={(unit) => {
-							setTimeMultiplier(timeMultipliers[unit]);
-						}}
-						onClear={() => setTimeMultiplier(1)}
-					/>
-				</div>
-			</div>
-			<div className={styles.formItem}>
-				<h2>Funding Type</h2>
-				<OutlinedOptionSelector
-					options={["Mint", "Treasury"]}
-					onChange={setFundingKind}
-					onClear={() => ({})}
-				/>
-			</div>
-			<div className={styles.formItem}>
-				<MultiTypeInput label="Proposal Metadata" onChange={metadataUploader} />
-			</div>
-			<div className={styles.submitContainer}>
-				{statusMessage && statusMessage !== "" && <p>{statusMessage}</p>}
-				{deploying && <LinearProgress color="inherit" />}
-				<FilledButton
-					className={styles.submitButton}
-					onClick={deployContract}
-					label="Create Proposal"
-				/>
-			</div>
-		</div>
+			<div className={styles.formContainer}></div>
+			<div className={styles.formContainer}></div>
+		</MultiPageInput>
 	);
 };

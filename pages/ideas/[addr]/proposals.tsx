@@ -1,7 +1,10 @@
 import { FilledButton } from "../../../components/status/FilledButton";
 import { GeneralModal } from "../../../components/status/GeneralModal";
+import { GetPropsQuery, GetPropsDocument } from "../../../.graphclient";
 import { IpfsContext } from "../../../lib/util/ipfs";
+import { CircularProgress } from "@mui/material";
 import { useWeb3 } from "../../../lib/util/web3";
+import { useStream } from "../../../lib/util/graph";
 import { ModalContext } from "../../../lib/util/modal";
 import { DetailNavigatorLayout } from "../../../components/workspace/DetailNavigatorLayout";
 import { ProposalsList } from "../../../components/workspace/prop/ProposalsList";
@@ -26,16 +29,20 @@ export const Proposals = () => {
 	const [web3, eth] = useWeb3();
 	const ipfs = useContext(IpfsContext);
 	const router = useRouter();
+	const proposals = useStream<GetPropsQuery>(undefined, GetPropsDocument, {
+		id: idea.id,
+	});
 
 	// When the user deploys a new proposal, this modal is used
 	const [, setModal] = useContext(ModalContext);
 
 	const newPropModalContent = (
-		<GeneralModal title="New Proposal">
+		<GeneralModal title={`New Proposal: ${idea.name}`}>
 			<NewProposalPanel
 				ipfs={ipfs}
 				web3={web3}
 				eth={eth}
+				parent={idea}
 				parentAddr={idea.id}
 			/>
 		</GeneralModal>
@@ -58,13 +65,17 @@ export const Proposals = () => {
 			<div className={styles.proposalLists}>
 				<div className={styles.proposalList}>
 					<h2>New Proposals</h2>
-					<ProposalsList
-						eth={eth}
-						ipfs={ipfs}
-						web3={web3}
-						proposals={idea.activeProps}
-						onSelectProp={(addr) => router.push(`/proposals/${addr}/about`)}
-					/>
+					{proposals !== undefined ? (
+						<ProposalsList
+							eth={eth}
+							ipfs={ipfs}
+							web3={web3}
+							proposals={proposals.idea.activeProps}
+							onSelectProp={(addr) => router.push(`/proposals/${addr}/about`)}
+						/>
+					) : (
+						<CircularProgress />
+					)}
 				</div>
 			</div>
 			<FilledButton
