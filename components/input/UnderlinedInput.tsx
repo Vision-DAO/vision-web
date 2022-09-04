@@ -40,7 +40,7 @@ export const UnderlinedInput = ({
 		if (value === undefined) return;
 
 		setValue(remoteValue);
-	}, [remoteValue !== undefined, remoteValue.length]);
+	}, [remoteValue !== undefined, remoteValue?.length ?? 0]);
 
 	// Handles updates to the input field by using the user's callback,
 	// and updating the displayed text

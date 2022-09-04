@@ -1,10 +1,16 @@
 import { useStream } from "../../lib/util/graph";
 import { useProfiles } from "../../lib/util/ipfs";
 import { BasicProfile } from "@datamodels/identity-profile-basic";
-import { GetAllUsersQuery, GetAllUsersDocument } from "../../.graphclient";
+import {
+	GetAllUsersQuery,
+	GetAllUsersDocument,
+	SearchQuery,
+	SearchDocument,
+	execute,
+} from "../../.graphclient";
 import { UnderlinedInput } from "./UnderlinedInput";
 import { Autocomplete } from "@mui/material";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AutocompleteRenderInputParams } from "@mui/material";
 
 /**
@@ -24,9 +30,45 @@ export const GuidedAddrInput = ({
 		{}
 	);
 	const profiles = useProfiles(users.users.map((user) => user.id));
+	const profileOptions = Object.entries(profiles)
+		.filter(([, profile]) => profile.name)
+		.map(([addr, profile]: [string, BasicProfile]) => {
+			return { label: profile.name, id: addr };
+		});
+
+	const [daoOptions, setDaoOptions] = useState<[{ label: string; id: string }]>(
+		[]
+	);
+	const [queuedQuery, setQueuedQuery] = useState(null);
+	const options = [...profileOptions, ...daoOptions];
 
 	const [value, setValue] = useState<string>("");
 	const [option, setOption] = useState<string>("");
+
+	// Get all of the DAO's that match the criteria
+	useEffect(() => {
+		(async () => {
+			if (queuedQuery !== null) clearTimeout(queuedQuery);
+
+			setQueuedQuery(
+				setTimeout(async () => {
+					const res = await execute(SearchDocument, {
+						text: value.replaceAll(" ", " & "),
+					});
+
+					if (res.data === null) return;
+
+					setDaoOptions(
+						res.data.ideaPropSearch.map(
+							(idea: SearchQuery["ideaPropSearch"][0]) => {
+								return { label: idea.name, id: idea.id };
+							}
+						)
+					);
+				}, 1000)
+			);
+		})();
+	}, [value.length]);
 
 	const renderInput = ({
 		InputProps: { ref },
@@ -67,11 +109,7 @@ export const GuidedAddrInput = ({
 				setValue(value.id);
 				setOption(value.label);
 			}}
-			options={Object.entries(profiles)
-				.filter(([, profile]) => profile.name)
-				.map(([addr, profile]: [string, BasicProfile]) => {
-					return { label: profile.name, id: addr };
-				})}
+			options={options}
 			renderInput={renderInput}
 			sx={{ width: "100%" }}
 		/>
