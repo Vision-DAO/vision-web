@@ -48,6 +48,7 @@ export const MultiPageInput = ({
 			<StepBar
 				step={step}
 				nSteps={children.length}
+				onClickStep={(step) => setStep(step)}
 				style={{ width: "100%", marginTop: "0.75em" }}
 			/>
 			<div className={`${styles.row} ${styles.full} ${styles.navRow}`}>

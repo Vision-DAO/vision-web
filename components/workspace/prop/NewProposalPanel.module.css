@@ -75,3 +75,7 @@
 .fullWidthInput {
 	width: 100%;
 }
+
+.fullWidthInput>* {
+	width: 100%;
+}

@@ -1,4 +1,11 @@
-import { useState, ChangeEvent, MouseEvent } from "react";
+import {
+	useState,
+	useEffect,
+	ChangeEvent,
+	MouseEvent,
+	Ref,
+	InputHTMLAttributes,
+} from "react";
 import styles from "./UnderlinedInput.module.css";
 
 /**
@@ -6,9 +13,34 @@ import styles from "./UnderlinedInput.module.css";
  * optional placeholder text, and a grey/white underline, indicating focus
  * status.
  */
-export const UnderlinedInput = ({ placeholder = "", startingValue = "", multiline = false, onChange, onClick, className = "" }: { placeholder?: string, startingValue?: string, multiline?: boolean, onChange?: (val: string) => void, onClick?: (e: MouseEvent<HTMLInputElement | HTMLTextAreaElement>) => void, className?: string }) => {
+export const UnderlinedInput = ({
+	placeholder = "",
+	startingValue = "",
+	multiline = false,
+	onChange,
+	onClick,
+	className = "",
+	innerRef,
+	value: remoteValue,
+	...props
+}: {
+	placeholder?: string;
+	startingValue?: string;
+	multiline?: boolean;
+	value?: string;
+	onChange?: (val: string) => void;
+	onClick?: (e: MouseEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+	className?: string;
+	innerRef?: Ref<any>;
+} & Omit<Omit<InputHTMLAttributes<HTMLInputElement>, "onChange">, "ref">) => {
 	const [value, setValue] = useState(startingValue || "");
 	const [editing, setEditing] = useState(false);
+
+	useEffect(() => {
+		if (value === undefined) return;
+
+		setValue(remoteValue);
+	}, [remoteValue !== undefined, remoteValue.length]);
 
 	// Handles updates to the input field by using the user's callback,
 	// and updating the displayed text
@@ -18,7 +50,7 @@ export const UnderlinedInput = ({ placeholder = "", startingValue = "", multilin
 		onChange(e.target.value);
 	};
 
-	const props = {
+	const ourProps = {
 		className: styles.underlinedInput + (className ? ` ${className}` : ""),
 		value: value == "" && !editing ? placeholder : value,
 		onChange: onEdit,
@@ -26,17 +58,19 @@ export const UnderlinedInput = ({ placeholder = "", startingValue = "", multilin
 		onBlur: () => setEditing(false),
 	};
 
-	if (multiline)
-		return (
-			<textarea
-				{ ...props }
-			/>
-		);
+	if (multiline) return <textarea {...ourProps} />;
 
 	return (
 		<input
-			onClick={ onClick }
-			{ ...props }
+			ref={innerRef}
+			onClick={onClick}
+			{...props}
+			{...ourProps}
+			style={
+				ourProps.value === placeholder
+					? { color: "rgba(255, 255, 255, 0.6)" }
+					: undefined
+			}
 		/>
 	);
 };

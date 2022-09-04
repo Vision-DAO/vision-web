@@ -7,10 +7,12 @@ import { HTMLProps } from "react";
 export const StepBar = ({
 	step,
 	nSteps,
+	onClickStep,
 	style,
 }: {
 	step: number;
 	nSteps: number;
+	onClickStep: (step: number) => void;
 	style?: HTMLProps<HTMLDivElement>["style"];
 }) => {
 	return (
@@ -25,6 +27,7 @@ export const StepBar = ({
 					<div
 						className={`${styles.barPart} ${style}`}
 						key={i}
+						onClick={() => onClickStep(i)}
 						style={{ width: `${(1 / nSteps) * 100}%`, height: "0.5em" }}
 					/>
 				);

@@ -1,16 +1,13 @@
-import {
-	AllProposalInformation,
-	IpfsClient,
-	IdeaData,
-} from "../../../lib/util/ipfs";
+import { IpfsClient, IdeaData, useProfiles } from "../../../lib/util/ipfs";
 import { accounts } from "../../../lib/util/networks";
 import { MultiTypeInput } from "../../input/MultiTypeInput";
 import { UnderlinedInput } from "../../input/UnderlinedInput";
 import { MultiPageInput } from "../../input/MultiPageInput";
-import { OutlinedOptionSelector } from "../../input/OutlinedOptionSelector";
+import { GuidedAddrInput } from "../../input/GuidedAddrInput";
 import { useState } from "react";
 import { serialize } from "bson";
 import { FilledButton } from "../../status/FilledButton";
+import { OutlinedOptionSelector } from "./OutlinedOptionSelector";
 import styles from "./NewProposalPanel.module.css";
 import Proposal from "../../../value-tree/build/contracts/Prop.json";
 import LinearProgress from "@mui/material/LinearProgress";
@@ -198,7 +195,7 @@ export const NewProposalPanel = ({
 
 	return (
 		<MultiPageInput labels={inputs} onSubmit={deployContract}>
-			<div className={styles.formContainer}>
+			<div className={styles.formContainer} key="Info">
 				<div className={`${styles.formItem} ${styles.fullFormItem}`}>
 					<h1>Title</h1>
 					<UnderlinedInput
@@ -212,8 +209,14 @@ export const NewProposalPanel = ({
 					<MultiTypeInput label="Info" onChange={metadataUploader} />
 				</div>
 			</div>
-			<div className={styles.formContainer}></div>
-			<div className={styles.formContainer}></div>
+			<div className={styles.formContainer} key="ToFund">
+				<h1>Address to Fund</h1>
+				<GuidedAddrInput
+					onChange={mutatePropField("destAddr")}
+					className={styles.fullWidthInput}
+				/>
+			</div>
+			<div className={styles.formContainer} key="Pay"></div>
 		</MultiPageInput>
 	);
 };
