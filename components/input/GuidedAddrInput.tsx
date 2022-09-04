@@ -10,6 +10,7 @@ import {
 } from "../../.graphclient";
 import { UnderlinedInput } from "./UnderlinedInput";
 import { Autocomplete } from "@mui/material";
+import SearchIcon from "@mui/icons-material/SearchRounded";
 import { useState, useEffect } from "react";
 import { AutocompleteRenderInputParams } from "@mui/material";
 
@@ -84,6 +85,7 @@ export const GuidedAddrInput = ({
 		return (
 			<div ref={ref} className={className}>
 				<UnderlinedInput
+					icon={<SearchIcon fontSize="small" />}
 					className={className}
 					placeholder="0xABCDEF"
 					startingValue=""

@@ -5,6 +5,7 @@ import {
 	MouseEvent,
 	Ref,
 	InputHTMLAttributes,
+	ReactElement,
 } from "react";
 import styles from "./UnderlinedInput.module.css";
 
@@ -16,6 +17,7 @@ import styles from "./UnderlinedInput.module.css";
 export const UnderlinedInput = ({
 	placeholder = "",
 	startingValue = "",
+	icon,
 	multiline = false,
 	onChange,
 	onClick,
@@ -24,6 +26,7 @@ export const UnderlinedInput = ({
 	value: remoteValue,
 	...props
 }: {
+	icon?: ReactElement;
 	placeholder?: string;
 	startingValue?: string;
 	multiline?: boolean;
@@ -37,7 +40,7 @@ export const UnderlinedInput = ({
 	const [editing, setEditing] = useState(false);
 
 	useEffect(() => {
-		if (value === undefined) return;
+		if (remoteValue === undefined) return;
 
 		setValue(remoteValue);
 	}, [remoteValue !== undefined, remoteValue?.length ?? 0]);
@@ -45,6 +48,8 @@ export const UnderlinedInput = ({
 	// Handles updates to the input field by using the user's callback,
 	// and updating the displayed text
 	const onEdit = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+		if (e.target.value === undefined) return;
+
 		setValue(e.target.value);
 
 		onChange(e.target.value);
@@ -61,16 +66,19 @@ export const UnderlinedInput = ({
 	if (multiline) return <textarea {...ourProps} />;
 
 	return (
-		<input
-			ref={innerRef}
-			onClick={onClick}
-			{...props}
-			{...ourProps}
-			style={
-				ourProps.value === placeholder
-					? { color: "rgba(255, 255, 255, 0.6)" }
-					: undefined
-			}
-		/>
+		<div className={styles.inputContainer}>
+			{icon}
+			<input
+				ref={innerRef}
+				onClick={onClick}
+				{...props}
+				{...ourProps}
+				style={
+					ourProps.value === placeholder
+						? { color: "rgba(255, 255, 255, 0.6)", opacity: "0.5" }
+						: undefined
+				}
+			/>
+		</div>
 	);
 };
