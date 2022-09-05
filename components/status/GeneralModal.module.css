@@ -45,7 +45,7 @@
 
 .modalTitle {
 	display: flex;
-	
+
 	flex-flow: row nowrap;
 
 	justify-content: space-between;
@@ -53,7 +53,7 @@
 
 	width: 100%;
 
-	margin-bottom: 2rem;
+	margin-bottom: 3rem;
 }
 
 .modalTitle h1 {

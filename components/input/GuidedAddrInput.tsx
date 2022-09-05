@@ -14,15 +14,22 @@ import SearchIcon from "@mui/icons-material/SearchRounded";
 import { useState, useEffect } from "react";
 import { AutocompleteRenderInputParams } from "@mui/material";
 
+export enum GuideKind {
+	Users,
+	Daos,
+}
+
 /**
  * An input that displays users, and DAO's to select from.
  */
 export const GuidedAddrInput = ({
 	onChange,
 	className,
+	guides = new Set([GuideKind.Users, GuideKind.Daos]),
 }: {
 	onChange: (addr: string) => void;
 	className?: string;
+	guides?: Set<GuideKind>;
 }) => {
 	// Used for finding recipients of a transaction
 	const users = useStream<GetAllUsersQuery>(
@@ -41,7 +48,10 @@ export const GuidedAddrInput = ({
 		[]
 	);
 	const [queuedQuery, setQueuedQuery] = useState(null);
-	const options = [...profileOptions, ...daoOptions];
+	const options = [
+		...(guides.has(GuideKind.Users) ? profileOptions : []),
+		...(guides.has(GuideKind.Daos) ? daoOptions : []),
+	];
 
 	const [value, setValue] = useState<string>("");
 	const [option, setOption] = useState<string>("");

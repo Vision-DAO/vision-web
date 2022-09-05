@@ -21,8 +21,10 @@ export const UnderlinedInput = ({
 	multiline = false,
 	onChange,
 	onClick,
+	onSetEditing,
 	className = "",
 	innerRef,
+	onAttemptChange = (s) => s,
 	value: remoteValue,
 	...props
 }: {
@@ -32,7 +34,9 @@ export const UnderlinedInput = ({
 	multiline?: boolean;
 	value?: string;
 	onChange?: (val: string) => void;
+	onAttemptChange?: (val: string) => string;
 	onClick?: (e: MouseEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+	onSetEditing?: (editing: boolean) => void;
 	className?: string;
 	innerRef?: Ref<any>;
 } & Omit<Omit<InputHTMLAttributes<HTMLInputElement>, "onChange">, "ref">) => {
@@ -50,17 +54,25 @@ export const UnderlinedInput = ({
 	const onEdit = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
 		if (e.target.value === undefined) return;
 
-		setValue(e.target.value);
+		setValue(onAttemptChange(e.target.value));
 
-		onChange(e.target.value);
+		onChange(onAttemptChange(e.target.value));
 	};
 
 	const ourProps = {
 		className: styles.underlinedInput + (className ? ` ${className}` : ""),
 		value: value == "" && !editing ? placeholder : value,
 		onChange: onEdit,
-		onFocus: () => setEditing(true),
-		onBlur: () => setEditing(false),
+		onFocus: () => {
+			if (onSetEditing) onSetEditing(true);
+
+			setEditing(true);
+		},
+		onBlur: () => {
+			if (onSetEditing) onSetEditing(false);
+
+			setEditing(false);
+		},
 	};
 
 	if (multiline) return <textarea {...ourProps} />;

@@ -1,0 +1,62 @@
+.optionContainer {
+	display: flex;
+
+	flex-flow: column nowrap;
+
+	background-color: #1D1D1D;
+	border-radius: 5px;
+	border: 0.5px solid rgba(255, 255, 255, 0.5);
+
+	cursor: pointer;
+
+	overflow: scroll;
+
+	justify-content: flex-start;
+	align-items: center;
+}
+
+.optionContainer p {
+	font-size: 0.75em;
+}
+
+.selectedOption {
+	padding: 0.5em;
+	font-weight: bold;
+
+	display: flex;
+
+	flex-flow: row nowrap;
+
+	justify-content: center;
+	align-items: center;
+}
+
+.optionContainer.expanded>.selectedOption {
+	border-bottom: solid 0.5px rgba(255, 255, 255, 0.5);
+}
+
+.selectedOption>*:first-child {
+	margin-right: em;
+}
+
+.rotatable {
+	transition: 0.3s;
+}
+
+.down {
+	transform: rotate(0deg);
+}
+
+.up {
+	transform: rotate(180deg);
+}
+
+.option {
+	padding: 0.5em;
+
+	transition: 0.3s;
+}
+
+.option:hover {
+	opacity: 0.6;
+}

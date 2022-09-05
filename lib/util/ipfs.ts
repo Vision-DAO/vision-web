@@ -7,6 +7,7 @@ import { useWeb3 } from "./web3";
 import { chainId, IdxContext } from "./networks";
 import { Caip10Link } from "@ceramicnetwork/stream-caip10-link";
 import { BasicProfile } from "@datamodels/identity-profile-basic";
+import { AbiItem } from "web3-utils";
 
 /**
  * An alias for the type of the IPFS constructor.
@@ -299,4 +300,43 @@ export const useProfiles = (
 	}, [addrs.length]);
 
 	return profiles;
+};
+
+/**
+ * Gets the ticker symbol of the specified ERC-20, or returns an empty string..
+ */
+export const useSymbol = (addr: string): string => {
+	// See previous TODO on modularity
+	const erc20Abi: AbiItem[] = [
+		{
+			constant: true,
+			inputs: [],
+			name: "symbol",
+			outputs: [{ name: "", type: "string" }],
+			payable: false,
+			stateMutability: "view",
+			type: "function",
+		},
+	];
+	const [web3] = useWeb3();
+	const [symbol, setSymbol] = useState<string>("");
+
+	useEffect(() => {
+		if (addr === "") return;
+
+		(async () => {
+			try {
+				const contract = new web3.eth.Contract(erc20Abi, addr);
+				const symbol = await contract.methods.symbol().call();
+
+				setSymbol(symbol);
+			} catch (e) {
+				console.warn(e);
+
+				setSymbol("");
+			}
+		})();
+	}, [addr]);
+
+	return symbol;
 };

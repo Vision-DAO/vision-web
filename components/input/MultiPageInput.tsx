@@ -17,7 +17,7 @@ export const MultiPageInput = ({
 	onSubmit,
 }: {
 	children: ReactElement[];
-	labels: string[];
+	labels: ReactElement[] | ReactElement;
 	onSubmit: () => Promise<void>;
 }) => {
 	const [step, setStep] = useState<number>(0);
@@ -39,12 +39,17 @@ export const MultiPageInput = ({
 	return (
 		<div className={styles.stepContainer}>
 			{children[step]}
-			<div className={styles.row}>
-				<div className={styles.stepLabel}>
-					<p>{step + 1}</p>
+			{Array.isArray(labels) ? (
+				<div className={styles.row}>
+					<div className={styles.stepLabel}>
+						<p>{step + 1}</p>
+					</div>
+					{labels[step]}
 				</div>
-				<p>{labels[step]}</p>
-			</div>
+			) : (
+				labels
+			)}
+
 			<StepBar
 				step={step}
 				nSteps={children.length}

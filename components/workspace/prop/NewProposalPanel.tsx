@@ -1,16 +1,24 @@
-import { IpfsClient, IdeaData, useProfiles } from "../../../lib/util/ipfs";
+import { IpfsClient, IdeaData, useSymbol } from "../../../lib/util/ipfs";
 import { accounts } from "../../../lib/util/networks";
 import { MultiTypeInput } from "../../input/MultiTypeInput";
 import { UnderlinedInput } from "../../input/UnderlinedInput";
 import { MultiPageInput } from "../../input/MultiPageInput";
-import { GuidedAddrInput } from "../../input/GuidedAddrInput";
+import { GuidedAddrInput, GuideKind } from "../../input/GuidedAddrInput";
 import { useState } from "react";
 import { serialize } from "bson";
-import { FilledButton } from "../../status/FilledButton";
-import { OutlinedOptionSelector } from "./OutlinedOptionSelector";
+import { Dropdown } from "../../input/Dropdown";
+import {
+	MobileDatePicker,
+	MobileDateTimePicker,
+	LocalizationProvider,
+} from "@mui/x-date-pickers";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
+import { OutlinedOptionSelector } from "../../input/OutlinedOptionSelector";
 import styles from "./NewProposalPanel.module.css";
 import Proposal from "../../../value-tree/build/contracts/Prop.json";
+import Idea from "../../../value-tree/build/contracts/Idea.json";
 import LinearProgress from "@mui/material/LinearProgress";
+import CalendarIcon from "@mui/icons-material/CalendarTodayRounded";
 import Web3 from "web3";
 import { GetDaoAboutQuery } from "../../../.graphclient";
 
@@ -19,11 +27,12 @@ const requiredFields = [
 	"title",
 	"parentAddr",
 	"destAddr",
-	"rate",
 	"expiry",
 	"dataIpfsAddr",
 	"data",
 ];
+
+const requiredRateFields = ["token", "value", "kind", "interval", "expiry"];
 
 /**
  * Inputs for expiry times are scaled to a unit of time.
@@ -57,6 +66,11 @@ export const NewProposalPanel = ({
 	// The number of seconds to multiply the input by (e.g., days, hours, minutes)
 	const [timeMultiplier, setTimeMultiplier] = useState<number>(86400);
 	const [expiry, setParsedExpiry] = useState<number>(0);
+	const [fundingExpiry, setFundingExpiry] = useState<number>(
+		new Date().getTime() / 1000
+	);
+	const [interval, setInterval] = useState<number>(0);
+	const fundingKinds = ["Spending Treasury", `Making More ${parent.ticker}`];
 
 	// Default form values. ALL are required
 	const [propDetails, setPropDetails] = useState<AllProposalInformation>({
@@ -67,7 +81,7 @@ export const NewProposalPanel = ({
 			token: "",
 			value: 0,
 			kind: null,
-			interval: 0,
+			interval: null,
 			expiry: null,
 			lastClaimed: null,
 		},
@@ -79,11 +93,21 @@ export const NewProposalPanel = ({
 		addr: "",
 	});
 
+	// Ticker of the token used for payment
+	const paymentTicker = useSymbol(propDetails.rate.token);
+
 	const mutatePropField =
 		<T,>(field: string) =>
 		(val: T) =>
 			setPropDetails((details) => {
-				return { [field]: val, ...details };
+				return { ...details, [field]: val };
+			});
+
+	const mutateRateField =
+		<T,>(field: string) =>
+		(val: T) =>
+			setPropDetails((details) => {
+				return { ...details, rate: { ...details.rate, [field]: val } };
 			});
 
 	// Handles uploading the metadata from the new proposal form to IPFS.
@@ -113,19 +137,33 @@ export const NewProposalPanel = ({
 			}
 
 			if (propDetails[key] === null || !propDetails[key]) {
-				setStatusMessage(() => "Missing required proposal fields.");
+				setStatusMessage(() => `Missing required proposal field: ${key}.`);
 
 				return;
 			}
 		}
 
-		if (propDetails.rate.kind === null) {
-			setStatusMessage(() => "Missing required proposal fields.");
+		for (const key of requiredRateFields) {
+			if (key === "expiry") {
+				if (fundingExpiry === 0) {
+					setStatusMessage(() => "Invalid funding expiry date.");
 
-			return;
+					return;
+				}
+
+				continue;
+			}
+
+			if (!propDetails.rate[key]) {
+				setStatusMessage(() => `Missing required proposal field: ${key}.`);
+
+				return;
+			}
 		}
 
 		const contract = new web3.eth.Contract(Proposal.abi);
+		const registry = new web3.eth.Contract(Idea.abi, parent.id);
+		const deployer = (await accounts(eth))[0];
 
 		contract
 			.deploy({
@@ -136,12 +174,15 @@ export const NewProposalPanel = ({
 					propDetails.destAddr,
 					propDetails.rate.token,
 					propDetails.rate.kind,
+					propDetails.rate.value * Math.pow(10, 18),
+					propDetails.rate.interval,
+					fundingExpiry,
 					propDetails.dataIpfsAddr,
-					expiry * timeMultiplier,
+					expiry,
 				],
 			})
 			.send({
-				from: (await accounts(eth))[0],
+				from: deployer,
 			})
 			.on("error", (e) => {
 				setStatusMessage(e.message);
@@ -154,44 +195,42 @@ export const NewProposalPanel = ({
 				setDeploying(true);
 			})
 			.on("receipt", (receipt) => {
-				setStatusMessage("");
 				setDeploying(false);
 
-				propDetails.addr = receipt.contractAddress;
+				if (!receipt.contractAddress) {
+					setStatusMessage("Failed to deploy contract.");
+				}
+
+				return registry.methods
+					.submitProp(receipt.contractAddress)
+					.send({ from: deployer })
+					.on("error", (e) => {
+						setStatusMessage(e.message);
+
+						setDeploying(false);
+					})
+					.on("transactionHash", (hash) => {
+						setStatusMessage(`Registering proposal! Tx hash: ${hash}`);
+
+						setDeploying(true);
+					})
+					.on("receipt", () => {
+						setDeploying(false);
+					});
 			});
 	};
 
-	const setFundingKind = (kind: string) => {
-		const properKinds = {
-			Treasury: FundingKind.Treasury,
-			Mint: FundingKind.Mint,
-		};
-
-		setPropDetails((details: AllProposalInformation) => {
-			return {
-				...details,
-				rate: { ...details.rate, kind: properKinds[kind] },
-			};
-		});
-	};
-
-	const setExpiry = (expiry: string) => {
-		// The number of days the proposal should last for
-		const num = parseInt(expiry);
-
-		if (isNaN(num)) {
-			setStatusMessage("Invalid integer value.");
-			return;
-		}
-
-		setParsedExpiry(num);
-	};
-
-	const inputs = [
-		"Make your proposal stand out by describing what it will do.",
-		`Who will ${parent.name} be funding, and for how long?`,
-		`How much will ${parent.name} pay, and how will it pay?`,
-	];
+	const inputs =
+		statusMessage === "" ? (
+			[
+				<p>"Make your proposal stand out by describing what it will do."</p>,
+				<p>`Who will ${parent.name} be funding, and for how long?`</p>,
+				<p>`How much will ${parent.name} pay, and how will it pay?`</p>,
+				<p>"How long will voting on your proposal last?"</p>,
+			]
+		) : (
+			<p>{statusMessage}</p>
+		);
 
 	return (
 		<MultiPageInput labels={inputs} onSubmit={deployContract}>
@@ -210,13 +249,106 @@ export const NewProposalPanel = ({
 				</div>
 			</div>
 			<div className={styles.formContainer} key="ToFund">
-				<h1>Address to Fund</h1>
-				<GuidedAddrInput
-					onChange={mutatePropField("destAddr")}
-					className={styles.fullWidthInput}
-				/>
+				<div className={`${styles.formItem} ${styles.fullFormItem}`}>
+					<h1>Address to Fund</h1>
+					<GuidedAddrInput
+						onChange={mutatePropField("destAddr")}
+						className={styles.fullWidthInput}
+					/>
+				</div>
+				<div className={styles.multiItemLine}>
+					<div className={styles.formItem} style={{ overflowY: "visible" }}>
+						<h1>Released Every</h1>
+						<div className={styles.formLine}>
+							<UnderlinedInput
+								placeholder="1"
+								startingValue=""
+								onChange={(v: string) => setInterval(parseInt(v))}
+								onAttemptChange={(s: string) => (isNaN(parseInt(s)) ? "" : s)}
+								className={styles.shortLabel}
+							/>
+							<Dropdown
+								options={Object.keys(timeMultipliers)}
+								onChange={(unit) => setTimeMultiplier(timeMultipliers[unit])}
+							/>
+						</div>
+					</div>
+					<div className={styles.formItem}>
+						<h1>Available Until</h1>
+						<LocalizationProvider dateAdapter={AdapterDateFns}>
+							<MobileDatePicker
+								inputFormat="MM/dd/yyyy"
+								value={new Date(fundingExpiry * 1000)}
+								onChange={(d) => setFundingExpiry(d.getTime() / 1000)}
+								renderInput={(params) => (
+									<UnderlinedInput
+										onClick={(e) => params.inputProps.onClick(e)}
+										icon={<CalendarIcon />}
+										placeholder={new Date(fundingExpiry * 1000).toString()}
+									/>
+								)}
+							/>
+						</LocalizationProvider>
+					</div>
+				</div>
 			</div>
-			<div className={styles.formContainer} key="Pay"></div>
+			<div className={styles.formContainer} key="Pay">
+				<div className={styles.formItem}>
+					<h1>Funding Token</h1>
+					<GuidedAddrInput
+						onChange={mutateRateField("token")}
+						className={styles.fullWidthInput}
+						guides={new Set([GuideKind.Daos])}
+					/>
+				</div>
+				<div className={`${styles.multiItemLine} ${styles.fullWidthInput}`}>
+					<div className={styles.formItem}>
+						<h1>Pay By</h1>
+						<OutlinedOptionSelector
+							options={
+								propDetails.rate.token.toLowerCase() === parent.id.toLowerCase()
+									? fundingKinds
+									: ["Spending Treasury"]
+							}
+							onChange={(option) =>
+								mutateRateField("kind")(fundingKinds.indexOf(option))
+							}
+							onClear={() => {}}
+						/>
+					</div>
+					<div className={`${styles.formItem} ${styles.fullWidthInput}`}>
+						<h1>
+							Amount to Pay{paymentTicker !== "" ? ` (${paymentTicker})` : ""}
+						</h1>
+						<UnderlinedInput
+							placeholder={`${propDetails.rate.value} ${paymentTicker}`}
+							onAttemptChange={(s: string) => (isNaN(parseFloat(s)) ? "" : s)}
+							onChange={(s: string) => mutateRateField("value")(parseFloat(s))}
+							className={styles.fullWidthInput}
+						/>
+					</div>
+				</div>
+			</div>
+			<div className={styles.formContainer} key="Vote">
+				<div className={`${styles.formItem} ${styles.fullWidthInput}`}>
+					<h1>Proposal Expiry</h1>
+					<LocalizationProvider dateAdapter={AdapterDateFns}>
+						<MobileDateTimePicker
+							inputFormat="MM/dd/yyyy"
+							value={new Date(expiry * 1000)}
+							onChange={(d) => setParsedExpiry(d.getTime() / 1000)}
+							renderInput={(params) => (
+								<UnderlinedInput
+									onClick={(e) => params.inputProps.onClick(e)}
+									icon={<CalendarIcon />}
+									placeholder={new Date(expiry * 1000).toString()}
+									className={styles.fullWidthInput}
+								/>
+							)}
+						/>
+					</LocalizationProvider>
+				</div>
+			</div>
 		</MultiPageInput>
 	);
 };
