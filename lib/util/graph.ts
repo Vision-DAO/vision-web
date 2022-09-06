@@ -3,8 +3,14 @@ import {
 	UserFeedQuery,
 	GetDaoInfoQuery,
 	subscribe,
+	Sdk,
 } from "../../.graphclient";
-import { useState, useEffect } from "react";
+import { useState, useContext, useEffect, createContext } from "react";
+
+/**
+ * Global instance of The Graph client.
+ */
+export const ClientContext = createContext<Sdk>(undefined);
 
 /**
  * The representation of a DAO extracted from user feeds.
@@ -48,32 +54,29 @@ export const getVisBalance = (q: UserStatsQuery, visAddr: string): number =>
  */
 export const useStream = <T>(
 	init: T,
-	...params: Parameters<typeof subscribe>
+	streamBuilder: (client: Sdk) => Promise<AsyncIterable<T>>,
+	deps: unknown[]
 ): T => {
+	const graph = useGraph();
 	const [v, setV] = useState(init);
 
-	useEffect(
-		() => {
-			if ("id" in params[1] && params[1]["id"] === undefined) {
-				setV(init);
+	useEffect(() => {
+		(async () => {
+			const stream = await streamBuilder(graph);
 
-				return;
+			if (stream === undefined) return;
+
+			for await (const entry of stream) {
+				setV(entry);
 			}
-
-			(async () => {
-				const stream = await subscribe(...params);
-
-				for await (const entry of orSingleIter(stream)) {
-					if (entry.data === null) return;
-
-					setV(entry.data);
-				}
-			})();
-		},
-		"id" in params[1] ? [params[1]["id"]] : []
-	);
+		})();
+	}, deps);
 
 	if (v === undefined) return init;
 
 	return v;
+};
+
+export const useGraph = (): Sdk => {
+	return useContext(ClientContext);
 };

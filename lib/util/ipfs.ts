@@ -68,8 +68,14 @@ export const loadIdeaImageSrc = async (
 	const data = await loadIdeaBinaryData(ipfs, ipfsAddr);
 
 	for (const d of data) {
-		if (d.kind === "image-blob") return blobify(window, d.data, null);
+		if (d.kind === "image-blob") {
+			const data = deserialize(d.data, { promoteBuffers: true }) as FileData;
+
+			const blob = blobify(window, data.contents, null);
+			return blob;
+		}
 	}
+
 	return undefined;
 };
 
@@ -85,6 +91,7 @@ export const loadIdeaDescription = async (
 	for (const d of data) {
 		if (d.kind === "utf-8") return decodeIdeaDataUTF8(d.data);
 	}
+
 	return undefined;
 };
 
@@ -101,7 +108,12 @@ export const loadIdeaBinaryData = async (
 
 	// Data fields are optional for all ideas
 	try {
-		data = deserialize(rawData, { promoteBuffers: true }) as IdeaData[];
+		const deserialized = deserialize(rawData, {
+			promoteBuffers: true,
+		}) as IdeaData[];
+
+		if (Array.isArray(deserialized)) data = deserialized;
+		else data = Object.values(deserialized);
 	} catch (e) {
 		console.warn(e);
 	}

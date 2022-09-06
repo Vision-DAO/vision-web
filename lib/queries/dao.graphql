@@ -123,9 +123,9 @@ fragment PropInformation on Prop {
   }
 }
 
-query GetProps($id: ID!) {
+query GetProps($id: ID!, $dayStart: BigInt!) @live {
   idea(id:$id) {
-    activeProps {
+    activeProps(where: {expiration_gt: $dayStart}) {
       ...PropInformation
     }
     children {

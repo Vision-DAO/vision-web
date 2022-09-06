@@ -56,7 +56,6 @@ export const watchIdea = async (
 	ideaAddr: string,
 	record: WatchedIdeasRecord
 ): Promise<void> => {
-	console.log(ideaAddr, record);
 	// TODO: Work on identifying cryptographic non-guarantees, and terminating this
 	// non-null document link
 	return await record.set({

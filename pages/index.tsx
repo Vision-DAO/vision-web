@@ -2,12 +2,7 @@ import { useWeb3 } from "../lib/util/web3";
 import { IpfsContext } from "../lib/util/ipfs";
 import { ModalContext } from "../lib/util/modal";
 import { useStream } from "../lib/util/graph";
-import {
-	GetDaoInfoQuery,
-	GetDaoInfoDocument,
-	GetMapItemsDocument,
-	GetMapItemsQuery,
-} from "../.graphclient";
+import { GetDaoInfoQuery, GetMapItemsQuery } from "../.graphclient";
 import { serialize } from "bson";
 import { useState, useContext, useEffect } from "react";
 import { IdeaDetailCard } from "../components/workspace/IdeaDetailCard";
@@ -24,7 +19,7 @@ import styles from "./index.module.css";
 export const registries: Map<string, string | null> = new Map([
 	["ethereum", null],
 	["polygon", null],
-	["polygon-test", "0x704289F005639D5D327897ddb251Fdbea4b80510"],
+	["polygon-test", "0x5000e273188Ce07f11dd7a270A16a17Bff071176"],
 ]);
 
 /**
@@ -37,8 +32,11 @@ export const Index = () => {
 	const [activeIdea, setActiveIdea] = useState<string>(undefined);
 	const activeIdeaInfo = useStream<GetDaoInfoQuery>(
 		undefined,
-		GetDaoInfoDocument,
-		{ id: activeIdea }
+		(graph) =>
+			activeIdea === undefined
+				? undefined
+				: graph.GetDaoInfo({ id: activeIdea }),
+		[activeIdea]
 	);
 	const [web3, eth] = useWeb3();
 	const ipfs = useContext(IpfsContext);
@@ -46,8 +44,8 @@ export const Index = () => {
 	const [modal] = useContext(ModalContext);
 	const allIdeas = useStream<GetMapItemsQuery | null>(
 		{ ideas: [], props: [] },
-		GetMapItemsDocument,
-		{}
+		(graph) => graph.GetMapItems({}),
+		[]
 	);
 
 	// Display items as a map of bubbles

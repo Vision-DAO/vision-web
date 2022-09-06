@@ -8,7 +8,7 @@ import { useStream } from "../../../lib/util/graph";
 import { ModalContext } from "../../../lib/util/modal";
 import { DetailNavigatorLayout } from "../../../components/workspace/DetailNavigatorLayout";
 import { ProposalsList } from "../../../components/workspace/prop/ProposalsList";
-import { useContext, ReactElement } from "react";
+import { useContext, ReactElement, useState, useEffect } from "react";
 import { NewProposalPanel } from "../../../components/workspace/prop/NewProposalPanel";
 import dashStyles from "./about.module.css";
 import styles from "./proposals.module.css";
@@ -28,13 +28,30 @@ export const Proposals = () => {
 	const [idea] = useContext(ActiveIdeaContext);
 	const [web3, eth] = useWeb3();
 	const ipfs = useContext(IpfsContext);
+	const [currTime, setCurrTime] = useState<Date>(new Date());
 	const router = useRouter();
-	const proposals = useStream<GetPropsQuery>(undefined, GetPropsDocument, {
-		id: idea.id,
-	});
+	const proposals = useStream<GetPropsQuery>(
+		undefined,
+		(graph) =>
+			graph.GetProps({
+				id: idea.id,
+				dayStart: Math.floor(currTime.getTime() / 1000),
+			}),
+		[idea.id, Math.floor(currTime.getTime() / 1000)]
+	);
 
 	// When the user deploys a new proposal, this modal is used
 	const [, setModal] = useContext(ModalContext);
+
+	useEffect(() => {
+		const updater = setInterval(() => {
+			setCurrTime(new Date());
+		}, 5000);
+
+		return () => {
+			clearInterval(updater);
+		};
+	}, []);
 
 	const newPropModalContent = (
 		<GeneralModal title={`New Proposal: ${idea.name}`}>
@@ -44,6 +61,7 @@ export const Proposals = () => {
 				eth={eth}
 				parent={idea}
 				parentAddr={idea.id}
+				onDeploy={() => setModal(null)}
 			/>
 		</GeneralModal>
 	);

@@ -7,6 +7,7 @@ import { GuidedAddrInput, GuideKind } from "../../input/GuidedAddrInput";
 import { useState } from "react";
 import { serialize } from "bson";
 import { Dropdown } from "../../input/Dropdown";
+import BigNumber from "bignumber.js";
 import {
 	MobileDatePicker,
 	MobileDateTimePicker,
@@ -53,23 +54,26 @@ export const NewProposalPanel = ({
 	ipfs,
 	parentAddr,
 	parent,
+	onDeploy,
 }: {
 	web3: Web3;
 	eth: any;
 	ipfs: IpfsClient;
 	parentAddr: string;
 	parent: GetDaoAboutQuery["idea"];
+	onDeploy: () => void;
 }) => {
 	const [statusMessage, setStatusMessage] = useState<string>("");
 	const [deploying, setDeploying] = useState<boolean>(false);
 
 	// The number of seconds to multiply the input by (e.g., days, hours, minutes)
 	const [timeMultiplier, setTimeMultiplier] = useState<number>(86400);
-	const [expiry, setParsedExpiry] = useState<number>(0);
+	const [expiry, setParsedExpiry] = useState<number>(
+		new Date().getTime() / 1000
+	);
 	const [fundingExpiry, setFundingExpiry] = useState<number>(
 		new Date().getTime() / 1000
 	);
-	const [interval, setInterval] = useState<number>(0);
 	const fundingKinds = ["Spending Treasury", `Making More ${parent.ticker}`];
 
 	// Default form values. ALL are required
@@ -116,7 +120,7 @@ export const NewProposalPanel = ({
 		const cid = (
 			await ipfs.add(new Uint8Array(serialize(data)))
 		).cid.toString();
-		setPropDetails((details: AllProposalInformation) => {
+		setPropDetails((details) => {
 			return { ...details, data: data, dataIpfsAddr: cid };
 		});
 	};
@@ -165,67 +169,79 @@ export const NewProposalPanel = ({
 		const registry = new web3.eth.Contract(Idea.abi, parent.id);
 		const deployer = (await accounts(eth))[0];
 
-		contract
-			.deploy({
-				data: Proposal.bytecode,
-				arguments: [
-					propDetails.title,
-					propDetails.parentAddr,
-					propDetails.destAddr,
-					propDetails.rate.token,
-					propDetails.rate.kind,
-					propDetails.rate.value * Math.pow(10, 18),
-					propDetails.rate.interval,
-					fundingExpiry,
-					propDetails.dataIpfsAddr,
-					expiry,
-				],
-			})
-			.send({
-				from: deployer,
-			})
-			.on("error", (e) => {
-				setStatusMessage(e.message);
+		try {
+			setDeploying(true);
 
-				setDeploying(false);
-			})
-			.on("transactionHash", (hash) => {
-				setStatusMessage(`Deploying! Tx hash: ${hash}`);
+			await contract
+				.deploy({
+					data: Proposal.bytecode,
+					arguments: [
+						propDetails.title,
+						propDetails.parentAddr,
+						propDetails.destAddr,
+						propDetails.rate.token,
+						propDetails.rate.kind,
+						new BigNumber(propDetails.rate.value).times(
+							new BigNumber(10).pow(18)
+						),
+						propDetails.rate.interval,
+						fundingExpiry,
+						propDetails.dataIpfsAddr,
+						expiry,
+					],
+				})
+				.send({
+					from: deployer,
+				})
+				.on("error", (e) => {
+					setStatusMessage(e.message);
+					console.error(e);
 
-				setDeploying(true);
-			})
-			.on("receipt", (receipt) => {
-				setDeploying(false);
+					setDeploying(false);
+				})
+				.on("transactionHash", (hash) => {
+					setStatusMessage(`Deploying! Tx hash: ${hash}`);
 
-				if (!receipt.contractAddress) {
-					setStatusMessage("Failed to deploy contract.");
-				}
+					setDeploying(true);
+				})
+				.on("receipt", (receipt) => {
+					if (!receipt.contractAddress) {
+						setStatusMessage("Failed to deploy contract.");
+					}
 
-				return registry.methods
-					.submitProp(receipt.contractAddress)
-					.send({ from: deployer })
-					.on("error", (e) => {
-						setStatusMessage(e.message);
+					setDeploying(true);
 
-						setDeploying(false);
-					})
-					.on("transactionHash", (hash) => {
-						setStatusMessage(`Registering proposal! Tx hash: ${hash}`);
+					return registry.methods
+						.submitProp(receipt.contractAddress)
+						.send({ from: deployer })
+						.on("error", (e) => {
+							setStatusMessage(e.message);
+							console.error(e);
 
-						setDeploying(true);
-					})
-					.on("receipt", () => {
-						setDeploying(false);
-					});
-			});
+							setDeploying(false);
+						})
+						.on("transactionHash", (hash) => {
+							setStatusMessage(`Registering proposal! Tx hash: ${hash}`);
+						})
+						.on("receipt", () => {
+							setDeploying(false);
+
+							onDeploy();
+						});
+				});
+		} catch (e) {
+			setStatusMessage(`Failed to deploy contract: ${e}`);
+
+			console.error(e);
+		}
 	};
 
 	const inputs =
 		statusMessage === "" ? (
 			[
 				<p>"Make your proposal stand out by describing what it will do."</p>,
-				<p>`Who will ${parent.name} be funding, and for how long?`</p>,
-				<p>`How much will ${parent.name} pay, and how will it pay?`</p>,
+				<p>{`Who will ${parent.name} be funding, and for how long?`}</p>,
+				<p>{`How much will ${parent.name} pay, and how will it pay?`}</p>,
 				<p>"How long will voting on your proposal last?"</p>,
 			]
 		) : (
@@ -263,7 +279,9 @@ export const NewProposalPanel = ({
 							<UnderlinedInput
 								placeholder="1"
 								startingValue=""
-								onChange={(v: string) => setInterval(parseInt(v))}
+								onChange={(v: string) =>
+									mutateRateField("interval")(parseInt(v) * timeMultiplier)
+								}
 								onAttemptChange={(s: string) => (isNaN(parseInt(s)) ? "" : s)}
 								className={styles.shortLabel}
 							/>

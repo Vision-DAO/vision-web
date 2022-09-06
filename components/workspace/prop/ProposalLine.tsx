@@ -2,7 +2,6 @@ import { useIdeaImage, useIdeaDescription } from "../../../lib/util/ipfs";
 import { formatTime12Hr } from "../idea/activity/ActivityEntry";
 import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
 import FullscreenRoundedIcon from "@mui/icons-material/FullscreenRounded";
-import { useState, useEffect } from "react";
 import styles from "./ProposalLine.module.css";
 import { explorers } from "../../../lib/util/networks";
 import { GetPropsQuery } from "../../../.graphclient";
@@ -30,24 +29,26 @@ export const ProposalLine = ({
 
 	return (
 		<div className={styles.propRow}>
-			<img src={icon} />
-			<div className={styles.propTextInfo}>
-				<div className={`${styles.row} ${styles.spaced}`}>
-					<h2>{prop.title}</h2>
-					<div className={`${styles.row}`}>
-						<ProfileTooltip addr={prop.author.id} />
+			<div className={styles.leftInfo}>
+				<img className={styles.propIcon} height="100%" width="15%" src={icon} />
+				<div className={styles.propTextInfo}>
+					<div className={`${styles.row} ${styles.spaced}`}>
+						<h2>{prop.title}</h2>
+						<div className={`${styles.row}`}>
+							<ProfileTooltip addr={prop.author.id} />
+						</div>
 					</div>
+					{description !== undefined ? (
+						<p>{description}</p>
+					) : (
+						<div className={styles.descSkeleton}>
+							{" "}
+							<Skeleton variant="text" width="100%" />
+							<Skeleton width="100%" variant="text" />{" "}
+							<Skeleton variant="text" width="80%" />{" "}
+						</div>
+					)}
 				</div>
-				{description !== undefined ? (
-					<p>{description}</p>
-				) : (
-					<div className={styles.descSkeleton}>
-						{" "}
-						<Skeleton variant="text" width="100%" />
-						<Skeleton width="100%" variant="text" />{" "}
-						<Skeleton variant="text" width="80%" />{" "}
-					</div>
-				)}
 			</div>
 		</div>
 	);

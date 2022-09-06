@@ -27,6 +27,8 @@ import NavPanel from "../components/workspace/nav/NavPanel";
 import { NavItem } from "../components/workspace/nav/NavItem";
 import navStyles from "../components/workspace/nav/NavPanel.module.css";
 import { Web3Context, provideWeb3 } from "../lib/util/web3";
+import { ClientContext } from "../lib/util/graph";
+import { getBuiltGraphSDK } from "../.graphclient";
 import EthCrypto from "eth-crypto";
 import { IpfsContext, IpfsStoreContext } from "../lib/util/ipfs";
 import { ActiveIdeaContext } from "../lib/util/ideas/module";
@@ -149,11 +151,16 @@ const App = ({ Component, pageProps }: AppPropsWithLayout) => {
 	// Keep the global IPFS intance up to date
 	const [ipfs, setIpfs] = useState(undefined);
 	const ideaContext = useState(undefined);
+	const [client, setClient] = useState(undefined);
+
+	useEffect(() => {
+		setClient(getBuiltGraphSDK());
+	}, []);
 
 	const [ipfsStore, setIpfsStore] = useState({});
 	const storeMutater = (cid: string, key: string, v: unknown) => {
 		setIpfsStore((store) => {
-			return { [cid]: { ...(store[cid] ?? {}), [key]: v }, ...store };
+			return { ...store, [cid]: { ...(store[cid] ?? {}), [key]: v } };
 		});
 	};
 
@@ -234,56 +241,58 @@ const App = ({ Component, pageProps }: AppPropsWithLayout) => {
 			>
 				<ThemeProvider theme={theme}>
 					<Web3Context.Provider value={web3}>
-						<VisContext.Provider value={visAddr}>
-							<IpfsContext.Provider value={ipfs}>
-								<IpfsStoreContext.Provider value={[ipfsStore, storeMutater]}>
-									<ConnectionContext.Provider value={connStatus}>
-										<AuthContext.Provider value={authContext}>
-											<ActiveIdeaContext.Provider value={ideaContext}>
-												<IdxContext.Provider value={idxContext}>
-													<ModalContext.Provider value={[modal, setModal]}>
-														{router.pathname !== "/login" ? (
-															<div
-																className={`${styles.app} ${styles.root}${
-																	hasModal ? " " + styles.hidden : ""
-																}`}
-															>
-																<div className={styles.navPanel}>
-																	<NavPanel
-																		items={navItems}
-																		onProfileClicked={(selfId: string) =>
-																			router.push({
-																				pathname: "/profile/[id]",
-																				query: {
-																					id: selfId,
-																				},
-																			})
-																		}
-																		onSettingsActive={() =>
-																			router.push("/settings")
-																		}
-																		ctx={web3}
-																	/>
+						<ClientContext.Provider value={client}>
+							<VisContext.Provider value={visAddr}>
+								<IpfsContext.Provider value={ipfs}>
+									<IpfsStoreContext.Provider value={[ipfsStore, storeMutater]}>
+										<ConnectionContext.Provider value={connStatus}>
+											<AuthContext.Provider value={authContext}>
+												<ActiveIdeaContext.Provider value={ideaContext}>
+													<IdxContext.Provider value={idxContext}>
+														<ModalContext.Provider value={[modal, setModal]}>
+															{router.pathname !== "/login" ? (
+																<div
+																	className={`${styles.app} ${styles.root}${
+																		hasModal ? " " + styles.hidden : ""
+																	}`}
+																>
+																	<div className={styles.navPanel}>
+																		<NavPanel
+																			items={navItems}
+																			onProfileClicked={(selfId: string) =>
+																				router.push({
+																					pathname: "/profile/[id]",
+																					query: {
+																						id: selfId,
+																					},
+																				})
+																			}
+																			onSettingsActive={() =>
+																				router.push("/settings")
+																			}
+																			ctx={web3}
+																		/>
+																	</div>
+																	<div className={styles.workspace}>
+																		<NetworkedWorkspace>
+																			{getLayout(<Component {...pageProps} />)}
+																		</NetworkedWorkspace>
+																	</div>
 																</div>
-																<div className={styles.workspace}>
-																	<NetworkedWorkspace>
-																		{getLayout(<Component {...pageProps} />)}
-																	</NetworkedWorkspace>
+															) : (
+																<div className={`${styles.app} ${styles.root}`}>
+																	<Component {...pageProps} />
 																</div>
-															</div>
-														) : (
-															<div className={`${styles.app} ${styles.root}`}>
-																<Component {...pageProps} />
-															</div>
-														)}
-													</ModalContext.Provider>
-												</IdxContext.Provider>
-											</ActiveIdeaContext.Provider>
-										</AuthContext.Provider>
-									</ConnectionContext.Provider>
-								</IpfsStoreContext.Provider>
-							</IpfsContext.Provider>
-						</VisContext.Provider>
+															)}
+														</ModalContext.Provider>
+													</IdxContext.Provider>
+												</ActiveIdeaContext.Provider>
+											</AuthContext.Provider>
+										</ConnectionContext.Provider>
+									</IpfsStoreContext.Provider>
+								</IpfsContext.Provider>
+							</VisContext.Provider>
+						</ClientContext.Provider>
 					</Web3Context.Provider>
 				</ThemeProvider>
 			</Provider>

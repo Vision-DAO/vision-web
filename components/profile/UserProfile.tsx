@@ -12,12 +12,7 @@ import defaultBackground from "../../public/images/default_background.jpg";
 import { blobify } from "../../lib/util/blobify";
 import { IpfsContext, getAll } from "../../lib/util/ipfs";
 import { useStream } from "../../lib/util/graph";
-import {
-	UserStatsQuery,
-	UserFeedQuery,
-	UserStatsDocument,
-	UserFeedDocument,
-} from "../../.graphclient";
+import { UserStatsQuery, UserFeedQuery } from "../../.graphclient";
 
 /**
  * Renders a profile for the user with the specified 3ID ID and ethereum address.
@@ -45,13 +40,13 @@ export const UserProfile = ({ id, addr }: { id: string; addr: string }) => {
 		{
 			user: { ideas: [], id: addr },
 		},
-		UserStatsDocument,
-		{ id: addr }
+		(graph) => graph.UserStats({ id: addr }),
+		[addr]
 	);
 	const feed = useStream<UserFeedQuery>(
 		{ user: { ideas: [] } },
-		UserFeedDocument,
-		{ id: addr }
+		(graph) => graph.UserFeed({ id: addr }),
+		[addr]
 	);
 
 	// Generate an empty profile if the record doesn't exist

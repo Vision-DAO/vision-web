@@ -5,3 +5,12 @@
 	justify-content: flex-start;
 	align-items: center;
 }
+
+.pfp {
+	border-radius: 50%;
+
+	object-fit: cover;
+
+	margin-right: 0.75em;
+}
+

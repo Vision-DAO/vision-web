@@ -3,5 +3,13 @@
 }
 
 .list {
+	display: flex;
+	flex-flow: column nowrap;
+	justify-content: flex-start;
+	align-items: stretch;
 	overflow-y: auto;
+}
+
+.list>*:not(:last-child) {
+	margin-bottom: 0.75em;
 }

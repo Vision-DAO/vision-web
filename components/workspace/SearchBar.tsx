@@ -104,11 +104,7 @@ export const SearchBar = ({
 	dehovered: (dehovered: string) => void;
 }) => {
 	// Allow searching through user profiles, as well
-	const users = useStream<GetAllUsersQuery>(
-		{ users: [] },
-		GetAllUsersDocument,
-		{}
-	);
+	const users = { users: [] };
 	const profiles = useProfiles(
 		users.users.map((user: GetAllUsersQuery["users"][0]) => user.id)
 	);

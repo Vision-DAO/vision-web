@@ -34,8 +34,8 @@ export const GuidedAddrInput = ({
 	// Used for finding recipients of a transaction
 	const users = useStream<GetAllUsersQuery>(
 		{ users: [] },
-		GetAllUsersDocument,
-		{}
+		(graph) => graph.GetAllUsers({}),
+		[]
 	);
 	const profiles = useProfiles(users.users.map((user) => user.id));
 	const profileOptions = Object.entries(profiles)

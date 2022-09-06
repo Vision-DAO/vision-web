@@ -18,7 +18,7 @@ import styles from "../index.module.css";
 export const registries: Map<string, string | null> = new Map([
 	["ethereum", null],
 	["polygon", null],
-	["polygon-test", "0x704289F005639D5D327897ddb251Fdbea4b80510"],
+	["polygon-test", "0x5000e273188Ce07f11dd7a270A16a17Bff071176"],
 ]);
 
 /**
@@ -34,8 +34,8 @@ export const Index = () => {
 	const [activeIdea, setActiveIdea] = useState<string>(undefined);
 	const activeIdeaInfo = useStream<GetDaoInfoQuery>(
 		undefined,
-		GetDaoInfoDocument,
-		{ id: activeIdea }
+		(graph) => graph.GetDaoInfo({ id: activeIdea }),
+		[activeIdea]
 	);
 
 	// Ideas are discovered through other peers informing us of them, through
@@ -43,8 +43,8 @@ export const Index = () => {
 	// and through entries in the registry smart contract.
 	const allIdeas = useStream<GetMapItemsOwnedQuery | null>(
 		{ user: { ideas: [] } },
-		GetMapItemsOwnedDocument,
-		{ id: userAddr }
+		(graph) => graph.GetMapItemsOwned({ id: userAddr }),
+		[userAddr]
 	);
 
 	useEffect(() => {
