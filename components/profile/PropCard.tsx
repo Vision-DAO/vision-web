@@ -8,7 +8,7 @@ import {
 	useIdeaDescription,
 	useActionLink,
 } from "../../lib/util/ipfs";
-import { FilledButton } from "../status/FilledButton";
+import { OutlinedButton } from "../status/OutlinedButton";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForwardRounded";
 import ShareIcon from "@mui/icons-material/ShareRounded";
 import { formatDate } from "../../lib/util/networks";
@@ -89,6 +89,8 @@ export const PropCard = ({
 		navigator.clipboard.writeText(url);
 	};
 
+	const expired = new Date() > new Date(prop.expiration * 1000);
+
 	return (
 		<div className={styles.propCard}>
 			<h2 className={styles.propTitle}>{prop.title}</h2>
@@ -120,39 +122,43 @@ export const PropCard = ({
 								<Skeleton variant="text" width="80%" />
 							</div>
 						)}
-						{prop.status === "Pending" ? (
+						{!expired ? (
 							<PercentageLine percentage={prop.votesFor / prop.funder.supply} />
 						) : (
 							<div
-								className={
-									{ Rejected: styles.rejected, Accepted: styles.Accepted }[
-										prop.status
-									]
-								}
+								className={`${
+									{
+										Pending: styles.rejected,
+										Rejected: styles.rejected,
+										Accepted: styles.accepted,
+									}[prop.status]
+								} ${styles.statusIndicator}`}
 							>
 								{
 									{
 										Rejected: <ClearIcon />,
+										Pending: <ClearIcon />,
 										Accepted: <CheckIcon />,
 									}[prop.status]
 								}
-								<p>{prop.status}</p>
+								<p>{prop.status === "Accepted" ? "Accepted" : "Rejected"}</p>
 							</div>
 						)}
 					</div>
 					<div className={`${styles.row} ${styles.full} ${styles.actionRow}`}>
-						<FilledButton
+						<OutlinedButton
 							className={`${styles.actionButton} ${styles.primaryButton}`}
-							label="VIEW PROPOSAL"
-							onClick={() => router.push(`/proposals/${prop.id}`)}
-						/>
-						<FilledButton
-							className={styles.actionButton}
-							label="SHARE"
-							onClick={shareProp}
+							callback={() => router.push(`/proposals/${prop.id}`)}
 						>
-							{[<ShareIcon className={styles.shareIcon} fontSize="small" />]}
-						</FilledButton>
+							<h1>View Proposal</h1>
+						</OutlinedButton>
+						<OutlinedButton
+							className={styles.actionButton}
+							callback={shareProp}
+						>
+							<h1>Share</h1>
+							<ShareIcon className={styles.shareIcon} fontSize="small" />
+						</OutlinedButton>
 					</div>
 				</div>
 			</div>

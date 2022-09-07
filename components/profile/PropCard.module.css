@@ -137,13 +137,23 @@
 .actionButton {
 	border-radius: 5px;
 
-	font-size: 0.75em;
+	font-size: 0.5em;
+}
+
+.actionButton h1 {
+	font-size: 2em;
+	margin-right: 0;
+
+	font-weight: bold;
 }
 
 .primaryButton {
 	width: 70%;
+	background-color: #5D5FEF;
+}
 
-	margin-right: 0.5em;
+.primaryButton:hover {
+	background-color: #7879F1;
 }
 
 .actionRow {
@@ -152,8 +162,35 @@
 
 .actionRow>*:last-child {
 	flex-grow: 1;
+
+	margin-left: 0.7em;
 }
 
 .shareIcon {
 	margin-left: 0.25em;
+}
+
+.statusIndicator {
+	display: flex;
+
+	flex-flow: row nowrap;
+	justify-content: center;
+	align-items: center;
+
+	width: 100%;
+
+	border-radius: 0.5em;
+}
+
+.statusIndicator>*:first-child {
+	margin-right: 0.25em;
+}
+
+.accepted {
+	background-color: #3E3F92;
+}
+
+.rejected {
+	color: red;
+	background-color: black;
 }
