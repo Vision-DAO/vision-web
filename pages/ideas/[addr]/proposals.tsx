@@ -88,6 +88,8 @@ export const Proposals = () => {
 							eth={eth}
 							ipfs={ipfs}
 							web3={web3}
+							parent={idea}
+							oldProps={proposals.idea?.children ?? []}
 							proposals={proposals.idea.activeProps}
 							onSelectProp={(addr) => router.push(`/proposals/${addr}/about`)}
 						/>

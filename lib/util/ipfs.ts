@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { usePublicRecord, useClient } from "@self.id/framework";
 import { blobify } from "./blobify";
 import { useWeb3 } from "./web3";
+import { useGraph } from "./graph";
 import { chainId, IdxContext } from "./networks";
 import { Caip10Link } from "@ceramicnetwork/stream-caip10-link";
 import { BasicProfile } from "@datamodels/identity-profile-basic";
@@ -351,4 +352,22 @@ export const useSymbol = (addr: string): string => {
 	}, [addr]);
 
 	return symbol;
+};
+
+/**
+ * Gets the title of the given DAO, or the name of the given user.
+ */
+export const useActorTitle = (addr: string): string => {
+	const graph = useGraph();
+
+	const [daoTitle, setDaoTitle] = useState<string | null>(null);
+	const username = useUserName(addr);
+
+	useEffect(() => {
+		(async () => {
+			setDaoTitle((await graph.GetDaoTitle({ id: addr })).idea?.name);
+		})();
+	}, [addr]);
+
+	return daoTitle ?? username ?? addr;
 };

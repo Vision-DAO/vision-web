@@ -1,13 +1,20 @@
-import { useIdeaImage, useIdeaDescription } from "../../../lib/util/ipfs";
+import {
+	useIdeaImage,
+	useIdeaDescription,
+	useActorTitle,
+	useSymbol,
+} from "../../../lib/util/ipfs";
 import { Fragment } from "react";
-import { formatTime12Hr } from "../idea/activity/ActivityEntry";
-import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
-import FullscreenRoundedIcon from "@mui/icons-material/FullscreenRounded";
+import { PercentageLine } from "./PercentageLine";
 import ClearIcon from "@mui/icons-material/ClearRounded";
 import CheckIcon from "@mui/icons-material/CheckRounded";
 import styles from "./ProposalLine.module.css";
-import { explorers, formatDateObj } from "../../../lib/util/networks";
-import { GetPropsQuery } from "../../../.graphclient";
+import {
+	explorers,
+	formatDateObj,
+	formatErc,
+} from "../../../lib/util/networks";
+import { GetPropsQuery, GetDaoAboutQuery } from "../../../.graphclient";
 import { ProfileTooltip } from "../../status/ProfileTooltip";
 import { Skeleton } from "@mui/material";
 
@@ -17,18 +24,27 @@ import { Skeleton } from "@mui/material";
  */
 export const ProposalLine = ({
 	prop,
+	oldProp,
+	parent,
 	onExpand,
 	onFinalize,
 }: {
 	prop:
 		| GetPropsQuery["idea"]["activeProps"][0]
 		| GetPropsQuery["idea"]["children"][0];
+	oldProp?: GetPropsQuery["idea"]["children"][0];
+	parent: GetDaoAboutQuery["idea"];
 	onExpand?: () => void;
 	onFinalize?: () => void;
 }) => {
 	// Binary data loaded via IPFS
 	const icon = useIdeaImage(prop.ipfsAddr);
 	const description = useIdeaDescription(prop.ipfsAddr);
+
+	// Human-readable party to fund
+	const toFund = useActorTitle(prop.toFund);
+	const ticker = useSymbol(prop.rate.token);
+	const oldTicker = useSymbol(oldProp?.rate.token);
 
 	/**
 	 * Gets a human readable time difference between a and b.
@@ -73,27 +89,56 @@ export const ProposalLine = ({
 	);
 
 	return (
-		<div className={styles.propRow}>
+		<div className={styles.propRow} onClick={onExpand}>
 			<div className={styles.leftInfo}>
-				<img className={styles.propIcon} height="100%" width="25%" src={icon} />
+				<img
+					className={styles.propIcon}
+					height="100%"
+					width="12vw"
+					src={icon}
+				/>
 				<div className={styles.propTextInfo}>
-					<div className={`${styles.row} ${styles.spaced}`}>
-						<h2 className={styles.propTitle}>{prop.title}</h2>
-						<div className={styles.row}>
-							<ProfileTooltip addr={prop.author.id} />
-							<p>•{formatDateObj(new Date(prop.createdAt * 1000))}</p>
+					<div className={styles.topTextInfo}>
+						<div className={`${styles.row} ${styles.spaced} ${styles.full}`}>
+							<h2 className={styles.propTitle}>{prop.title}</h2>
+							<div className={`${styles.row} ${styles.authorRow}`}>
+								<ProfileTooltip addr={prop.author.id} />
+								<p className={styles.separator}>•</p>
+								<p className={styles.noMargin}>
+									{formatDateObj(new Date(prop.createdAt * 1000))}
+								</p>
+							</div>
+						</div>
+						{description !== undefined ? (
+							<p className={styles.propDescription}>{description}</p>
+						) : (
+							<div className={styles.descSkeleton}>
+								{" "}
+								<Skeleton variant="text" width="100%" />
+								<Skeleton width="100%" variant="text" />{" "}
+								<Skeleton variant="text" width="80%" />{" "}
+							</div>
+						)}
+					</div>
+					<div className={styles.bottomTextInfo}>
+						<PercentageLine percentage={prop.votesFor / parent.supply} />
+						<div className={styles.explanationsList}>
+							<div className={styles.yesExplanation}>
+								<p>Yes:</p>
+								<p>
+									Change the funding rate for {toFund} to{" "}
+									{formatErc(prop.rate.value)} {ticker}
+								</p>
+							</div>
+							<div className={styles.noExplanation}>
+								<p>No:</p>
+								<p>
+									Keep the funding rate at {oldProp?.rate.value ?? 0}{" "}
+									{oldTicker}
+								</p>
+							</div>
 						</div>
 					</div>
-					{description !== undefined ? (
-						<p className={styles.propDescription}>{description}</p>
-					) : (
-						<div className={styles.descSkeleton}>
-							{" "}
-							<Skeleton variant="text" width="100%" />
-							<Skeleton width="100%" variant="text" />{" "}
-							<Skeleton variant="text" width="80%" />{" "}
-						</div>
-					)}
 				</div>
 			</div>
 			<div className={styles.rightInfo}>

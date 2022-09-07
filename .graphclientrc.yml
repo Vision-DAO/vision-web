@@ -6,7 +6,7 @@ sources:
 
 plugins:
   - pollingLive:
-      defaultInterval: 1000
+      defaultInterval: 5000
 
 documents:
   - ./lib/queries/map.graphql

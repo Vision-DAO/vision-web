@@ -1,13 +1,51 @@
+.listContainer {
+	position: relative;
+
+	height: 100%;
+	width: 100%;
+}
+
 .spacedList {
 	justify-content: space-around;
 }
 
+.overlayBG {
+	position: absolute;
+
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+
+	background: linear-gradient(180deg, rgba(0, 0, 0, 0) 85.07%, rgba(0, 0, 0, 0.87) 112.75%);
+
+	z-index: 1;
+	pointer-events: none;
+}
+
 .list {
+	position: absolute;
+
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+
 	display: flex;
 	flex-flow: column nowrap;
 	justify-content: flex-start;
 	align-items: stretch;
 	overflow-y: auto;
+}
+
+.list>* {
+	cursor: pointer;
+
+	transition: 0.3s opacity;
+}
+
+.list>*:hover {
+	opacity: 0.6;
 }
 
 .list>*:not(:last-child) {

@@ -43,6 +43,12 @@ fragment DaoCardInfo on Idea {
   }
 }
 
+query GetDaoTitle($id: ID!) {
+  idea(id:$id) {
+    name
+  }
+}
+
 query GetDaoInfo($id: ID!) @live {
   idea(id:$id) {
     ...DaoCardInfo
