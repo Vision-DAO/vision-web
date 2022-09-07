@@ -256,3 +256,18 @@
 .noExplanation {
 	justify-content: flex-end;
 }
+
+.actorLink {
+	color: white;
+
+	text-decoration: underline;
+	text-decoration-color: #5D5FEF;
+
+	cursor: pointer;
+
+	transition: 0.3s opacity;
+}
+
+.actorLink:hover {
+	opacity: 0.6;
+}

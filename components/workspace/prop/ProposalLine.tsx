@@ -1,7 +1,7 @@
 import {
 	useIdeaImage,
 	useIdeaDescription,
-	useActorTitle,
+	useActorTitleNature,
 	useSymbol,
 } from "../../../lib/util/ipfs";
 import { Fragment } from "react";
@@ -13,10 +13,12 @@ import {
 	explorers,
 	formatDateObj,
 	formatErc,
+	useConnStatus,
 } from "../../../lib/util/networks";
 import { GetPropsQuery, GetDaoAboutQuery } from "../../../.graphclient";
 import { ProfileTooltip } from "../../status/ProfileTooltip";
 import { Skeleton } from "@mui/material";
+import { useRouter } from "next/router";
 
 /**
  * Renders the following information about a proposal on a line, with a callback
@@ -39,10 +41,18 @@ export const ProposalLine = ({
 }) => {
 	// Binary data loaded via IPFS
 	const icon = useIdeaImage(prop.ipfsAddr);
+	const [conn] = useConnStatus();
 	const description = useIdeaDescription(prop.ipfsAddr);
+	const router = useRouter();
 
 	// Human-readable party to fund
-	const toFund = useActorTitle(prop.toFund);
+	const [toFund, fundeeKind] = useActorTitleNature(prop.toFund);
+	const fundeeURL = {
+		user: () => router.push(`/profile/${prop.toFund}`),
+		dao: () => router.push(`/ideas/${prop.toFund}`),
+		addr: () =>
+			window.open(`${explorers[conn.network]}/address/${prop.toFund}`),
+	}[fundeeKind];
 	const ticker = useSymbol(prop.rate.token);
 	const oldTicker = useSymbol(oldProp?.rate.token);
 
@@ -89,7 +99,7 @@ export const ProposalLine = ({
 	);
 
 	return (
-		<div className={styles.propRow} onClick={onExpand}>
+		<div className={styles.propRow}>
 			<div className={styles.leftInfo}>
 				<img
 					className={styles.propIcon}
@@ -100,7 +110,12 @@ export const ProposalLine = ({
 				<div className={styles.propTextInfo}>
 					<div className={styles.topTextInfo}>
 						<div className={`${styles.row} ${styles.spaced} ${styles.full}`}>
-							<h2 className={styles.propTitle}>{prop.title}</h2>
+							<h2
+								className={`${styles.propTitle} ${styles.actorLink}`}
+								onClick={onExpand}
+							>
+								{prop.title}
+							</h2>
 							<div className={`${styles.row} ${styles.authorRow}`}>
 								<ProfileTooltip addr={prop.author.id} />
 								<p className={styles.separator}>•</p>
@@ -126,8 +141,11 @@ export const ProposalLine = ({
 							<div className={styles.yesExplanation}>
 								<p>Yes:</p>
 								<p>
-									Change the funding rate for {toFund} to{" "}
-									{formatErc(prop.rate.value)} {ticker}
+									Change the funding rate for{" "}
+									<a className={styles.actorLink} onClick={fundeeURL}>
+										{toFund}
+									</a>{" "}
+									to {formatErc(prop.rate.value)} {ticker}
 								</p>
 							</div>
 							<div className={styles.noExplanation}>

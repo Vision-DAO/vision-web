@@ -357,7 +357,9 @@ export const useSymbol = (addr: string): string => {
 /**
  * Gets the title of the given DAO, or the name of the given user.
  */
-export const useActorTitle = (addr: string): string => {
+export const useActorTitleNature = (
+	addr: string
+): [string, "user" | "dao" | "addr"] => {
 	const graph = useGraph();
 
 	const [daoTitle, setDaoTitle] = useState<string | null>(null);
@@ -369,5 +371,11 @@ export const useActorTitle = (addr: string): string => {
 		})();
 	}, [addr]);
 
-	return daoTitle ?? username ?? addr;
+	if (daoTitle) return [daoTitle, "dao"];
+	else if (username) return [username, "user"];
+
+	return [addr, "addr"];
 };
+
+export const useActorTitle = (addr: string): string =>
+	useActorTitleNature(addr)[0];
