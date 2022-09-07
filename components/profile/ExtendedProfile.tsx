@@ -12,6 +12,7 @@ import { AddrOrEns } from "../status/AddrOrEns";
 import { useState, useContext, ChangeEvent } from "react";
 import { UserStatsQuery, UserFeedQuery } from "../../.graphclient";
 import { IdeaCard } from "../workspace/IdeaCard";
+import { PropCard } from "./PropCard";
 import { useRouter } from "next/router";
 
 export interface ExtendedProfileProps {
@@ -146,6 +147,10 @@ export const ExtendedProfile = ({
 			/>
 		)) ?? [];
 
+	const feedCards = feed.user?.ideas
+		.flatMap(({ props: { props } }) => props)
+		.map((prop) => <PropCard prop={prop} />);
+
 	/**
 	 * Uploads the file target of an input event to IPFS, and stores the new src
 	 * in the respective state variable.
@@ -268,6 +273,10 @@ export const ExtendedProfile = ({
 			<div className={styles.infoSection}>
 				<h2>Ideas</h2>
 				<div className={styles.daoCarousel}>{daoCards}</div>
+			</div>
+			<div className={styles.infoSection}>
+				<h2>Proposals</h2>
+				<div className={styles.propFeed}>{feedCards}</div>
 			</div>
 		</div>
 	);

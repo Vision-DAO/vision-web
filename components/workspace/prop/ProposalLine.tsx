@@ -3,18 +3,14 @@ import {
 	useIdeaDescription,
 	useActorTitleNature,
 	useSymbol,
+	useActionLink,
 } from "../../../lib/util/ipfs";
 import { Fragment } from "react";
 import { PercentageLine } from "./PercentageLine";
 import ClearIcon from "@mui/icons-material/ClearRounded";
 import CheckIcon from "@mui/icons-material/CheckRounded";
 import styles from "./ProposalLine.module.css";
-import {
-	explorers,
-	formatDateObj,
-	formatErc,
-	useConnStatus,
-} from "../../../lib/util/networks";
+import { formatDateObj, formatErc } from "../../../lib/util/networks";
 import { GetPropsQuery, GetDaoAboutQuery } from "../../../.graphclient";
 import { ProfileTooltip } from "../../status/ProfileTooltip";
 import { Skeleton } from "@mui/material";
@@ -41,18 +37,12 @@ export const ProposalLine = ({
 }) => {
 	// Binary data loaded via IPFS
 	const icon = useIdeaImage(prop.ipfsAddr);
-	const [conn] = useConnStatus();
 	const description = useIdeaDescription(prop.ipfsAddr);
 	const router = useRouter();
 
 	// Human-readable party to fund
-	const [toFund, fundeeKind] = useActorTitleNature(prop.toFund);
-	const fundeeURL = {
-		user: () => router.push(`/profile/${prop.toFund}`),
-		dao: () => router.push(`/ideas/${prop.toFund}`),
-		addr: () =>
-			window.open(`${explorers[conn.network]}/address/${prop.toFund}`),
-	}[fundeeKind];
+	const [toFund] = useActorTitleNature(prop.toFund);
+	const fundeeURL = useActionLink(prop.toFund, router);
 	const ticker = useSymbol(prop.rate.token);
 	const oldTicker = useSymbol(oldProp?.rate.token);
 

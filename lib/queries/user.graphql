@@ -42,8 +42,22 @@ query UserFeed($id:ID!) @live {
       }
       props {
         props {
-          title
+          id
           ipfsAddr
+          title
+          author {
+            id
+          }
+          funder {
+            id
+            supply
+          }
+          toFund
+          votesFor
+          status
+          expiration
+          createdAt
+          finalizedAt
         }
       }
     }

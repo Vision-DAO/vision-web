@@ -5,10 +5,11 @@ import { usePublicRecord, useClient } from "@self.id/framework";
 import { blobify } from "./blobify";
 import { useWeb3 } from "./web3";
 import { useGraph } from "./graph";
-import { chainId, IdxContext } from "./networks";
+import { chainId, IdxContext, explorers, useConnStatus } from "./networks";
 import { Caip10Link } from "@ceramicnetwork/stream-caip10-link";
 import { BasicProfile } from "@datamodels/identity-profile-basic";
 import { AbiItem } from "web3-utils";
+import { useRouter } from "next/router";
 
 /**
  * An alias for the type of the IPFS constructor.
@@ -160,6 +161,8 @@ export const useIdeaImage = (ipfsAddr: string): string | undefined => {
 	const ipfs = useContext(IpfsContext);
 
 	useEffect(() => {
+		if (!ipfsAddr || ipfsAddr === "") return;
+
 		if (ipfsAddr in cache && "icon" in cache[ipfsAddr]) return;
 
 		(async () => {
@@ -379,3 +382,38 @@ export const useActorTitleNature = (
 
 export const useActorTitle = (addr: string): string =>
 	useActorTitleNature(addr)[0];
+
+/**
+ * Gets the IPFS address associated with the idea.
+ */
+export const useIdeaIpfsAddr = (addr: string): string => {
+	const graph = useGraph();
+
+	const [ipfsAddr, setIpfsAddr] = useState<string>("");
+
+	useEffect(() => {
+		(async () => {
+			setIpfsAddr((await graph.GetIpfsAddr({ id: addr })).idea?.ipfsAddr);
+		})();
+	}, [addr]);
+
+	return ipfsAddr;
+};
+
+/**
+ * Generates a link to click on the indicated asset, be it a normal address, a
+ * user, or a DAO.
+ */
+export const useActionLink = (
+	addr: string,
+	router: ReturnType<typeof useRouter>
+): (() => void) => {
+	const [, nature] = useActorTitleNature(addr);
+	const [conn] = useConnStatus();
+
+	return {
+		user: () => router.push(`/profile/${addr}`),
+		dao: () => router.push(`/ideas/${addr}`),
+		addr: () => window.open(`${explorers[conn.network]}/address/${addr}`),
+	}[nature];
+};

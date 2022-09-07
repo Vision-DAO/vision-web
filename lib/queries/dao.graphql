@@ -139,3 +139,11 @@ query GetProps($id: ID!, $dayStart: BigInt!) @live {
     }
   }
 }
+
+query GetIpfsAddr($id: ID!) {
+  idea(id:$id) {
+    id
+    ipfsAddr
+  }
+}
+

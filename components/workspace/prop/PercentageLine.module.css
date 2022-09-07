@@ -72,3 +72,11 @@
 
 	margin: 0;
 }
+
+.label:not(:first-child):not(:last-child) {
+	text-align: center;
+}
+
+.label:last-child {
+	text-align: end;
+}
