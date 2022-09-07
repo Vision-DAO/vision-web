@@ -27,7 +27,7 @@ export const ProfileTooltip = ({ addr }: { addr: string }) => {
 		lineHeight -=
 			parseFloat(style.paddingTop) + parseFloat(style.paddingBottom);
 
-		setImageHeight(lineHeight);
+		setImageHeight(lineHeight * 1.5);
 	}, [line.current === null, window.innerHeight, window.innerWidth]);
 
 	return (

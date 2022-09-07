@@ -19,7 +19,7 @@ export const staticProposals: { [net: string]: string } = {
  * Address of the Vision token on different networks.
  */
 export const visTokenAddr: { [net: string]: string } = {
-	"polygon-test": "0x00a83fb5E8c109f198DF7390Baad34CB7Fb99237",
+	"polygon-test": "0x2a0073Bd141EfAb52A1177532e4971fDbC7E44d7",
 };
 
 /**
@@ -104,13 +104,16 @@ export const formatErc = (n: number): string =>
 	(n / Math.pow(10, 18)).toLocaleString();
 
 /**
+ * Formats a date object in YYYY/mm/d format.
+ */
+export const formatDateObj = (d: Date): string =>
+	`${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
+
+/**
  * Extracts the month, day, and year from a UNIX timestamp.
  */
-export const formatDate = (n: number): string => {
-	const date = new Date(n * 1000);
-
-	return `${date.getMonth()}/${date.getDay()}/${date.getFullYear()}`;
-};
+export const formatDate = (n: number): string =>
+	formatDateObj(new Date(n * 1000));
 
 /**
  * Gets a list of the user's active accounts.
