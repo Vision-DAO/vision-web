@@ -15,11 +15,13 @@ export const PropertyVisualization = ({
 	max,
 	bars,
 	key,
+	label,
 	className = "",
 }: {
 	max: number;
 	bars: { [label: string]: number };
 	key?: string;
+	label: string;
 	className?: string;
 }) => {
 	return (
@@ -40,7 +42,7 @@ export const PropertyVisualization = ({
 					</Tooltip>
 				))}
 			</div>
-			<p>Votes</p>
+			<p>{label}</p>
 		</div>
 	);
 };
@@ -74,6 +76,7 @@ export const PropVoteVisualization = ({
 							PropertyVisualization({
 								max,
 								bars: points,
+								label: `${Object.keys(points)[0]} Votes`,
 								key: i.toString(),
 							})
 					)}

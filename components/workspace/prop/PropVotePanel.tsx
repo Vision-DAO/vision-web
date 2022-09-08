@@ -2,37 +2,20 @@ import styles from "./PropVotePanel.module.css";
 import { PropInfo } from "../../../lib/util/proposals/module";
 import Web3 from "web3";
 import { useEthAddr, formatDate } from "../../../lib/util/networks";
+import BN from "bn.js";
 import { useUserBalance, useSymbol } from "../../../lib/util/ipfs";
 import { useState, useEffect } from "react";
-import { styled } from "@mui/material/styles";
 import Idea from "../../../value-tree/build/contracts/Idea.json";
 import Prop from "../../../value-tree/build/contracts/Prop.json";
 import { Contract } from "web3-eth-contract";
-import Slider, { SliderProps } from "@mui/material/Slider";
 import LinearProgress from "@mui/material/LinearProgress";
 import { UnderlinedInput } from "../../input/UnderlinedInput";
 import { StyledSlider } from "../../input/Slider";
-import { formatInterval } from "./PropInfoPanel";
 import { formatTime12Hr } from "../idea/activity/ActivityEntry";
 import { FilledButton } from "../../status/FilledButton";
-import { OutlinedOptionSelector } from "../../input/OutlinedOptionSelector";
-import {
-	MobileDatePicker,
-	MobileDatePickerProps,
-} from "@mui/x-date-pickers/MobileDatePicker";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import ExpandMore from "@mui/icons-material/ExpandMoreRounded";
 import ExpandLess from "@mui/icons-material/ExpandLessRounded";
 import CheckCircleRounded from "@mui/icons-material/CheckCircleRounded";
-
-const StyledDatePicker = styled(MobileDatePicker)<MobileDatePickerProps>(
-	() => ({
-		"& .MuiButton-root": {
-			backgroundColor: "black",
-		},
-	})
-);
 
 /**
  * A panel that allows a user to place a new vote for a proposal,
@@ -50,21 +33,18 @@ export const PropVotePanel = ({
 	// The currently logged-in Ethereum user
 	const loggedIn = useEthAddr();
 
-	// The user's preference
-	const [direction, setDirection] = useState<boolean>(true);
+	const parseBig = (web3: Web3, n: number): BN =>
+		web3.utils
+			.toBN(Math.trunc(n))
+			.mul(web3.utils.toBN(10 ** 18))
+			.add(web3.utils.toBN(Math.trunc((n % 1) * 10 ** 18)));
 
 	// The magnitude of the user's preference. This comes from a form entry
 	const [nVotes, setNvotes] = useState<number>(0);
 
 	// The user's balance of the voting token (the maximum amount they can vote)
 	const maxVotes = useUserBalance(loggedIn, prop.funder.id);
-	console.log(maxVotes);
 	const voteTicker = useSymbol(prop.funder.id);
-
-	// The ticker and decimals of the funding token are used for:
-	// - Label human readability
-	// - Determining a maximum token amount in slider inputs
-	const fundingTokenTicker = useSymbol(prop.rate.token);
 
 	// To save space, this item can be shrunk to just its header
 	const [containerExpanded, setContainerExpanded] = useState<boolean>(true);
@@ -104,38 +84,16 @@ export const PropVotePanel = ({
 		},
 	];
 
-	const scale = (n: number): number => 2 ** (256 ** n) - 2;
-	const idx = (n: number): number =>
-		Math.log(Math.log(n + 2) / Math.log(2)) / (8 * Math.log(2));
-
-	const handleVoteChange = (e: unknown, n: number) => setNvotes(n as number);
+	const handleVoteChange = (_: unknown, n: number) => setNvotes(n as number);
 
 	// Casts the user's vote after doing verification on the expected values of the form.
-	const castVote = async () => {
-		// Serialize structured JS data to an intermediary ABI format
-		const rawRate: RawEthPropRate = {
-			token: prop.rate.token,
-			value: parseBig(
-				web3,
-				Number(rate.value),
-				fundingTokenDecimals
-			).toString(),
-			intervalLength: (rate.interval * intervalMultiplier).toString(),
-
-			// Convert Date to a unix timestamp
-			expiry: Math.floor(rate.expiry.getTime() / 1000).toString(),
-			lastClaimed: Math.floor(
-				prop.rate.lastClaimed.getTime() / 1000
-			).toString(),
-			kind: (prop.rate.kind as number).toString(),
-		};
-
+	const castVote = async (direction: number) => {
 		// Use the first available ethereum account for all transactions
 		const acc = (await accounts(eth))[0];
 
 		// Allocate the votes to the contract
 		await parentContract.methods
-			.approve(prop.addr, parseBig(web3, Number(nVotes), 18).toString())
+			.approve(prop.id, parseBig(web3, Number(nVotes), 18).toString())
 			.send({
 				from: acc,
 			})
@@ -158,7 +116,7 @@ export const PropVotePanel = ({
 					.send({
 						from: acc,
 					})
-					.on("error", (e) => {
+					.on("error", (e: { message: string }) => {
 						setErrorMsg(e.message);
 					})
 					.once("transactionHash", (hash: string) => {
@@ -215,15 +173,26 @@ export const PropVotePanel = ({
 						}`}
 					>
 						<div className={styles.votePanelItem}>
-							<p>
+							<div className={styles.combinedInput}>
 								Vote Count:{" "}
-								<b>
-									{nVotes ? nVotes.toLocaleString() : "0"} {voteTicker ?? ""}
-								</b>
-							</p>
+								<UnderlinedInput
+									value={nVotes.toString()}
+									placeholder={`0 ${voteTicker}`}
+									startingValue={nVotes.toString()}
+									onChange={(n) => handleVoteChange(undefined, parseFloat(n))}
+									onAttemptChange={(v) =>
+										v === ""
+											? "0"
+											: isNaN(parseFloat(v))
+											? nVotes.toString()
+											: v
+									}
+								/>
+							</div>
 							<div className={styles.votePanelSlider}>
 								<StyledSlider
 									className={styles.sliderThumb}
+									value={nVotes}
 									size="small"
 									min={0}
 									max={maxVotes ? maxVotes / 10 ** 18 : 0}
@@ -235,12 +204,22 @@ export const PropVotePanel = ({
 							</div>
 						</div>
 						<p>{errorMsg}</p>
-						{voteCasting && <LinearProgress />}
-						<FilledButton
-							label="Cast Vote"
-							onClick={castVote}
-							className={styles.submitButton}
-						/>
+						{voteCasting ? (
+							<LinearProgress />
+						) : (
+							<div className={styles.voteChoices}>
+								<FilledButton
+									label="Vote No"
+									onClick={() => castVote(1)}
+									className={`${styles.submitButton} ${styles.no}`}
+								/>{" "}
+								<FilledButton
+									label="Vote Yes"
+									onClick={() => castVote(0)}
+									className={`${styles.submitButton} ${styles.yes}`}
+								/>
+							</div>
+						)}
 					</div>
 				</div>
 			) : (

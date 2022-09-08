@@ -9,12 +9,16 @@ import { ReactElement, Context, useEffect, useContext, useState } from "react";
 import { WarningMessage } from "../status/WarningMessage";
 import { Sdk } from "../../.graphclient";
 
+interface IDAble {
+	id: string;
+}
+
 /**
  * See nextjs documentation on layouts: a wrapper for all pages on an
  * info detail screen that ensures all rendered children have a loaded, cached
  * Idea context available.
  */
-export const DetailNavigatorLayout = <T,>({
+export const DetailNavigatorLayout = <T extends IDAble>({
 	title,
 	pages,
 	children,
@@ -51,14 +55,24 @@ export const DetailNavigatorLayout = <T,>({
 	const [modal] = useContext(ModalContext);
 
 	useEffect(() => {
+		let signal = false;
+
 		(async () => {
 			for await (const info of loader(graph, addr)) {
-				if (ideaInfo && !info) continue;
+				if (signal) return;
+
+				if ((ideaInfo && !info) || info.id !== addr) continue;
+
+				console.log(addr, info);
 
 				if (info) setGlobalIdeaInfo(info);
 				setIdeaInfo(info);
 			}
 		})();
+
+		return () => {
+			signal = true;
+		};
 	}, [addr]);
 
 	// If IdeaInfo is undefined, a load hasn't even been attempted, which
