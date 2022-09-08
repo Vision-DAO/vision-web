@@ -8,6 +8,15 @@ import { IDX } from "@ceramicstudio/idx";
 
 export type Network = "ethereum" | "polygon" | "polygon-test" | "unknown";
 
+/**
+ * Registries deployed to different networks (used for bootstrapping).
+ */
+export const registries: Map<string, string | null> = new Map([
+	["ethereum", null],
+	["polygon", null],
+	["polygon-test", "0x5000e273188Ce07f11dd7a270A16a17Bff071176"],
+]);
+
 /*
  * Mappings from network names to addresses of statically deployed proposal
  * contracts.
@@ -292,4 +301,10 @@ export const provideConnStatus = (
 		ethConnection,
 		() => setEthConnection({ ...ethConnection, initialized: true }),
 	];
+};
+
+export const useRegistry = (): string => {
+	const [conn] = useConnStatus();
+
+	return registries.get(conn.network);
 };

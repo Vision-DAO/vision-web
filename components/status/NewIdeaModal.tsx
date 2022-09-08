@@ -1,13 +1,14 @@
 import Web3 from "web3";
 import styles from "./NewIdeaModal.module.css";
 import { useState, useEffect } from "react";
-import { accounts } from "../../lib/util/networks";
+import { accounts, useRegistry } from "../../lib/util/networks";
 import { IdeaData } from "../../lib/util/ipfs";
 import CloseIcon from "@mui/icons-material/CloseRounded";
 import LinearProgress from "@mui/material/LinearProgress";
 import { UnderlinedInput } from "../input/UnderlinedInput";
 import { MultiTypeInput } from "../input/MultiTypeInput";
 import Idea from "../../value-tree/build/contracts/Idea.json";
+import Factory from "../../value-tree/build/contracts/Factory.json";
 import { FilledButton } from "./FilledButton";
 
 export interface NewIdeaSubmission {
@@ -45,6 +46,7 @@ export const NewIdeaModal = ({
 	let style = styles.newIdeaModalContainer;
 
 	const [web3, eth] = ctx;
+	const registry = useRegistry();
 
 	// The information to use for the user's deployed Idea smart contract
 	const [ideaDetails, setIdeaDetails] = useState({});
@@ -70,23 +72,17 @@ export const NewIdeaModal = ({
 
 	// Deploys a new Idea smart contract from the callback of the Idea modal
 	const createIdea = async (constructorArgs: NewIdeaSubmission) => {
-		const contract = new web3.eth.Contract(Idea.abi);
-		contract
-			.deploy({
-				data: Idea.bytecode,
-
-				// See Idea.sol for definition of contract arguments.
-				// Obtained from Form submission of NewIdeaModal
-				arguments: [
-					constructorArgs.ideaName,
-					constructorArgs.ideaTicker,
-					web3.utils
-						.toBN(constructorArgs.ideaShares)
-						.mul(web3.utils.toBN(10 ** 18))
-						.toString(),
-					constructorArgs.datumIpfsHash,
-				],
-			})
+		const deployer = new web3.eth.Contract(Factory.abi, registry);
+		deployer.methods
+			.createIdea(
+				constructorArgs.ideaName,
+				constructorArgs.ideaTicker,
+				web3.utils
+					.toBN(constructorArgs.ideaShares)
+					.mul(web3.utils.toBN(10 ** 18))
+					.toString(),
+				constructorArgs.datumIpfsHash
+			)
 			// TODO: Status details
 			.send({
 				// The first account selected should be the owner

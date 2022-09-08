@@ -14,15 +14,6 @@ import { useRouter } from "next/router";
 import styles from "./index.module.css";
 
 /**
- * Registries deployed to different networks (used for bootstrapping).
- */
-export const registries: Map<string, string | null> = new Map([
-	["ethereum", null],
-	["polygon", null],
-	["polygon-test", "0x5000e273188Ce07f11dd7a270A16a17Bff071176"],
-]);
-
-/**
  * A navigable page rendering a mind map of ideas minted on vision.
  */
 export const Index = () => {

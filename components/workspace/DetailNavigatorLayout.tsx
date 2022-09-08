@@ -63,8 +63,6 @@ export const DetailNavigatorLayout = <T extends IDAble>({
 
 				if ((ideaInfo && !info) || info.id !== addr) continue;
 
-				console.log(addr, info);
-
 				if (info) setGlobalIdeaInfo(info);
 				setIdeaInfo(info);
 			}
