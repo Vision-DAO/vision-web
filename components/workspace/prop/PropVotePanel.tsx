@@ -1,7 +1,7 @@
 import styles from "./PropVotePanel.module.css";
 import { PropInfo } from "../../../lib/util/proposals/module";
 import Web3 from "web3";
-import { useEthAddr, formatDate } from "../../../lib/util/networks";
+import { useEthAddr, formatDate, accounts } from "../../../lib/util/networks";
 import BN from "bn.js";
 import { useUserBalance, useSymbol } from "../../../lib/util/ipfs";
 import { useState, useEffect } from "react";
@@ -93,7 +93,7 @@ export const PropVotePanel = ({
 
 		// Allocate the votes to the contract
 		await parentContract.methods
-			.approve(prop.id, parseBig(web3, Number(nVotes), 18).toString())
+			.approve(prop.id, parseBig(web3, Number(nVotes)).toString())
 			.send({
 				from: acc,
 			})
@@ -109,10 +109,7 @@ export const PropVotePanel = ({
 				// The votes can now be used
 				// Place the vote
 				return propContract.methods
-					.vote(parseBig(web3, Number(nVotes), 18).toString(), {
-						...rawRate,
-						value: rawRate.value,
-					})
+					.vote(parseBig(web3, Number(nVotes)).toString(), direction)
 					.send({
 						from: acc,
 					})

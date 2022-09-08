@@ -213,9 +213,9 @@
 .no {
 	margin-right: 0.5em;
 
-	background-color: #5A153A;
+	background-color: #5A153A !important;
 }
 
 .no:hover {
-	background-color: #45102c;
+	background-color: #45102c !important;
 }

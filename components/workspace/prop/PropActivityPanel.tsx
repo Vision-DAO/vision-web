@@ -21,11 +21,11 @@ export const PropActivityPanel = ({ prop }: { prop: PropInfo }) => {
 			key: vote.id,
 			kind: "VoteCast",
 			label: (
-				<div>
+				<div className={styles.row}>
 					<ProfileTooltip addr={vote.voter.user.id} />
-					<p>
-						voted {vote.kind.toLowerCase()} with {formatErc(Number(vote.votes))}{" "}
-						{prop.funder.ticker}
+					<p style={{ marginLeft: "0.25em" }}>
+						voted <b>{vote.kind.toLowerCase()}</b> the proposal with{" "}
+						{formatErc(Number(vote.votes))} {prop.funder.ticker}
 					</p>
 				</div>
 			),
