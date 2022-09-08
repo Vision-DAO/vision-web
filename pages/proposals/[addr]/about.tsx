@@ -32,10 +32,10 @@ export const About = () => {
 		<div className={styles.infoContainers}>
 			<div className={styles.splitPanel}>
 				<PropInfoPanel ipfs={ipfs} prop={prop} web3={web3} conn={conn} />
-				<PropVisualInfoWindow web3={web3} prop={prop} />
+				<PropVisualInfoWindow prop={prop} />
 			</div>
 			<PropVotePanel prop={prop} web3={web3} eth={eth} />
-			<PropActivityPanel web3={web3} conn={conn} prop={prop} />
+			<PropActivityPanel prop={prop} />
 		</div>
 	);
 };

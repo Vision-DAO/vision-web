@@ -85,13 +85,12 @@ export const Proposals = () => {
 					<h2>New Proposals</h2>
 					{proposals !== undefined ? (
 						<ProposalsList
-							eth={eth}
-							ipfs={ipfs}
-							web3={web3}
 							parent={idea}
 							oldProps={proposals.idea?.children ?? []}
 							proposals={proposals.idea.activeProps}
-							onSelectProp={(addr) => router.push(`/proposals/${addr}/about`)}
+							onSelectProp={(_, propAddr) =>
+								router.push(`/proposals/${propAddr}/about`)
+							}
 						/>
 					) : (
 						<CircularProgress />

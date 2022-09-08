@@ -77,7 +77,7 @@ export const PropCard = ({
 	const router = useRouter();
 
 	const shareProp = () => {
-		const url = `${window.location.protocol}//${window.location.host}/proposals/${prop.id}`;
+		const url = `${window.location.protocol}//${window.location.host}/proposals/${prop.id}/about`;
 
 		if (navigator.share) {
 			navigator.share({
@@ -95,7 +95,12 @@ export const PropCard = ({
 
 	return (
 		<div className={styles.propCard}>
-			<h2 className={styles.propTitle}>{prop.title}</h2>
+			<h2
+				className={`${styles.propTitle} ${styles.link}`}
+				onClick={() => router.push(`/proposals/${prop.id}/about`)}
+			>
+				{prop.title}
+			</h2>
 			<div className={`${styles.row} ${styles.spaced} ${styles.full}`}>
 				<div className={`${styles.row} ${styles.authorRow}`}>
 					<ProfileTooltip addr={prop.author.id} />
@@ -148,12 +153,6 @@ export const PropCard = ({
 						)}
 					</div>
 					<div className={`${styles.row} ${styles.full} ${styles.actionRow}`}>
-						<OutlinedButton
-							className={`${styles.actionButton} ${styles.primaryButton}`}
-							callback={() => router.push(`/proposals/${prop.id}`)}
-						>
-							<h1>View Proposal</h1>
-						</OutlinedButton>
 						<OutlinedButton
 							className={styles.actionButton}
 							callback={shareProp}

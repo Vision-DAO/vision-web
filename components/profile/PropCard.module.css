@@ -194,3 +194,14 @@
 	color: white;
 	background-color: #5A153A;
 }
+
+.link {
+	border-bottom: 2px solid #5D5FEF;
+
+	transition: 0.3s opacity;
+	cursor: pointer;
+}
+
+.link:hover {
+	opacity: 0.6;
+}

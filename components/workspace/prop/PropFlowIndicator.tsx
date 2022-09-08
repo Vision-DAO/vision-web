@@ -1,36 +1,20 @@
-import {
-	ExtendedProposalInformation,
-	loadBasicIdeaInfo,
-	IpfsClient,
-} from "../../../lib/util/ipfs";
-import { BasicIdeaInformation } from "../IdeaBubble";
-import { ConnStatus, explorers } from "../../../lib/util/networks";
+import { IpfsClient, useActionLink, useSymbol } from "../../../lib/util/ipfs";
+import { PropInfo } from "../../../lib/util/proposals/module";
+import { ConnStatus, formatErc } from "../../../lib/util/networks";
 import ArrowRight from "@mui/icons-material/ArrowRightAlt";
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect } from "react";
 import styles from "./PropFlowIndicator.module.css";
 import CurrencyExchange from "@mui/icons-material/CurrencyExchange";
 import EyeRounded from "@mui/icons-material/VisibilityRounded";
 import Web3 from "web3";
-import { AbiItem } from "web3-utils";
-import { formatBig } from "./PropVotePanel";
 import Lightbulb from "@mui/icons-material/Lightbulb";
 import { useRouter } from "next/router";
-
-interface FundingTokenInfo {
-	name: string;
-	ticker: string;
-	decimals: number;
-	url: string;
-}
 
 export const PropFlowIndicator = ({
 	prop,
 	dest,
-	web3,
-	ipfs,
-	conn,
 }: {
-	prop: ExtendedProposalInformation;
+	prop: PropInfo;
 	dest: string;
 	web3: Web3;
 	ipfs: IpfsClient;
@@ -40,10 +24,11 @@ export const PropFlowIndicator = ({
 	const arrowContainer = useRef(null);
 	const router = useRouter();
 
-	// Proposals are funded with a specific token. Find information about them
-	// if available
-	const [tokenInfo, setTokenInfo] = useState<FundingTokenInfo>(undefined);
-	const [parentInfo, setParentInfo] = useState<BasicIdeaInformation>(undefined);
+	const funderLink = useActionLink(prop.funder.id, router);
+	const fundeeLink = useActionLink(prop.toFund, router);
+
+	const tokenLink = useActionLink(prop.rate.token, router);
+	const fundingTicker = useSymbol(prop.rate.token);
 
 	const arrowDimensions = {
 		width: 28.4334,
@@ -71,111 +56,20 @@ export const PropFlowIndicator = ({
 			arrow.current.childNodes[0].setAttribute("d", path(w));
 			arrow.current.setAttribute("viewBox", `${(4 - w) * 0.5} 0 24 24`);
 		}
-
-		if (parentInfo === undefined) {
-			setParentInfo(null);
-
-			(async () => {
-				setParentInfo(await loadBasicIdeaInfo(ipfs, web3, prop.parentAddr));
-			})();
-		}
-
-		if (tokenInfo === undefined) {
-			setTokenInfo(null);
-
-			(async () => {
-				// The funding token is 0x000
-				if (new Set([...prop.rate.token]).keys.length === 2) {
-					setTokenInfo(() => {
-						return { name: "Ethereum", ticker: "ETH", url: "", decimals: 18 };
-					});
-
-					return;
-				}
-
-				// We only need to find:
-				// - the name of the token being used for funding
-				// - the ticker of the token being used for funding
-				const erc20Abi: AbiItem[] = [
-					{
-						constant: true,
-						inputs: [],
-						name: "name",
-						outputs: [{ name: "", type: "string" }],
-						payable: false,
-						stateMutability: "view",
-						type: "function",
-					},
-					{
-						constant: true,
-						inputs: [],
-						name: "symbol",
-						outputs: [{ name: "", type: "string" }],
-						payable: false,
-						stateMutability: "view",
-						type: "function",
-					},
-					{
-						constant: true,
-						inputs: [],
-						name: "decimals",
-						outputs: [{ name: "", type: "uint8" }],
-						payable: false,
-						stateMutability: "view",
-						type: "function",
-					},
-				];
-
-				let name = "";
-				let ticker = "";
-				let decimals = 0;
-
-				try {
-					const contract = new web3.eth.Contract(erc20Abi, prop.rate.token);
-
-					name = await contract.methods.name().call();
-					ticker = await contract.methods.symbol().call();
-					decimals = await contract.methods.decimals().call();
-				} catch (e) {
-					console.warn(e);
-				}
-
-				const meta = {
-					name: name,
-					ticker: ticker,
-					url: `${explorers[conn.network]}/address/${prop.rate.token}`,
-					decimals: decimals,
-				};
-
-				setTokenInfo(meta);
-			})();
-		}
-	});
+	}, [window.innerHeight, window.innerWidth]);
 
 	return (
 		<div className={styles.flowIndicatorContainer}>
 			<div className={styles.flowAddr}>
 				<EyeRounded />
-				<a
-					href={`/ideas/${prop.parentAddr}/about`}
-					onClick={(e) => {
-						e.preventDefault();
-						router.push(`/ideas/${prop.parentAddr}/about`);
-					}}
-				>
-					{parentInfo ? parentInfo.title : "Parent"}
-				</a>
+				<a onClick={funderLink}>{prop.funder.name}</a>
 			</div>
 			<div className={styles.flowValue}>
 				<div className={styles.flowValueText}>
 					<CurrencyExchange />
-					<a href={tokenInfo ? tokenInfo.url : ""}>
-						{formatBig(
-							prop.rate.value /
-								(tokenInfo ? 10 ** tokenInfo.decimals : 10 ** 18),
-							2
-						)}
-						<b>{tokenInfo ? ` ${tokenInfo.ticker}` : ""}</b>
+					<a onClick={tokenLink} className={styles.tokenLink}>
+						{formatErc(Number(prop.rate.value))}
+						<b>{fundingTicker}</b>
 					</a>
 				</div>
 				<div ref={arrowContainer} className={styles.arrow}>
@@ -188,15 +82,7 @@ export const PropFlowIndicator = ({
 			</div>
 			<div className={styles.flowAddr}>
 				<Lightbulb />
-				<a
-					href={`/ideas/${prop.destAddr}/about`}
-					onClick={(e) => {
-						e.preventDefault();
-						router.push(`/ideas/${prop.destAddr}/about`);
-					}}
-				>
-					{dest}
-				</a>
+				<a onClick={fundeeLink}>{dest}</a>
 			</div>
 		</div>
 	);

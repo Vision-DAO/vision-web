@@ -47,13 +47,13 @@ export const DetailNavigatorLayout = <T,>({
 	else addr = addrs;
 
 	const [ideaInfo, setIdeaInfo] = useState<T | null | undefined>(undefined);
-	const [, setGlobalIdeaInfo] = useContext(ctx);
+	const [globalIdeaInfo, setGlobalIdeaInfo] = useContext(ctx);
 	const [modal] = useContext(ModalContext);
 
 	useEffect(() => {
 		(async () => {
 			for await (const info of loader(graph, addr)) {
-				if (info !== null) setGlobalIdeaInfo(info);
+				if (info) setGlobalIdeaInfo(info);
 				setIdeaInfo(info);
 			}
 		})();
@@ -66,7 +66,7 @@ export const DetailNavigatorLayout = <T,>({
 
 	if (ideaInfo === undefined) {
 		toRender = <CircularProgress />;
-	} else if (ideaInfo === null) {
+	} else if (ideaInfo === null || !globalIdeaInfo) {
 		toRender = (
 			<WarningMessage title="Error 404" message="Idea Does Not Exist" />
 		);

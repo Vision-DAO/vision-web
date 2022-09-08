@@ -4,6 +4,8 @@ query PropInfo($id: ID!) @live {
     funder {
       id
       name
+      supply
+      ticker
     }
     toFund
     rate {
@@ -20,6 +22,17 @@ query PropInfo($id: ID!) @live {
     votesFor
     votesAgainst
     voters {
+      id
+    }
+    votes {
+      votes
+      kind
+      createdAt
+      voter {
+        user {
+          id
+        }
+      }
       id
     }
     ipfsAddr

@@ -3,8 +3,10 @@ import { ReactElement } from "react";
 import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
 import ClearRoundedIcon from "@mui/icons-material/ClearRounded";
 import SaveIcon from "@mui/icons-material/Save";
+import VoteIcon from "@mui/icons-material/HowToVote";
 import CampaignRoundedIcon from "@mui/icons-material/CampaignRounded";
 import { OutlinedListEntry } from "../../../status/OutlinedListEntry";
+import { formatDateObj } from "../../../../lib/util/networks";
 
 // Icons to render for each kind of event
 export const icons: { [kind: string]: ReactElement } = {
@@ -18,6 +20,7 @@ export const icons: { [kind: string]: ReactElement } = {
 	ProposalRejected: (
 		<ClearRoundedIcon fontSize="large" sx={{ opacity: 0.7, zIndex: 1 }} />
 	),
+	VoteCast: <VoteIcon fontSize="large" sx={{ opacity: 0.7, zIndex: 1 }} />,
 };
 
 const properLabels = {
@@ -25,6 +28,7 @@ const properLabels = {
 	ProposalAccepted: "Proposal Accepted",
 	ProposalRejected: "Proposal Rejected",
 	NewProposal: "New Proposal",
+	VoteCast: "Vote Cast",
 };
 
 export interface ActivityEntryProps {
@@ -62,7 +66,9 @@ export const ActivityEntry = ({
 				<p>{properLabels[kind]}</p>
 			</div>
 			{label}
-			<p>{formatTime12Hr(timestamp)}</p>
+			<p>
+				{formatDateObj(timestamp)} {formatTime12Hr(timestamp)}
+			</p>
 		</OutlinedListEntry>
 	);
 };

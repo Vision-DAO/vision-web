@@ -3,6 +3,7 @@ import {
 	useViewerConnection as useConnection,
 	EthereumAuthProvider,
 } from "@self.id/framework";
+import { useWeb3 } from "./web3";
 import { IDX } from "@ceramicstudio/idx";
 
 export type Network = "ethereum" | "polygon" | "polygon-test" | "unknown";
@@ -161,6 +162,22 @@ export const useConnStatus = (): [ConnStatus, () => void] =>
  * Consumes the global Vision token address.
  */
 export const useVisAddr = (): string => useContext(VisContext);
+
+/**
+ * Gets the currently active Ethereum account.
+ */
+export const useEthAddr = (): string => {
+	const [, eth] = useWeb3();
+	const [accs, setAccounts] = useState<string[]>([]);
+
+	useEffect(() => {
+		(async () => {
+			setAccounts(await accounts(eth));
+		})();
+	}, [!eth]);
+
+	return accs.length > 0 ? accs[0] : "";
+};
 
 /**
  * Gets the ethereum chain ID from the ethereum provider.

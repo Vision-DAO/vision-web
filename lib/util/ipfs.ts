@@ -4,7 +4,8 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { usePublicRecord, useClient } from "@self.id/framework";
 import { blobify } from "./blobify";
 import { useWeb3 } from "./web3";
-import { useGraph } from "./graph";
+import { useGraph, useStream } from "./graph";
+import { GetUserBalanceQuery, scalars } from "../../.graphclient";
 import { chainId, IdxContext, explorers, useConnStatus } from "./networks";
 import { Caip10Link } from "@ceramicnetwork/stream-caip10-link";
 import { BasicProfile } from "@datamodels/identity-profile-basic";
@@ -403,6 +404,33 @@ export const useIdeaIpfsAddr = (addr: string): string => {
 };
 
 /**
+ * Gets the binary data associated with the IPFS content at the specified CID.
+ */
+export const useIdeaBinaryData = (cid: string): IdeaData[] => {
+	const [data, setData] = useState([]);
+	const [ipfsCache, setIpfsCache] = useContext(IpfsStoreContext);
+	const ipfs = useContext(IpfsContext);
+
+	useEffect(() => {
+		if (!cid) return;
+
+		if (cid in ipfsCache && "all" in ipfsCache[cid]) {
+			setData(ipfsCache[cid]["all"] as IdeaData[]);
+
+			return;
+		}
+
+		(async () => {
+			const loaded = await loadIdeaBinaryData(ipfs, cid);
+			setIpfsCache(cid, "all", loaded);
+			setData(loaded);
+		})();
+	}, [cid]);
+
+	return data;
+};
+
+/**
  * Generates a link to click on the indicated asset, be it a normal address, a
  * user, or a DAO.
  */
@@ -418,4 +446,29 @@ export const useActionLink = (
 		dao: () => router.push(`/ideas/${addr}`),
 		addr: () => window.open(`${explorers[conn.network]}/address/${addr}`),
 	}[nature];
+};
+
+/**
+ * Gets the balance of the user belonging to the dao indicated with the provided
+ * ETH address.
+ */
+export const useUserBalance = (addr: string, daoAddr: string): number => {
+	const stream = useStream<GetUserBalanceQuery>(
+		{ investorProfile: { balance: 0 as scalars["BigInt"] } },
+		(graph) =>
+			graph.GetUserBalance({
+				iID: `i${addr}:${daoAddr}`,
+			}),
+		[addr, daoAddr]
+	);
+
+	const [prevValue, setPrevValue] = useState<number>(0);
+
+	useEffect(() => {
+		const newB = stream.investorProfile?.balance;
+
+		if (newB) setPrevValue(Number(newB));
+	}, [stream.investorProfile?.balance]);
+
+	return Number(stream.investorProfile?.balance ?? prevValue);
 };

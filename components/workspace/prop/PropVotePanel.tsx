@@ -1,16 +1,12 @@
 import styles from "./PropVotePanel.module.css";
+import { PropInfo } from "../../../lib/util/proposals/module";
 import Web3 from "web3";
-import {
-	RawEthPropRate,
-	FundingRate,
-	ExtendedProposalInformation,
-} from "../../../lib/util/ipfs";
-import { accounts } from "../../../lib/util/networks";
+import { useEthAddr, formatDate } from "../../../lib/util/networks";
+import { useUserBalance, useSymbol } from "../../../lib/util/ipfs";
 import { useState, useEffect } from "react";
 import { styled } from "@mui/material/styles";
-import { formatDate } from "../prop/ProposalLine";
-import { AbiItem } from "web3-utils";
-import BN from "bn.js";
+import Idea from "../../../value-tree/build/contracts/Idea.json";
+import Prop from "../../../value-tree/build/contracts/Prop.json";
 import { Contract } from "web3-eth-contract";
 import Slider, { SliderProps } from "@mui/material/Slider";
 import LinearProgress from "@mui/material/LinearProgress";
@@ -26,45 +22,9 @@ import {
 } from "@mui/x-date-pickers/MobileDatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
-import Idea from "../../../value-tree/build/contracts/Idea.json";
-import Prop from "../../../value-tree/build/contracts/Prop.json";
 import ExpandMore from "@mui/icons-material/ExpandMoreRounded";
 import ExpandLess from "@mui/icons-material/ExpandLessRounded";
 import CheckCircleRounded from "@mui/icons-material/CheckCircleRounded";
-
-export const formatBig = (n: number, nDecimals = 0): string => {
-	if (n <= 10000000)
-		return n.toLocaleString(undefined, { maximumFractionDigits: nDecimals });
-
-	return n.toExponential(0);
-};
-
-const parseBig = (web3: Web3, n: number, decimals: number): BN =>
-	web3.utils
-		.toBN(Math.trunc(n))
-		.mul(web3.utils.toBN(10 ** decimals))
-		.add(web3.utils.toBN(Math.trunc((n % 1) * 10 ** decimals)));
-
-const erc20Abi: AbiItem[] = [
-	{
-		constant: true,
-		inputs: [],
-		name: "symbol",
-		outputs: [{ name: "", type: "string" }],
-		payable: false,
-		stateMutability: "view",
-		type: "function",
-	},
-	{
-		constant: true,
-		inputs: [],
-		name: "decimals",
-		outputs: [{ name: "", type: "uint8" }],
-		payable: false,
-		stateMutability: "view",
-		type: "function",
-	},
-];
 
 const StyledDatePicker = styled(MobileDatePicker)<MobileDatePickerProps>(
 	() => ({
@@ -83,41 +43,31 @@ export const PropVotePanel = ({
 	web3,
 	eth,
 }: {
-	prop: ExtendedProposalInformation;
+	prop: PropInfo;
 	web3: Web3;
 	eth: any;
 }) => {
+	// The currently logged-in Ethereum user
+	const loggedIn = useEthAddr();
+
 	// The user's preference
-	const [rate, setRate] = useState<FundingRate>({
-		token: prop.rate.token,
-		value: 0,
-		interval: 0,
-		expiry: !(prop.rate.expiry > new Date(0)) ? new Date() : prop.rate.expiry,
-		lastClaimed: prop.rate.lastClaimed,
-		kind: prop.rate.kind,
-	});
+	const [direction, setDirection] = useState<boolean>(true);
 
 	// The magnitude of the user's preference. This comes from a form entry
 	const [nVotes, setNvotes] = useState<number>(0);
 
 	// The user's balance of the voting token (the maximum amount they can vote)
-	const [maxVotes, setMaxVotes] = useState<number>(undefined);
-	const [voteTicker, setVoteTicker] = useState<string>(undefined);
+	const maxVotes = useUserBalance(loggedIn, prop.funder.id);
+	console.log(maxVotes);
+	const voteTicker = useSymbol(prop.funder.id);
 
 	// The ticker and decimals of the funding token are used for:
 	// - Label human readability
 	// - Determining a maximum token amount in slider inputs
-	const [fundingTokenTicker, setFundingTokenTicker] =
-		useState<string>(undefined);
-	const [fundingTokenDecimals, setFundingTokenDecimals] =
-		useState<number>(undefined);
+	const fundingTokenTicker = useSymbol(prop.rate.token);
 
 	// To save space, this item can be shrunk to just its header
 	const [containerExpanded, setContainerExpanded] = useState<boolean>(true);
-
-	// The user may select to release funding every n days. Determine seconds
-	// from that
-	const [intervalMultiplier, setIntervalMultiplier] = useState<number>(1);
 
 	// Buffer storing any feedback for the user
 	const [errorMsg, setErrorMsg] = useState<string>("");
@@ -135,54 +85,10 @@ export const PropVotePanel = ({
 
 	useEffect(() => {
 		if (propContract === undefined) {
-			setPropContract(new web3.eth.Contract(Prop.abi, prop.addr));
-			setParentContract(new web3.eth.Contract(Idea.abi, prop.parentAddr));
+			setPropContract(new web3.eth.Contract(Prop.abi, prop.id));
+			setParentContract(new web3.eth.Contract(Idea.abi, prop.funder.id));
 		}
-
-		// Load the maximum votes the user can allocate
-		if (maxVotes === undefined) {
-			setMaxVotes(0);
-			setVoteTicker("");
-			setFundingTokenTicker("");
-			setFundingTokenDecimals(0);
-
-			(async () => {
-				// The contract whose token is used for voting
-				const contract = new web3.eth.Contract(Idea.abi, prop.parentAddr);
-				const fundingTokenContract = new web3.eth.Contract(
-					erc20Abi,
-					prop.rate.token
-				);
-
-				// The voting token is not the same as the funding token, necessarily
-				setFundingTokenTicker(
-					await fundingTokenContract.methods.symbol().call()
-				);
-				setFundingTokenDecimals(
-					await fundingTokenContract.methods.decimals().call()
-				);
-
-				// The ticker of the parent ERC-20 indicates what the user is voting with
-				setVoteTicker(await contract.methods.symbol().call());
-
-				// The user's balance is the number of tokens they can allocate to vote
-				// for this proposal
-				const maxAmount = await contract.methods
-					.balanceOf((await accounts(eth))[0])
-					.call();
-
-				if (!maxAmount) return;
-
-				try {
-					const parsedAmt = parseInt(maxAmount);
-
-					if (!isNaN(parsedAmt)) setMaxVotes(parsedAmt);
-				} catch (e) {
-					console.warn(e);
-				}
-			})();
-		}
-	});
+	}, []);
 
 	// Labels for the vote weight slider
 	const marks = [
@@ -202,55 +108,7 @@ export const PropVotePanel = ({
 	const idx = (n: number): number =>
 		Math.log(Math.log(n + 2) / Math.log(2)) / (8 * Math.log(2));
 
-	const importantFundingLevels = Array(10)
-		.fill(10)
-		.map((n, i) => scale(i / 9));
-	const fundingLevelMarks = importantFundingLevels.map((n) => {
-		return {
-			value: idx(n),
-			label: `${formatBig(n)}${
-				idx(n) == 0 ? " " + (fundingTokenTicker ?? "") : ""
-			}`,
-		};
-	});
-
 	const handleVoteChange = (e: unknown, n: number) => setNvotes(n as number);
-	const handleFundingChange = (e: unknown, n: number) =>
-		setRate((rate) => {
-			return { ...rate, value: scale(n) };
-		});
-	const handleExpiryChange = (d: Date) =>
-		setRate((rate) => {
-			return { ...rate, expiry: d };
-		});
-	const handleIntervalChange = (rn: string) => {
-		try {
-			const n = parseInt(rn);
-
-			// The user provided an invalid input
-			if (isNaN(n)) {
-				setErrorMsg("Invalid interval value.");
-
-				return;
-			}
-
-			setRate((rate) => {
-				return { ...rate, interval: n };
-			});
-		} catch (e) {
-			console.warn(e);
-		}
-	};
-	const handleIntervalMultiplierChange = (opt: string) => {
-		const intervalMultipliers = {
-			Days: 86400,
-			Hours: 3600,
-			Minutes: 60,
-			Seconds: 1,
-		};
-
-		setIntervalMultiplier(intervalMultipliers[opt]);
-	};
 
 	// Casts the user's vote after doing verification on the expected values of the form.
 	const castVote = async () => {
@@ -337,7 +195,7 @@ export const PropVotePanel = ({
 					onClick={() => setConfirmationRequired(false)}
 				/>
 			</div>
-			{new Date() < prop.expiry ? (
+			{new Date() < new Date(Number(prop.expiration) * 1000) ? (
 				<div
 					className={
 						confirmationRequired ? styles.invisibleBody : styles.visibleBody
@@ -376,65 +234,6 @@ export const PropVotePanel = ({
 								/>
 							</div>
 						</div>
-						<div className={styles.votePanelItem}>
-							<p>
-								Funding Amount:{" "}
-								<b>
-									{formatBig(rate.value, 3)} {fundingTokenTicker ?? ""}
-								</b>
-							</p>
-							<div className={styles.votePanelSlider}>
-								<StyledSlider
-									className={styles.sliderThumb}
-									size="small"
-									step={0.001}
-									min={0}
-									max={1}
-									defaultValue={0}
-									marks={[...fundingLevelMarks]}
-									onChange={handleFundingChange}
-									scale={scale}
-									valueLabelDisplay="off"
-								/>
-							</div>
-						</div>
-						<div className={styles.multiChildItem}>
-							<div className={styles.votePanelItem}>
-								<p>
-									Funding Expiration Date: <b>{formatDate(rate.expiry)}</b>
-								</p>
-								<LocalizationProvider dateAdapter={AdapterDateFns}>
-									<StyledDatePicker
-										value={rate.expiry}
-										onChange={handleExpiryChange}
-										className={styles.datePicker}
-										renderInput={(params) => (
-											<UnderlinedInput
-												onClick={(e) => params.inputProps.onClick(e)}
-												placeholder={formatDate(rate.expiry)}
-											/>
-										)}
-									/>
-								</LocalizationProvider>
-							</div>
-							<div className={styles.votePanelItem}>
-								<p>
-									Funding Interval: <b>{formatInterval(rate.interval)}</b>
-								</p>
-								<div className={styles.intervalPicker}>
-									<UnderlinedInput
-										placeholder="Every 2"
-										startingValue=""
-										onChange={handleIntervalChange}
-									/>
-									<OutlinedOptionSelector
-										options={["Days", "Hours", "Minutes", "Seconds"]}
-										onChange={handleIntervalMultiplierChange}
-										onClear={() => ({})}
-									/>
-								</div>
-							</div>
-						</div>
 						<p>{errorMsg}</p>
 						{voteCasting && <LinearProgress />}
 						<FilledButton
@@ -448,8 +247,8 @@ export const PropVotePanel = ({
 				<div>
 					<h2>Voting Closed</h2>
 					<p>
-						Proposal expired <b>{formatDate(prop.expiry)}</b> at{" "}
-						<b>{formatTime12Hr(prop.expiry)}</b>.
+						Proposal expired <b>{formatDate(Number(prop.expiration))}</b> at{" "}
+						<b>{formatTime12Hr(new Date(Number(prop.expiration) * 1000))}</b>.
 					</p>
 				</div>
 			)}

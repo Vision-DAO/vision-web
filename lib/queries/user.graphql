@@ -69,3 +69,9 @@ query GetAllUsers @live {
     id
   }
 }
+
+query GetUserBalance($iID: ID!) @live(interval: 5000) {
+  investorProfile(id: $iID) {
+    balance
+  }
+}

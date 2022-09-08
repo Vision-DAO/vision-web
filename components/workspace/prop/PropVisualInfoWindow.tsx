@@ -1,83 +1,34 @@
-import { ExtendedProposalInformation, ProposalVote, loadProposalVote, loadAllProposalVoters } from "../../../lib/util/ipfs";
 import { VisualDisplaySelector } from "../../status/VisualDisplaySelector";
 import { ImageRounded, InfoRounded } from "@mui/icons-material";
 import { IdeaMetadataDisplay } from "../idea/prevwindow/IdeaMetadataDisplay";
+import { useIdeaBinaryData } from "../../../lib/util/ipfs";
+import { PropInfo } from "../../../lib/util/proposals/module";
 import { PropVoteVisualization } from "./PropVoteVisualization";
-import { useState, useEffect } from "react";
-import { AbiItem } from "web3-utils";
 import Web3 from "web3";
 
 /**
  * Displays information about the vote distribution, and the metadata of the
  * proposal.
  */
-export const PropVisualInfoWindow = ({ prop, web3 }: { prop: ExtendedProposalInformation, web3: Web3 }) => {
-	const [votes, setVotes] = useState<ProposalVote[]>(undefined);
-	const [nVotes, setNvotes] = useState<number>(prop.nVoters);
-
-	// Decimals are needed to show non-gigantic (wei) token values
-	const [tokenDecimals, setTokenDecimals] = useState<number>(undefined);
+export const PropVisualInfoWindow = ({ prop }: { prop: PropInfo }) => {
+	const data = useIdeaBinaryData(prop.ipfsAddr);
 
 	const availableViews = {
-		"Info": {
-			content: <PropVoteVisualization decimals={ tokenDecimals ?? 0 } votes={ votes } />,
+		Info: {
+			content: (
+				<PropVoteVisualization
+					yesVotes={prop.votesFor}
+					noVotes={prop.votesAgainst}
+					possibleVotes={prop.funder.supply}
+				/>
+			),
 			navIcon: <InfoRounded fontSize="large" />,
 		},
-		"Details": {
-			content: <IdeaMetadataDisplay data={ prop.data ?? [] } />,
-			navIcon: <ImageRounded fontSize="large" />
+		Details: {
+			content: <IdeaMetadataDisplay data={data} />,
+			navIcon: <ImageRounded fontSize="large" />,
 		},
 	};
 
-	// We only need the number of decimals for the token funding the proposal
-	// TODO: Abstract this ABI out, since it's being reused a lot
-	const erc20Abi: AbiItem[] = [
-		{
-			"constant": true,
-			"inputs": [],
-			"name": "decimals",
-			"outputs": [
-				{ "name": "", "type": "uint8" }
-			],
-			"payable": false,
-			"stateMutability": "view",
-			"type": "function"
-		},
-	];
-
-	useEffect(() => {
-		if (tokenDecimals === undefined) {
-			setTokenDecimals(0);
-
-			(async () => {
-				const tokenContract = new web3.eth.Contract(erc20Abi, prop.rate.token);
-				setTokenDecimals(await tokenContract.methods.decimals().call());
-			})();
-		}
-
-		(async () => {
-			// Use the number of voters on the proposal as a checksum to update the vote display
-			if (prop.nVoters !== nVotes || votes === undefined) {
-				// Load the list of votes for the proposal so that the distribution
-				// can be displayed
-				const voters = await loadAllProposalVoters(web3, prop.addr);
-
-				if (!voters)
-					return;
-
-				// Each voter has a registered vote
-				const votes = await Promise.all(voters.map((voter: string) => loadProposalVote(web3, prop.addr, voter)));
-
-				if (!votes)
-					return;
-
-				setVotes(votes);
-				setNvotes(prop.nVoters);
-			}
-		})();
-	});
-
-	return (
-		<VisualDisplaySelector displays={ availableViews } />
-	);
+	return <VisualDisplaySelector displays={availableViews} />;
 };

@@ -1,11 +1,10 @@
 import { createContext, Context } from "react";
 import { PropInfoQuery, Sdk } from "../../../.graphclient";
 
+export type PropInfo = PropInfoQuery["prop"];
+
 export const ActiveProposalContext: Context<
-	[
-		PropInfoQuery["prop"] | undefined,
-		(q: PropInfoQuery["prop"] | undefined) => void
-	]
+	[PropInfo | undefined, (q: PropInfo | undefined) => void]
 > = createContext(undefined);
 
 /**
@@ -16,7 +15,7 @@ export const pages = ["About"];
 /**
  * Gets the title of the proposal.
  */
-export const titleExtractor = (q: PropInfoQuery["prop"]): string => q.title;
+export const titleExtractor = (q: PropInfo): string => q.title;
 
 /**
  * Fed into the Navigator wrapper. Loads basic, and extended proposal information, in succession.
