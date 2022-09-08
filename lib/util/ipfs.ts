@@ -247,13 +247,15 @@ export const useUserName = (addr: string): string | undefined => {
 export const useUserPic = (addr: string): string | undefined => {
 	const [image, setImage] = useState<string | undefined>(undefined);
 	const id = useCeramicId(addr);
-	const profile = usePublicRecord("basicProfile", id ?? "");
+	const profile = usePublicRecord("basicProfile", id);
 
 	const ipfs = useContext(IpfsContext);
 	const [ipfsCache, setIpfsCache] = useContext(IpfsStoreContext);
 
 	// Load the user's profile picture
 	useEffect(() => {
+		if (id === undefined) return;
+
 		if (!profile.content?.image.original.src) return;
 
 		const imgCid = profile.content.image.original.src;
@@ -272,7 +274,7 @@ export const useUserPic = (addr: string): string | undefined => {
 			setIpfsCache(imgCid, "icon", blob);
 			setImage(blob);
 		});
-	}, [profile.content?.image.original.src]);
+	}, [profile.content?.image.original.src, id === undefined]);
 
 	return image;
 };
