@@ -51,12 +51,14 @@ export const BeneficTooltip = ({ beneficiary }: { beneficiary: string }) => {
 		<div className={styles.beneficTooltip} onClick={actionLink}>
 			<ArrowForwardIcon />
 			<p ref={line}>{beneficiaryTitle}</p>
-			<img
-				className={styles.beneficIcon}
-				height={lineHeight}
-				width={lineHeight}
-				src={beneficiaryIcon ?? beneficiaryDaoIcon}
-			/>
+			{(beneficiaryIcon || beneficiaryDaoIcon) && (
+				<img
+					className={styles.beneficIcon}
+					height={lineHeight}
+					width={lineHeight}
+					src={beneficiaryIcon ?? beneficiaryDaoIcon}
+				/>
+			)}
 		</div>
 	);
 };
