@@ -34,7 +34,11 @@ export async function* loader(graph: Sdk, addr: string) {
 		dayStart: Math.floor(day.getTime() / 1000) as unknown as Scalars["BigInt"],
 	}) as unknown as Promise<AsyncIterable<GetDaoAboutQuery>>);
 
+	let loaded = false;
+
 	for await (const val of stream) {
-		yield val.idea ?? null;
+		if (val.idea || !loaded) yield val.idea ?? null;
+
+		loaded = true;
 	}
 }

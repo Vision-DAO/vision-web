@@ -24,8 +24,11 @@ export async function* loader(graph: Sdk, addr: string) {
 	const stream = await (graph.PropInfo({ id: addr }) as unknown as Promise<
 		AsyncIterable<PropInfoQuery>
 	>);
+	let ran = false;
 
 	for await (const val of stream) {
-		yield val.prop ?? null;
+		if (val.prop || !ran) yield val.prop ?? null;
+
+		ran = true;
 	}
 }

@@ -5,7 +5,7 @@ import { usePublicRecord, useClient } from "@self.id/framework";
 import { blobify } from "./blobify";
 import { useWeb3 } from "./web3";
 import { useGraph, useStream } from "./graph";
-import { GetUserBalanceQuery, scalars } from "../../.graphclient";
+import { GetUserBalanceQuery, Scalars } from "../../.graphclient";
 import { chainId, IdxContext, explorers, useConnStatus } from "./networks";
 import { Caip10Link } from "@ceramicnetwork/stream-caip10-link";
 import { BasicProfile } from "@datamodels/identity-profile-basic";
@@ -454,11 +454,11 @@ export const useActionLink = (
  */
 export const useUserBalance = (addr: string, daoAddr: string): number => {
 	const stream = useStream<GetUserBalanceQuery>(
-		{ investorProfile: { balance: 0 as scalars["BigInt"] } },
+		{ investorProfile: { balance: 0 as unknown as Scalars["BigInt"] } },
 		(graph) =>
 			graph.GetUserBalance({
 				iID: `i${addr}:${daoAddr}`,
-			}),
+			}) as unknown as Promise<AsyncIterable<GetUserBalanceQuery>>,
 		[addr, daoAddr]
 	);
 

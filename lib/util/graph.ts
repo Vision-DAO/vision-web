@@ -2,7 +2,6 @@ import {
 	UserStatsQuery,
 	UserFeedQuery,
 	GetDaoInfoQuery,
-	subscribe,
 	Sdk,
 } from "../../.graphclient";
 import { useState, useContext, useEffect, createContext } from "react";
@@ -55,7 +54,8 @@ export const getVisBalance = (q: UserStatsQuery, visAddr: string): number =>
 export const useStream = <T>(
 	init: T,
 	streamBuilder: (client: Sdk) => Promise<AsyncIterable<T>>,
-	deps: unknown[]
+	deps: unknown[],
+	extractorKey?: string
 ): T => {
 	const graph = useGraph();
 	const [v, setV] = useState(init);
@@ -67,7 +67,7 @@ export const useStream = <T>(
 			if (stream === undefined) return;
 
 			for await (const entry of stream) {
-				setV(entry);
+				if (!extractorKey || extractorKey in entry) setV(entry);
 			}
 		})();
 	}, deps);

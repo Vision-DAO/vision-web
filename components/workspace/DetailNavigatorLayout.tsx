@@ -53,6 +53,8 @@ export const DetailNavigatorLayout = <T,>({
 	useEffect(() => {
 		(async () => {
 			for await (const info of loader(graph, addr)) {
+				if (ideaInfo && !info) continue;
+
 				if (info) setGlobalIdeaInfo(info);
 				setIdeaInfo(info);
 			}
