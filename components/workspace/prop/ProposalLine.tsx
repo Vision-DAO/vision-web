@@ -153,7 +153,9 @@ export const ProposalLine = ({
 				<div className={styles.propStat}>
 					{prop.status === "Pending" ? (
 						<Fragment>
-							<h1>{Number(prop.votesFor) + Number(prop.votesAgainst)}</h1>
+							<h1>
+								{formatErc(Number(prop.votesFor) + Number(prop.votesAgainst))}
+							</h1>
 							<p>Votes</p>
 						</Fragment>
 					) : (

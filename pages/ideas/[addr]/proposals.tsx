@@ -66,18 +66,6 @@ export const Proposals = () => {
 		</GeneralModal>
 	);
 
-	/*
-					<div className={styles.proposalList}>
-					<h2>Funded Ideas</h2>
-					<IdeaChildrenList
-						parentAddr={idea.id}
-						rates={idea.children}
-						ideas={idea.children}
-						web3={web3}
-						eth={eth}
-					/>
-				</div>*/
-
 	return (
 		<div className={`${dashStyles.infoContainers} ${styles.infoContainers}`}>
 			<div className={styles.proposalLists}>
@@ -93,7 +81,28 @@ export const Proposals = () => {
 							}
 						/>
 					) : (
-						<CircularProgress />
+						<div className={styles.loadContainer}>
+							<CircularProgress />
+						</div>
+					)}
+				</div>
+				<div className={styles.proposalsList}>
+					<h2>Funded Proposals</h2>
+					{proposals !== undefined ? (
+						<div>
+							<ProposalsList
+								parent={idea}
+								oldProps={[]}
+								proposals={proposals.idea.children}
+								onSelectProp={(_, propAddr) =>
+									router.push(`/proposals/${propAddr}/about`)
+								}
+							/>
+						</div>
+					) : (
+						<div className={styles.loadContainer}>
+							<CircularProgress />
+						</div>
 					)}
 				</div>
 			</div>
