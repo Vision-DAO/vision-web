@@ -4,8 +4,10 @@ import BackIcon from "@mui/icons-material/ArrowBackIosRounded";
 import CircularProgress from "@mui/material/CircularProgress";
 import { useConnStatus, explorers } from "../../lib/util/networks";
 import { ModalContext } from "../../lib/util/modal";
+import { useGraph } from "../../lib/util/graph";
 import { ReactElement, Context, useEffect, useContext, useState } from "react";
 import { WarningMessage } from "../status/WarningMessage";
+import { Sdk } from "../../.graphclient";
 
 /**
  * See nextjs documentation on layouts: a wrapper for all pages on an
@@ -24,11 +26,12 @@ export const DetailNavigatorLayout = <T,>({
 	pages: string[];
 	children: ReactElement;
 	ctx: Context<[T | undefined, (v: T | undefined) => void]>;
-	loader: (addr: string) => AsyncIterable<T | null>;
+	loader: (graph: Sdk, addr: string) => AsyncIterable<T | null>;
 	contentTitle: (v: T) => string;
 }) => {
 	const router = useRouter();
 	const [conn] = useConnStatus();
+	const graph = useGraph();
 
 	// The address of the currently loaded idea should be used as a temporary
 	// label, but will be replaced by the proper name of the idea
@@ -49,7 +52,7 @@ export const DetailNavigatorLayout = <T,>({
 
 	useEffect(() => {
 		(async () => {
-			for await (const info of loader(addr)) {
+			for await (const info of loader(graph, addr)) {
 				if (info !== null) setGlobalIdeaInfo(info);
 				setIdeaInfo(info);
 			}

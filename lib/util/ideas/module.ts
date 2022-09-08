@@ -1,9 +1,4 @@
-import {
-	GetDaoAboutDocument,
-	GetDaoAboutQuery,
-	subscribe,
-} from "../../../.graphclient";
-import { orSingleIter } from "../graph";
+import { GetDaoAboutQuery, Sdk, Scalars } from "../../../.graphclient";
 import { Context, createContext } from "react";
 
 /**
@@ -29,16 +24,17 @@ export const titleExtractor = (q: GetDaoAboutQuery["idea"]): string => q.name;
 /**
  * Fed into the IdeaNavigator wrapper. Loads event information about an idea.
  */
-export async function* loader(addr: string) {
+export async function* loader(graph: Sdk, addr: string) {
 	const day = new Date();
+
 	day.setUTCHours(0, 0, 0, 0);
 
-	const stream = await subscribe(GetDaoAboutDocument, {
+	const stream = await (graph.GetDaoAbout({
 		id: addr,
-		dayStart: Math.floor(day.getTime() / 1000),
-	});
+		dayStart: Math.floor(day.getTime() / 1000) as unknown as Scalars["BigInt"],
+	}) as unknown as Promise<AsyncIterable<GetDaoAboutQuery>>);
 
-	for await (const val of orSingleIter(stream)) {
-		yield val.data?.idea ?? null;
+	for await (const val of stream) {
+		yield val.idea ?? null;
 	}
 }

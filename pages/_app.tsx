@@ -32,6 +32,7 @@ import { getBuiltGraphSDK } from "../.graphclient";
 import EthCrypto from "eth-crypto";
 import { IpfsContext, IpfsStoreContext } from "../lib/util/ipfs";
 import { ActiveIdeaContext } from "../lib/util/ideas/module";
+import { ActiveProposalContext } from "../lib/util/proposals/module";
 import {
 	ConnectionContext,
 	provideConnStatus,
@@ -151,6 +152,7 @@ const App = ({ Component, pageProps }: AppPropsWithLayout) => {
 	// Keep the global IPFS intance up to date
 	const [ipfs, setIpfs] = useState(undefined);
 	const ideaContext = useState(undefined);
+	const propContext = useState(undefined);
 	const [client, setClient] = useState(undefined);
 
 	useEffect(() => {
@@ -248,44 +250,50 @@ const App = ({ Component, pageProps }: AppPropsWithLayout) => {
 										<ConnectionContext.Provider value={connStatus}>
 											<AuthContext.Provider value={authContext}>
 												<ActiveIdeaContext.Provider value={ideaContext}>
-													<IdxContext.Provider value={idxContext}>
-														<ModalContext.Provider value={[modal, setModal]}>
-															{router.pathname !== "/login" ? (
-																<div
-																	className={`${styles.app} ${styles.root}${
-																		hasModal ? " " + styles.hidden : ""
-																	}`}
-																>
-																	<div className={styles.navPanel}>
-																		<NavPanel
-																			items={navItems}
-																			onProfileClicked={(selfId: string) =>
-																				router.push({
-																					pathname: "/profile/[id]",
-																					query: {
-																						id: selfId,
-																					},
-																				})
-																			}
-																			onSettingsActive={() =>
-																				router.push("/settings")
-																			}
-																			ctx={web3}
-																		/>
+													<ActiveProposalContext.Provider value={propContext}>
+														<IdxContext.Provider value={idxContext}>
+															<ModalContext.Provider value={[modal, setModal]}>
+																{router.pathname !== "/login" ? (
+																	<div
+																		className={`${styles.app} ${styles.root}${
+																			hasModal ? " " + styles.hidden : ""
+																		}`}
+																	>
+																		<div className={styles.navPanel}>
+																			<NavPanel
+																				items={navItems}
+																				onProfileClicked={(selfId: string) =>
+																					router.push({
+																						pathname: "/profile/[id]",
+																						query: {
+																							id: selfId,
+																						},
+																					})
+																				}
+																				onSettingsActive={() =>
+																					router.push("/settings")
+																				}
+																				ctx={web3}
+																			/>
+																		</div>
+																		<div className={styles.workspace}>
+																			<NetworkedWorkspace>
+																				{getLayout(
+																					<Component {...pageProps} />
+																				)}
+																			</NetworkedWorkspace>
+																		</div>
 																	</div>
-																	<div className={styles.workspace}>
-																		<NetworkedWorkspace>
-																			{getLayout(<Component {...pageProps} />)}
-																		</NetworkedWorkspace>
+																) : (
+																	<div
+																		className={`${styles.app} ${styles.root}`}
+																	>
+																		<Component {...pageProps} />
 																	</div>
-																</div>
-															) : (
-																<div className={`${styles.app} ${styles.root}`}>
-																	<Component {...pageProps} />
-																</div>
-															)}
-														</ModalContext.Provider>
-													</IdxContext.Provider>
+																)}
+															</ModalContext.Provider>
+														</IdxContext.Provider>
+													</ActiveProposalContext.Provider>
 												</ActiveIdeaContext.Provider>
 											</AuthContext.Provider>
 										</ConnectionContext.Provider>

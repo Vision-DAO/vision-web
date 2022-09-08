@@ -31,7 +31,7 @@
 }
 
 .labelButton {
-	color: #5D5FEF;
+	color: #44BF39;
 
 	border-bottom: 1px solid #5D5FEF;
 
@@ -47,7 +47,7 @@
 }
 
 .labelFail {
-	color: #5A153A;
+	color: #FF0000;
 	border-bottom-color: #5A153A;
 }
 
@@ -242,11 +242,11 @@
 }
 
 .yesExplanation>p:first-child {
-	color: #5D5FEF;
+	color: #44BF39;
 }
 
 .noExplanation>p:first-child {
-	color: #5A153A;
+	color: #FF0000;
 }
 
 .yesExplanation>p:last-child {
