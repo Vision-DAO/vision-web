@@ -3,6 +3,8 @@ import { ConnStatus, staticProposals } from "../../../lib/util/networks";
 import Web3 from "web3";
 import { isIdeaContract } from "../../../lib/util/discovery";
 
+export const ActiveProposalContext = 
+
 /**
  * Pages visible in the window navigator for a proposal.
  */
