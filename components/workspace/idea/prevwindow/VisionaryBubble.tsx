@@ -29,7 +29,12 @@ export const VisionaryBubble = ({
 			style={{ height: size, width: size }}
 		>
 			{img !== undefined ? (
-				<img height="100%" width="100%" class={styles.pfpBubble} src={img} />
+				<img
+					height="100%"
+					width="100%"
+					className={styles.pfpBubble}
+					src={img}
+				/>
 			) : (
 				<Blockies seed={seed} size={size} scale={9} />
 			)}

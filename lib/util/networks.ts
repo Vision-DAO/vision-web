@@ -202,12 +202,6 @@ export const chainId = (eth: any): Promise<number> =>
 	eth.request({ method: "net_version" }).then((id: string) => Number(id));
 
 /**
- * Gets the ceramic ID associated with the specified address.
- * Returns null if loading, and undefined if the ID doesn't exist.
- */
-export const useId = (addr: string): null | undefined | string => {};
-
-/**
  * A hook returning whether a web3 client is present, and which network it's connected
  * to.
  *

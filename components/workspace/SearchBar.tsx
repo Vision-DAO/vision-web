@@ -166,10 +166,13 @@ export const SearchBar = ({
 					)),
 					...matchingProfiles.map(([addr, profile]) => (
 						<SearchEntry
+							key={addr}
 							title={profile.name}
 							addr={addr}
 							onClick={() => router.push(`/profile/${addr}`)}
-							onHoverState={() => {}}
+							onHoverState={() => {
+								return;
+							}}
 							iconSrc={profile.image?.original.src.replaceAll("ipfs://", "")}
 						/>
 					)),

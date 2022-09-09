@@ -123,7 +123,7 @@ export const ExtendedProfile = ({
 	}
 
 	// Summarize vote counts and prop counts for all DAO's we are involved in
-	const { voteCount, propCount } = stats.user?.ideas.reduce(
+	const { voteCount, propCount } = (stats.user?.ideas ?? []).reduce(
 		({ voteCount, propCount }, { props: { props }, votes: { votes } }) => {
 			return {
 				voteCount: voteCount + votes.length,
@@ -131,7 +131,7 @@ export const ExtendedProfile = ({
 			};
 		},
 		{ voteCount: 0, propCount: 0 }
-	);
+	) ?? { voteCount: 0, propCount: 0 };
 
 	// Create a card for each DAO the user participates in
 	const daoCards =

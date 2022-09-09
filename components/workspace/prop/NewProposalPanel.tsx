@@ -239,10 +239,12 @@ export const NewProposalPanel = ({
 	const inputs =
 		statusMessage === "" ? (
 			[
-				<p>"Make your proposal stand out by describing what it will do."</p>,
-				<p>{`Who will ${parent.name} be funding, and for how long?`}</p>,
-				<p>{`How much will ${parent.name} pay, and how will it pay?`}</p>,
-				<p>"How long will voting on your proposal last?"</p>,
+				<p key="desc-1">
+					Make your proposal stand out by describing what it will do.
+				</p>,
+				<p key="desc-2">{`Who will ${parent.name} be funding, and for how long?`}</p>,
+				<p key="desc-3">{`How much will ${parent.name} pay, and how will it pay?`}</p>,
+				<p key="desc-4">How long will voting on your proposal last?</p>,
 			]
 		) : (
 			<p>{statusMessage}</p>
@@ -331,7 +333,6 @@ export const NewProposalPanel = ({
 							onChange={(option) =>
 								mutateRateField("kind")(fundingKinds.indexOf(option))
 							}
-							onClear={() => {}}
 						/>
 					</div>
 					<div className={`${styles.formItem} ${styles.fullWidthInput}`}>

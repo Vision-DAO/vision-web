@@ -30,6 +30,7 @@ export const ProposalsList = ({
 			<div className={styles.list}>
 				{statefulProps.map(([prop, oldProp]) => (
 					<ProposalLine
+						key={prop.id}
 						prop={prop}
 						parent={parent}
 						oldProp={oldProp}

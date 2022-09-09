@@ -197,10 +197,10 @@ export const ProposalLine = ({
 								label="Finalize Proposal"
 							/>
 						) : (
-							[
+							<Fragment>
 								<PercentageLine
 									percentage={Number(prop.votesFor) / Number(parent.supply)}
-								/>,
+								/>
 								<div className={styles.explanationsList}>
 									<div className={styles.yesExplanation}>
 										<p>Yes:</p>
@@ -219,8 +219,8 @@ export const ProposalLine = ({
 											{oldTicker}
 										</p>
 									</div>
-								</div>,
-							]
+								</div>
+							</Fragment>
 						)}
 						{pending && <LinearProgress />}
 					</div>
