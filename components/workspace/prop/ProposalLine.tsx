@@ -99,6 +99,8 @@ export const ProposalLine = ({
 		new Date(prop.createdAt * 1000)
 	);
 
+	console.log(expTime);
+
 	/**
 	 * Finalizes the current proposal.
 	 */
@@ -234,7 +236,8 @@ export const ProposalLine = ({
 					<p>Votes</p>
 				</div>
 				{expTime.includes("-") ? (
-					Number(prop.votesFor) > 0.5 * Number(parent.supply) ? (
+					Number(prop.votesFor) > 0.5 * Number(parent.supply) ||
+					prop.status === "Accepted" ? (
 						prop.status === "Pending" ? (
 							<div className={`${styles.goodStat} ${styles.propStat}`}>
 								<p>Proposal</p>
