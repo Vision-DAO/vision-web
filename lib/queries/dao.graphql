@@ -134,7 +134,7 @@ fragment PropInformation on Prop {
 
 query GetProps($id: ID!, $dayStart: BigInt!) @live {
   idea(id:$id) {
-    activeProps(where: { status_not: Accepted }) {
+    activeProps(where: { status_not: Accepted }, orderBy: createdAt, orderDirection: desc) {
       ...PropInformation
     }
     children {
