@@ -23,7 +23,7 @@ export const zAddr = "0x0000000000000000000000000000000000000000";
  * Address of the Vision token on different networks.
  */
 export const visTokenAddr: { [net: string]: string } = {
-	"polygon-test": "0x67FAF3457157a71b109248BB798bAFC0558765ec",
+	"polygon-test": "0x415aa1b84059cd885cef88b43b687876372c35b4",
 };
 
 /**
