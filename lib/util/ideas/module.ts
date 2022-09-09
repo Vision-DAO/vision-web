@@ -1,21 +1,44 @@
-import { IpfsClient, loadBasicIdeaInfo, loadExtendedIdeaInfo } from "../../../lib/util/ipfs";
-import { ConnStatus } from "../../../lib/util/networks";
-import { ExtendedIdeaInformation } from "../../../components/workspace/IdeaDetailCard";
-import Web3 from "web3";
+import { GetDaoAboutQuery, Sdk, Scalars } from "../../../.graphclient";
+import { Context, createContext } from "react";
+
+/**
+ * Represents the current idea selected by a page.
+ */
+export const ActiveIdeaContext: Context<
+	[
+		GetDaoAboutQuery["idea"] | undefined,
+		(q: GetDaoAboutQuery["idea"] | undefined) => void
+	]
+> = createContext(undefined);
 
 /**
  * The list of pages that are navigable inside an idea.
  */
-export const pages = ["About", "Proposals", "Discussion", "Market"];
+export const pages = ["About", "Proposals"];
 
 /**
- * Fed into the IdeaNavigator wrapper. Loads basic, and extended idea information, in succession.
+ * Gets the title of the DAO.
  */
-export const loader = async (ipfs: IpfsClient, web3: Web3, eth: any, conn: ConnStatus, addr: string): Promise<ExtendedIdeaInformation> => {
-	const basicInfo = await loadBasicIdeaInfo(ipfs, web3, addr);
+export const titleExtractor = (q: GetDaoAboutQuery["idea"]): string => q.name;
 
-	if (!basicInfo)
-		return null;
+/**
+ * Fed into the IdeaNavigator wrapper. Loads event information about an idea.
+ */
+export async function* loader(graph: Sdk, addr: string) {
+	const day = new Date();
 
-	return await loadExtendedIdeaInfo(ipfs, conn.network, web3, basicInfo);
-};
+	day.setUTCHours(0, 0, 0, 0);
+
+	const stream = await (graph.GetDaoAbout({
+		id: addr,
+		dayStart: Math.floor(day.getTime() / 1000) as unknown as Scalars["BigInt"],
+	}) as unknown as Promise<AsyncIterable<GetDaoAboutQuery>>);
+
+	let loaded = false;
+
+	for await (const val of stream) {
+		if (val.idea || !loaded) yield val.idea ?? null;
+
+		loaded = true;
+	}
+}

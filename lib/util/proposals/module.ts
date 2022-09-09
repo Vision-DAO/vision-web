@@ -1,7 +1,11 @@
-import { IpfsClient, loadExtendedProposalInfo, ExtendedProposalInformation  } from "../../../lib/util/ipfs";
-import { ConnStatus, staticProposals } from "../../../lib/util/networks";
-import Web3 from "web3";
-import { isIdeaContract } from "../../../lib/util/discovery";
+import { createContext, Context } from "react";
+import { PropInfoQuery, Sdk } from "../../../.graphclient";
+
+export type PropInfo = PropInfoQuery["prop"];
+
+export const ActiveProposalContext: Context<
+	[PropInfo | undefined, (q: PropInfo | undefined) => void]
+> = createContext(undefined);
 
 /**
  * Pages visible in the window navigator for a proposal.
@@ -9,14 +13,22 @@ import { isIdeaContract } from "../../../lib/util/discovery";
 export const pages = ["About"];
 
 /**
+ * Gets the title of the proposal.
+ */
+export const titleExtractor = (q: PropInfo): string => q.title;
+
+/**
  * Fed into the Navigator wrapper. Loads basic, and extended proposal information, in succession.
  */
-export const loader = async (ipfs: IpfsClient, web3: Web3, eth: any, conn: ConnStatus, addr: string): Promise<ExtendedProposalInformation> => {
-	// Ensure that the active proposal is an ACTUAL proposal
-	const propBytecode = await web3.eth.getCode(staticProposals[conn.network]);
+export async function* loader(graph: Sdk, addr: string) {
+	const stream = await (graph.PropInfo({ id: addr }) as unknown as Promise<
+		AsyncIterable<PropInfoQuery>
+	>);
+	let ran = false;
 
-	if (!propBytecode || !await isIdeaContract(web3, addr, propBytecode))
-		return undefined;
+	for await (const val of stream) {
+		if (val.prop || !ran) yield val.prop ?? null;
 
-	return await loadExtendedProposalInfo(ipfs, web3, { addr: addr, dataIpfsAddr: null });
-};
+		ran = true;
+	}
+}

@@ -1,0 +1,29 @@
+query GetMapItems @live {
+  ideas {
+    id
+    ipfsAddr
+    name
+  }
+  props(where: {status: Accepted}) {
+    id
+    funder {
+      id
+    }
+    toFund
+  }
+}
+
+query GetMapItemsOwned($id:ID!) @live {
+  user(id:$id) {
+    ideas {
+      dao {
+        id
+        ipfsAddr
+        name
+      }
+      tokens {
+        balance
+      }
+    }
+  }
+}

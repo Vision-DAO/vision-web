@@ -1,0 +1,38 @@
+.bar {
+	display: flex;
+
+	flex-flow: row nowrap;
+	justify-content: center;
+	align-items: center;
+}
+
+.barPart {
+	transition: 0.3s;
+	-moz-box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+
+	cursor: pointer;
+}
+
+.barPart.todo {
+	border-top: 0.5px solid rgba(255, 255, 255, 0.5);
+	border-bottom: 0.5px solid rgba(255, 255, 255, 0.5);
+	border-right: 0.5px solid rgba(255, 255, 255, 0.5);
+	background-color: #1D1D1D;
+}
+
+.barPart.done {
+	background-color: #3E3F92;
+}
+
+.barPart.doing {
+	background-color: #5D5FEF;
+}
+
+.barPart.done:not(:last-child) {
+	border-right: 2px solid rgba(255, 255, 255, 0.25);
+}
+
+.barPart:hover {
+	opacity: 0.6;
+}

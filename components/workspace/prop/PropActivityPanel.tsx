@@ -1,98 +1,74 @@
-import { ExtendedProposalInformation } from "../../../lib/util/ipfs";
-import { resolveIdeaName } from "../../../lib/util/discovery";
-import { ConnStatus } from "../../../lib/util/networks";
+import { ConnStatus, formatErc } from "../../../lib/util/networks";
+import { PropInfo } from "../../../lib/util/proposals/module";
 import Prop from "../../../value-tree/build/contracts/Prop.json";
+import { ProfileTooltip } from "../../status/ProfileTooltip";
 import Idea from "../../../value-tree/build/contracts/Idea.json";
-import { ActivityEntryProps, ActivityEntry } from "../idea/activity/ActivityEntry";
-import { useEffect, useState } from "react";
+import {
+	ActivityEntryProps,
+	ActivityEntry,
+} from "../idea/activity/ActivityEntry";
 import styles from "../idea/IdeaActivityPanel.module.css";
 import TimelineIcon from "@mui/icons-material/Timeline";
 import CircularProgress from "@mui/material/CircularProgress";
-import Web3 from "web3";
 
 /**
  * A panel in a proposal's about page that lists all of the recently available events for the idea.
  * This includes events for its parent contract that are relevant to the proposal.
  */
-export const PropActivityPanel = ({ web3, conn, prop }: { web3: Web3, conn: ConnStatus, prop: ExtendedProposalInformation }) => {
-	const contract = new web3.eth.Contract(Prop.abi, prop.addr);
-	const ideaContract = new web3.eth.Contract(Idea.abi, prop.parentAddr);
-	const [events, setEvents] = useState<ActivityEntryProps[]>(undefined);
-
-	useEffect(() => {
-		// Load the events
-		if (events === undefined) {
-			// Obtain a lock
-			setEvents(null);
-
-			(async () => {
-				// TODO: Gossip this information as well, AND increase the archival period
-				const parentLogs = await ideaContract.getPastEvents("IdeaFunded", { fromBlock: (await web3.eth.getBlockNumber()) - 500, toBlock: "latest" });
-				const propLogs = await contract.getPastEvents("allEvents", { fromBlock: (await web3.eth.getBlockNumber()) - 500, toBlock: "latest" } );
-
-				// The name of the thing to be funded
-				const childName = await resolveIdeaName(web3, conn, prop.destAddr);
-
-				// Do not include null entries
-				// Do not include entries for parent proposals that aren't this one
-				const events = await Promise.all([...parentLogs, ...propLogs]
-					.filter((e) => e !== undefined && e !== null && e.event)
-					.filter((e) => e.event === "NewProposal" || e.raw.topics[0] === prop.addr)
-					.map((e) => {
-						// Use an empty label for unrecognized events
-						let label = "";
-
-						switch (e.event) {
-						case "NewProposal":
-							label = `${prop.title}: Fund ${childName}`;
-
-							break;
-						case "IdeaFunded":
-							label = `${prop.title} Accepted: Funded ${childName}`;
-
-							break;
-						}
-
-						return (async () => {
-							const eventBlock = await web3.eth.getBlock(e.blockNumber);
-
-							return {
-								kind: e.event,
-								label: label,
-								timestamp: new Date(eventBlock.timestamp as number * 1000),
-							};
-						})();
-					}));
-
-				setEvents(events);
-			})();
-		}
-
-		// The proposal has closed for voting but the event isn't listed
-		if (events && new Date() > prop.expiry && events.filter(({ kind }) => kind === "ProposalClosed").length === 0) {
-			setEvents(events => [
-				{
-					kind: "ProposalClosed",
-					label: `${prop.title}: Voting Closed`,
-					timestamp: prop.expiry 
-				},
-				...events,
-			]);
-		}
+export const PropActivityPanel = ({ prop }: { prop: PropInfo }) => {
+	const events: ActivityEntryProps[] = prop.votes.map((vote) => {
+		return {
+			key: vote.id,
+			kind: "VoteCast",
+			label: (
+				<div className={styles.row}>
+					<ProfileTooltip addr={vote.voter.user.id} />
+					<p style={{ marginLeft: "0.25em" }}>
+						voted <b>{vote.kind.toLowerCase()}</b> the proposal with{" "}
+						{formatErc(Number(vote.votes))} {prop.funder.ticker}
+					</p>
+				</div>
+			),
+			timestamp: new Date(Number(vote.createdAt) * 1000),
+		};
 	});
 
+	const expiration = new Date(Number(prop.expiration) * 1000);
+
 	return (
-		<div className={ styles.activityPanelContainer }>
-			<div className={ styles.panelHeader }>
+		<div className={styles.activityPanelContainer}>
+			<div className={styles.panelHeader}>
 				<TimelineIcon />
 				<h2>Activity</h2>
 			</div>
-			<div className={ events ? styles.activityList : styles.loadingContainer }>
-				{ events ?
+			<div className={events ? styles.activityList : styles.loadingContainer}>
+				{new Date() > expiration && prop.status !== "Accepted" ? (
+					<ActivityEntry
+						kind="ProposalRejected"
+						timestamp={expiration}
+						label={<p>Proposal Rejected: {prop.title}</p>}
+					/>
+				) : (
+					prop.finalizedAt && (
+						<ActivityEntry
+							kind="ProposalAccepted"
+							timestamp={new Date(Number(prop.finalizedAt) * 1000)}
+							label={<p>Proposal Accepted: {prop.title}</p>}
+						/>
+					)
+				)}
+				{events ? (
 					events.map((e) => {
-						return ActivityEntry({ key: e.label, ...e });
-					}) : <CircularProgress />
-				}
+						return ActivityEntry({ ...e });
+					})
+				) : (
+					<CircularProgress />
+				)}
+				<ActivityEntry
+					kind="NewProposal"
+					timestamp={new Date(Number(prop.createdAt) * 1000)}
+					label={<p>Proposal Recorded: {prop.title}</p>}
+				/>
 			</div>
 		</div>
 	);

@@ -15,7 +15,7 @@ import closeIcon from "../public/icons/icon-close.svg";
 import selectedIcon from "../public/icons/icon-selected.svg";
 import ethereumLogo from "../public/icons/ethereum.png";
 import metaMaskLogo from "../public/icons/metamask.png";
-import { create, multiaddr } from "ipfs-core";
+import { create } from "ipfs-core";
 
 import type { AppProps } from "next/app";
 import Head from "next/head";
@@ -27,19 +27,19 @@ import NavPanel from "../components/workspace/nav/NavPanel";
 import { NavItem } from "../components/workspace/nav/NavItem";
 import navStyles from "../components/workspace/nav/NavPanel.module.css";
 import { Web3Context, provideWeb3 } from "../lib/util/web3";
+import { ClientContext } from "../lib/util/graph";
+import { getBuiltGraphSDK } from "../.graphclient";
 import EthCrypto from "eth-crypto";
-import {
-	IpfsContext,
-	ActiveIdeaContext,
-	ActiveProposalContext,
-	ProposalsContext,
-	GossipProposalInformation,
-} from "../lib/util/ipfs";
+import { IpfsContext, IpfsStoreContext } from "../lib/util/ipfs";
+import { ActiveIdeaContext } from "../lib/util/ideas/module";
+import { ActiveProposalContext } from "../lib/util/proposals/module";
 import {
 	ConnectionContext,
 	provideConnStatus,
 	AuthContext,
 	IdxContext,
+	VisContext,
+	visTokenAddr,
 } from "../lib/util/networks";
 import { ModalContext } from "../lib/util/modal";
 import { ModelTypes } from "../lib/util/discovery";
@@ -71,13 +71,6 @@ interface Page {
 
 	icon: React.ReactElement;
 }
-
-/**
- * An IPFS node hosted on AWS. A domain name and SSL cert are required because
- * web clients cannot resolve non-secure domain names (mozilla particularly).
- */
-const BOOTSTRAP_NODE =
-	"/dns4/visiondaodev.com/tcp/4003/wss/p2p/12D3KooWE2ofDNP9omeVFvvmPD4ihyGW9p7nXEtzkdwKxuo47yYc";
 
 /**
  * Signed data indicating the user is who they say they are.
@@ -150,50 +143,34 @@ const App = ({ Component, pageProps }: AppPropsWithLayout) => {
 
 	// Create a global connection status state
 	const connStatus = provideConnStatus(web3 ? web3[1] : undefined);
+	const visAddr = visTokenAddr[connStatus[0].network];
 
 	// Wait, globally, for someone to connect to ceramic
 	const authContext = useState<EthereumAuthProvider | null>(null);
 	const idxContext = useState<IDX | null>(null);
 
-	// Multiple pages share info about the currently expanded idea (i.e., the
-	// idea on the second figma page)
-	const [activeIdea, setActiveIdea] = useState(undefined);
-	const [activeProposal, setActiveProposal] = useState(undefined);
-
 	// Keep the global IPFS intance up to date
 	const [ipfs, setIpfs] = useState(undefined);
+	const ideaContext = useState(undefined);
+	const propContext = useState(undefined);
+	const [client, setClient] = useState(undefined);
 
-	// A global cache for props
-	const [proposalCache, setProposals] = useState<{
-		[addr: string]: GossipProposalInformation[];
-	}>({});
+	useEffect(() => {
+		setClient(getBuiltGraphSDK());
+	}, []);
 
-	const addProposal = (addr: string, prop: GossipProposalInformation) => {
-		setProposals((props) => {
-			return {
-				...props,
-				[addr]: props[addr]
-					? props[addr].includes(prop)
-						? props[addr]
-						: [...props[addr], prop]
-					: [prop],
-			};
+	const [ipfsStore, setIpfsStore] = useState({});
+	const storeMutater = (cid: string, key: string, v: unknown) => {
+		setIpfsStore((store) => {
+			return { ...store, [cid]: { ...(store[cid] ?? {}), [key]: v } };
 		});
 	};
 
 	useEffect(() => {
 		if (ipfs === undefined) {
 			setIpfs(null);
+
 			create({ EXPERIMENTAL: { ipnsPubsub: true } }).then((ipfs) => {
-				ipfs.bootstrap.add(new multiaddr(BOOTSTRAP_NODE));
-
-				window.ipfs = ipfs;
-
-				// TODO: Auto-generate this testing peer on testing environments
-				//
-				// TODO: Figure out why IPFS isn't properly subscribing.
-				// Suspect IPFS are just a bunch of dumbfucks that can't write good
-				// software
 				setIpfs(ipfs);
 			});
 		}
@@ -266,62 +243,64 @@ const App = ({ Component, pageProps }: AppPropsWithLayout) => {
 			>
 				<ThemeProvider theme={theme}>
 					<Web3Context.Provider value={web3}>
-						<IpfsContext.Provider value={ipfs}>
-							<ConnectionContext.Provider value={connStatus}>
-								<AuthContext.Provider value={authContext}>
-									<IdxContext.Provider value={idxContext}>
-										<ActiveIdeaContext.Provider
-											value={[activeIdea, setActiveIdea]}
-										>
-											<ProposalsContext.Provider
-												value={[proposalCache, addProposal]}
-											>
-												<ActiveProposalContext.Provider
-													value={[activeProposal, setActiveProposal]}
-												>
-													<ModalContext.Provider value={[modal, setModal]}>
-														{router.pathname !== "/login" ? (
-															<div
-																className={`${styles.app} ${styles.root}${
-																	hasModal ? " " + styles.hidden : ""
-																}`}
-															>
-																<div className={styles.navPanel}>
-																	<NavPanel
-																		items={navItems}
-																		onProfileClicked={(selfId: string) =>
-																			router.push({
-																				pathname: "/profile/[id]",
-																				query: {
-																					id: selfId,
-																				},
-																			})
-																		}
-																		onSettingsActive={() =>
-																			router.push("/settings")
-																		}
-																		ctx={web3}
-																	/>
-																</div>
-																<div className={styles.workspace}>
-																	<NetworkedWorkspace>
-																		{getLayout(<Component {...pageProps} />)}
-																	</NetworkedWorkspace>
-																</div>
-															</div>
-														) : (
-															<div className={`${styles.app} ${styles.root}`}>
-																<Component {...pageProps} />
-															</div>
-														)}
-													</ModalContext.Provider>
-												</ActiveProposalContext.Provider>
-											</ProposalsContext.Provider>
-										</ActiveIdeaContext.Provider>
-									</IdxContext.Provider>
-								</AuthContext.Provider>
-							</ConnectionContext.Provider>
-						</IpfsContext.Provider>
+						<ClientContext.Provider value={client}>
+							<VisContext.Provider value={visAddr}>
+								<IpfsContext.Provider value={ipfs}>
+									<IpfsStoreContext.Provider value={[ipfsStore, storeMutater]}>
+										<ConnectionContext.Provider value={connStatus}>
+											<AuthContext.Provider value={authContext}>
+												<ActiveIdeaContext.Provider value={ideaContext}>
+													<ActiveProposalContext.Provider value={propContext}>
+														<IdxContext.Provider value={idxContext}>
+															<ModalContext.Provider value={[modal, setModal]}>
+																{router.pathname !== "/login" ? (
+																	<div
+																		className={`${styles.app} ${styles.root}${
+																			hasModal ? " " + styles.hidden : ""
+																		}`}
+																	>
+																		<div className={styles.navPanel}>
+																			<NavPanel
+																				items={navItems}
+																				onProfileClicked={(selfId: string) =>
+																					router.push({
+																						pathname: "/profile/[id]",
+																						query: {
+																							id: selfId,
+																						},
+																					})
+																				}
+																				onSettingsActive={() =>
+																					router.push("/settings")
+																				}
+																				ctx={web3}
+																			/>
+																		</div>
+																		<div className={styles.workspace}>
+																			<NetworkedWorkspace>
+																				{getLayout(
+																					<Component {...pageProps} />
+																				)}
+																			</NetworkedWorkspace>
+																		</div>
+																	</div>
+																) : (
+																	<div
+																		className={`${styles.app} ${styles.root}`}
+																	>
+																		<Component {...pageProps} />
+																	</div>
+																)}
+															</ModalContext.Provider>
+														</IdxContext.Provider>
+													</ActiveProposalContext.Provider>
+												</ActiveIdeaContext.Provider>
+											</AuthContext.Provider>
+										</ConnectionContext.Provider>
+									</IpfsStoreContext.Provider>
+								</IpfsContext.Provider>
+							</VisContext.Provider>
+						</ClientContext.Provider>
 					</Web3Context.Provider>
 				</ThemeProvider>
 			</Provider>

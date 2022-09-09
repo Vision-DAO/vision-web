@@ -1,14 +1,11 @@
 import styles from "./IdeaMap.module.css";
 import { BasicIdeaInformation } from "./IdeaBubble";
 import {
-	FundingRate,
-	loadBasicIdeaInfo,
+	loadIdeaImageSrc,
 	IpfsContext,
+	IpfsStoreContext,
 } from "../../lib/util/ipfs";
-import { useWeb3 } from "../../lib/util/web3";
-import { isIdeaContract } from "../../lib/util/discovery";
-import Idea from "../../value-tree/build/contracts/Idea.json";
-import { baseIdeaContract } from "../../pages/index";
+import { GetMapItemsQuery } from "../../.graphclient";
 
 import {
 	useRef,
@@ -28,9 +25,9 @@ import cola from "cytoscape-cola";
  * - A user clicks an idea on the map
  */
 export interface IdeaMapProps {
-	ideas: { [idea: string]: FundingRate[] };
+	ideas: GetMapItemsQuery;
 
-	onClickIdea: (idea: BasicIdeaInformation) => void;
+	onClickIdea: (idea: string) => void;
 }
 
 const blockIdea = (
@@ -50,154 +47,103 @@ export const IdeaMap = ({
 	ideas,
 	onClickIdea,
 }: IdeaMapProps): [
+	Set<string> | undefined,
 	(ideaAddr: string) => void,
 	(ideaAddr: string) => void,
 	(ideaAddr: string) => void,
 	(zoom: number) => void,
 	ReactElement
 ] => {
-	const [web3] = useWeb3();
 	const ipfs = useContext(IpfsContext);
+
+	// IPFS CID's that have already been seen
+	const [ipfsCache, setIpfsCache] = useContext(IpfsStoreContext);
 
 	// The container that cytoscape binds to for rendering nodes
 	const map = useRef(null);
 
+	// Used for detecting which addresses are valid vision entities
+	const ideaAddrs = new Set(ideas.ideas.map((idea) => idea.id));
+
 	// States for loading ideas
 	const [blockedIdeas, setBlockedIdeas] = useState<Set<string>>(new Set());
-	const [ideaDetails, setIdeaDetails] = useState<{
-		[ideaAddr: string]: BasicIdeaInformation;
-	}>({});
-
-	// For detecting whether ideas are valid
-	const [ideaContractBytecode, setIdeaContractBytecode] = useState(null);
 
 	// The cytoscape instance used for the map
 	const [cyx, setCy] = useState(undefined);
 	const [cyNodes, setCyNodes] = useState<Set<string>>(new Set());
 
 	const handleClick = (e: cytoscape.EventObjectNode) =>
-		onClickIdea(ideaDetails[e.target.id()]);
+		onClickIdea(e.target.id());
 
 	// Every time the list of parent nodes expands, part of the component
 	// tree must be rebuilt
 	useEffect(() => {
-		// Load an instance of the idea contract bytecode
-		if (ideaContractBytecode == null && web3) {
-			setIdeaContractBytecode("");
-
-			web3.eth
-				.getCode(baseIdeaContract)
-				.then((code) => setIdeaContractBytecode(code));
-		}
-
-		if (cyx) cyx.startBatch();
-
-		for (const ideaAddr of Object.keys(ideas)) {
-			// Cannot continue without an exemplar to compare against
-			if (!ideaContractBytecode || ideaContractBytecode == "") break;
-
+		for (const idea of ideas.ideas) {
 			// Skip all ideas that have been blocked
-			if (blockedIdeas.has(ideaAddr)) continue;
-
-			// TODO: Allow live updates for basic idea metadata once it is feasible
-			if (ideaAddr in ideaDetails) continue;
-
-			const contract = new web3.eth.Contract(Idea.abi, ideaAddr);
-
-			// Mark the item as being loaded
-			setIdeaDetails((ideas) => {
-				return { ...ideas, [ideaAddr]: null };
-			});
+			if (blockedIdeas.has(idea.id)) continue;
 
 			// Fetch the basic information of the idea from Ethereum
-			// TODO: Loading of extended metadata from IPFS
 			(async () => {
-				// Filter out any contracts that aren't ideas
-				// TODO: Cover Proposals as well
-				if (!(await isIdeaContract(web3, ideaAddr, ideaContractBytecode))) {
-					blockIdea(ideaAddr, setBlockedIdeas);
-
-					return;
-				}
-
 				// All ideas must have some metadata stored on IPFS
-				const ipfsAddr = await contract.methods.ipfsAddr().call();
+				const ipfsAddr = idea.ipfsAddr;
 
 				if (!ipfsAddr) {
-					blockIdea(ideaAddr, setBlockedIdeas);
+					blockIdea(idea.id, setBlockedIdeas);
 
 					return;
 				}
 
-				// Extra props containing optional data for a bubble
-				// All ideas have associated metadata of varying degrees of completion
-				// Load the title, image, and address of the idea
-				const data = await loadBasicIdeaInfo(ipfs, web3, ideaAddr);
+				// Load the image of the blob if it hasn't already been loaded
+				let imgBlob: string;
 
-				// Make sure no errors occurred
-				if (!data) {
-					// Remove the idea from the list of viewable ideas
-					blockIdea(ideaAddr, setBlockedIdeas);
-
-					return;
+				if (
+					!(idea.ipfsAddr in ipfsCache) ||
+					!("icon" in ipfsCache[idea.ipfsAddr])
+				) {
+					// Make the image of the blob as loading, and then update it
+					setIpfsCache(idea.ipfsAddr, "icon", null);
+					imgBlob = await loadIdeaImageSrc(ipfs, idea.ipfsAddr);
+					setIpfsCache(idea.ipfsAddr, "icon", imgBlob);
+				} else {
+					imgBlob = ipfsCache[idea.ipfsAddr]["icon"] as string;
 				}
 
-				const bubbleContent: BasicIdeaInformation = data;
-
-				// This item is still loading
-				if (!bubbleContent) return;
-
-				// Shallow comparison to check that the bubble info has already been cached
-				const bubblesEqual = (
-					a: BasicIdeaInformation,
-					b: BasicIdeaInformation
-				): boolean => {
-					if (!a || !b) return false;
-
-					for (const key of Object.keys(a)) {
-						if (a[key] != b[key]) return false;
-					}
-
-					return true;
+				// Load the image attached to the idea
+				const bubbleContent: BasicIdeaInformation = {
+					title: idea.name,
+					addr: idea.id,
+					image: imgBlob === null ? undefined : imgBlob,
 				};
 
 				// Render the information of the bubble as a component on the mindmap
-				if (!bubblesEqual(ideaDetails[ideaAddr], bubbleContent)) {
-					if (cyx) {
-						// Mutate the existing record
-						if (cyNodes.has(ideaAddr)) {
-							const node = cyx.getElementById(ideaAddr);
-							node.data("label", bubbleContent.title);
+				if (cyx) {
+					// Mutate the existing record
+					if (cyNodes.has(idea.id)) {
+						const node = cyx.getElementById(idea.id);
+						node.data("label", bubbleContent.title);
 
-							if (bubbleContent.image) node.data("image", bubbleContent.image);
+						if (bubbleContent.image) node.data("image", bubbleContent.image);
 
-							return;
-						}
-
-						// Add the new idea to the cytoscape instance
-						const newNode = {
-							group: "nodes",
-							data: {
-								id: ideaAddr,
-								label: bubbleContent.title,
-								...(bubbleContent.image ? { image: bubbleContent.image } : {}),
-							},
-						};
-						cyx.add(newNode);
-						cyx.layout({ name: "cola" }).run();
-
-						setCyNodes((nodes) => new Set([...nodes, ideaAddr]));
+						return;
 					}
 
-					setIdeaDetails((ideas) => {
-						return { ...ideas, [ideaAddr]: bubbleContent };
-					});
+					setCyNodes((nodes) => new Set([...nodes, idea.id]));
+
+					// Add the new idea to the cytoscape instance
+					const newNode = {
+						group: "nodes",
+						data: {
+							id: idea.id,
+							label: bubbleContent.title,
+							...(bubbleContent.image ? { image: bubbleContent.image } : {}),
+						},
+					};
+					cyx.add(newNode);
+					cyx.layout({ name: "cola" }).run();
 				}
 			})();
 		}
-
-		if (cyx) cyx.endBatch();
-	});
+	}, [ideas.ideas.length]);
 
 	// Render a map of ideas
 	useEffect(() => {
@@ -277,26 +223,23 @@ export const IdeaMap = ({
 
 			if (!cy) return;
 
-			const newEdges = Object.entries(ideas)
-				.map(([k, v]) =>
-					Object.values(v)
-						.filter(
-							(edge) =>
-								edge.sender in ideaDetails &&
-								k in ideaDetails &&
-								cyNodes.has(edge.sender) &&
-								cyNodes.has(k)
-						)
-						.map((edge) => {
-							return {
-								data: {
-									id: `${k}${edge.sender}`,
-									source: edge.sender,
-									target: k,
-								},
-							};
-						})
+			const newEdges = ideas.props
+				.filter(
+					({ funder, toFund }) =>
+						ideaAddrs.has(funder.id) &&
+						ideaAddrs.has(toFund) &&
+						cyNodes.has(funder.id) &&
+						cyNodes.has(toFund)
 				)
+				.map(({ funder, toFund }) => {
+					return {
+						data: {
+							id: `${toFund}${funder}`,
+							source: funder.id,
+							target: toFund,
+						},
+					};
+				})
 				.flat()
 				.filter(({ data: { id } }) => !cyNodes.has(id));
 
@@ -375,6 +318,7 @@ export const IdeaMap = ({
 	});
 
 	return [
+		cyx !== undefined ? cyNodes : undefined,
 		(addr) => {
 			cyx.nodes().unselect();
 			if (addr) cyx.getElementById(addr).select();

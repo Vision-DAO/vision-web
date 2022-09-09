@@ -1,14 +1,14 @@
 import Web3 from "web3";
 import styles from "./NewIdeaModal.module.css";
 import { useState, useEffect } from "react";
-import { accounts } from "../../lib/util/networks";
-import { saveIdea, OwnedIdeasRecord } from "../../lib/util/discovery";
+import { accounts, useRegistry } from "../../lib/util/networks";
 import { IdeaData } from "../../lib/util/ipfs";
 import CloseIcon from "@mui/icons-material/CloseRounded";
 import LinearProgress from "@mui/material/LinearProgress";
 import { UnderlinedInput } from "../input/UnderlinedInput";
 import { MultiTypeInput } from "../input/MultiTypeInput";
 import Idea from "../../value-tree/build/contracts/Idea.json";
+import Factory from "../../value-tree/build/contracts/Factory.json";
 import { FilledButton } from "./FilledButton";
 
 export interface NewIdeaSubmission {
@@ -22,7 +22,19 @@ export interface NewIdeaSubmission {
  * A popup modal containing a form with fields for the necessary argumentst to
  * the Idea smart contract constructor.
  */
-export const NewIdeaModal = ({ active: isActive, onClose, onDeploy, onUpload, ctx, ideasBuf }: { active: boolean, onClose: () => void, onDeploy: (address: string) => void, onUpload: (ideaData: IdeaData[]) => Promise<string>, ctx: [Web3, any], ideasBuf: OwnedIdeasRecord }) => {
+export const NewIdeaModal = ({
+	active: isActive,
+	onClose,
+	onDeploy,
+	onUpload,
+	ctx,
+}: {
+	active: boolean;
+	onClose: () => void;
+	onDeploy: (address: string) => void;
+	onUpload: (ideaData: IdeaData[]) => Promise<string>;
+	ctx: [Web3, any];
+}) => {
 	// Transition the opacity of the Idea Modal upon clicking the close button,
 	// prevent the modal from being rendered at all before its opacity goes 0->100
 	const [loaded, setLoaded] = useState(false);
@@ -34,13 +46,13 @@ export const NewIdeaModal = ({ active: isActive, onClose, onDeploy, onUpload, ct
 	let style = styles.newIdeaModalContainer;
 
 	const [web3, eth] = ctx;
+	const registry = useRegistry();
 
 	// The information to use for the user's deployed Idea smart contract
 	const [ideaDetails, setIdeaDetails] = useState({});
 
 	useEffect(() => {
-		if (!loaded && active)
-			setLoaded(true);
+		if (!loaded && active) setLoaded(true);
 
 		if (loaded && !active) {
 			setTimeout(() => {
@@ -60,20 +72,18 @@ export const NewIdeaModal = ({ active: isActive, onClose, onDeploy, onUpload, ct
 
 	// Deploys a new Idea smart contract from the callback of the Idea modal
 	const createIdea = async (constructorArgs: NewIdeaSubmission) => {
-		const contract = new web3.eth.Contract(Idea.abi);
-		contract.deploy({
-			data: Idea.bytecode,
-
-			// See Idea.sol for definition of contract arguments.
-			// Obtained from Form submission of NewIdeaModal
-			arguments: [
+		const deployer = new web3.eth.Contract(Factory.abi, registry);
+		deployer.methods
+			.createIdea(
 				constructorArgs.ideaName,
 				constructorArgs.ideaTicker,
-				web3.utils.toBN(constructorArgs.ideaShares).mul(web3.utils.toBN(10 ** 18)).toString(),
+				web3.utils
+					.toBN(constructorArgs.ideaShares)
+					.mul(web3.utils.toBN(10 ** 18))
+					.toString(),
 				constructorArgs.datumIpfsHash
-			]
-		})
-		// TODO: Status details
+			)
+			// TODO: Status details
 			.send({
 				// The first account selected should be the owner
 				from: (await accounts(eth))[0],
@@ -94,10 +104,7 @@ export const NewIdeaModal = ({ active: isActive, onClose, onDeploy, onUpload, ct
 				setDeploying(false);
 
 				// Save the user's contract via ceramic
-				saveIdea(receipt.contractAddress, ideasBuf)
-					.then(() => {
-						onDeploy(receipt.contractAddress);
-					});
+				onDeploy(receipt.contractAddress);
 			});
 	};
 
@@ -108,7 +115,12 @@ export const NewIdeaModal = ({ active: isActive, onClose, onDeploy, onUpload, ct
 		setErrorMsg("");
 
 		// Minimum, essential fields
-		if (!ideaDetails["ideaName"] || !ideaDetails["ideaTicker"] || !ideaDetails["ideaShares"] || !ideaDetails["data"]) {
+		if (
+			!ideaDetails["ideaName"] ||
+			!ideaDetails["ideaTicker"] ||
+			!ideaDetails["ideaShares"] ||
+			!ideaDetails["data"]
+		) {
 			setErrorMsg("Missing required Idea field.");
 
 			return;
@@ -153,29 +165,40 @@ export const NewIdeaModal = ({ active: isActive, onClose, onDeploy, onUpload, ct
 	];
 
 	return (
-		<div className={ style }>
-			<div className={ styles.modalNav }>
+		<div className={style}>
+			<div className={styles.modalNav}>
 				<h1>Create New Idea</h1>
-				<div className={ styles.closeIcon } onClick={ () => setActive(false) }>
+				<div className={styles.closeIcon} onClick={() => setActive(false)}>
 					<CloseIcon />
 				</div>
 			</div>
-			<div className={ styles.modalForm }>
-				<div className={ styles.modalFormTextDetails }>
-					{
-						inputs.map(({ placeholder, name }) =>
-							<UnderlinedInput
-								key={ name }
-								placeholder={ placeholder }
-								onChange={ (val) => setIdeaDetails({ ...ideaDetails, [name]: val }) }
-							/>
-						)
-					}
+			<div className={styles.modalForm}>
+				<div className={styles.modalFormTextDetails}>
+					{inputs.map(({ placeholder, name }) => (
+						<UnderlinedInput
+							key={name}
+							placeholder={placeholder}
+							onChange={(val) =>
+								setIdeaDetails({ ...ideaDetails, [name]: val })
+							}
+						/>
+					))}
 				</div>
-				<MultiTypeInput label="Item Data" onChange={ (val) => setIdeaDetails({ ...ideaDetails, data: val }) }/>
+				<MultiTypeInput
+					label="Item Data"
+					onChange={(val) => setIdeaDetails({ ...ideaDetails, data: val })}
+				/>
 			</div>
-			<p>{ errorMsg }</p>
-			{ deploying ? <LinearProgress color="inherit" /> : <FilledButton label="Create Idea" className={ styles.submitButton } onClick={ handleSubmit } /> }
+			<p>{errorMsg}</p>
+			{deploying ? (
+				<LinearProgress color="inherit" />
+			) : (
+				<FilledButton
+					label="Create Idea"
+					className={styles.submitButton}
+					onClick={handleSubmit}
+				/>
+			)}
 		</div>
 	);
 };

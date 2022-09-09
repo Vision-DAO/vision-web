@@ -42,13 +42,13 @@
 .resultsArea>*{
 	margin-top: 0.5rem;
 
-	color: rgba(255, 255, 255, 0.5);
+	color: white;
 
 	transition: 0.15s;
 }
 
 .resultsArea>*:hover {
-	color: white;
+	opacity: 0.6;
 }
 
 .queryArea {
@@ -141,13 +141,36 @@
 	font-weight: bold;
 }
 
-.resultsRow {
+.resultsEntry {
 	display: flex;
 	flex-flow: row nowrap;
 	justify-content: flex-start;
+	align-items: center;
+
+	cursor: pointer;
+
+	width: 100%;
 }
 
-.resultsRow>*:not(:first-child) {
+.resultsEntry>*:not(:first-child) {
 	margin-right: 0.5em;
 	margin-left: 0.5em;
+}
+
+.resultIcon {
+	height: 2em;
+	width: 2em;
+
+	object-fit: cover;
+
+	border-radius: 50%;
+
+	margin-right: 0.5em;
+}
+
+.formalText {
+	font-family: "Roboto", "Helvetica Neue", sans-serif;
+
+	font-size: 1.25em;
+	font-weight: 500;
 }

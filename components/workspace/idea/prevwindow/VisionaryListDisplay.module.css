@@ -48,6 +48,10 @@
 	align-items: center;
 }
 
+.listItem>*:first-child {
+	margin-right: 0.5em;
+}
+
 .bubblesPool {
 	display: flex;
 
@@ -91,13 +95,27 @@
 	margin: 0;
 }
 
+.activeVisionaryInfo .listItem:nth-child(2) {
+	margin-top: 0.75em;
+}
+
 .visionaryName {
-	font-size: 0.75em;
+	font-size: 1em;
 
 	width: 100%;
 
 	text-overflow: ellipsis;
 	overflow: hidden;
+	white-space: nowrap;
 
 	font-weight: bold;
+	color: white;
+
+	max-width: 100%;
+
+	display: block;
+}
+
+.pfpBubble {
+	object-fit: cover;
 }

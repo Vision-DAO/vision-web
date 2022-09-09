@@ -1,0 +1,213 @@
+.propCard {
+	display: flex;
+
+	flex-flow: column nowrap;
+	justify-content: flex-start;
+	align-items: flex-start;
+
+	width: 100%;
+
+	background-color: #1D1D1D;
+	border-radius: 10px;
+
+	padding: 1em;
+
+	border: 0.25px solid rgba(255, 255, 255, 0.25);
+	box-sizing: border-box;
+}
+
+.propTitle {
+	margin: 0;
+	padding: 0;
+}
+
+.beneficTooltip {
+	display: flex;
+
+	flex-flow: row nowrap;
+	justify-content: center;
+	align-items: center;
+
+	background-color: #5D5FEF;
+
+	padding-top: 0.25em;
+	padding-bottom: 0.25em;
+	padding-left: 0.5em;
+	padding-right: 0.5em;
+
+	border-radius: 500px;
+}
+
+.beneficTooltip p:not(:first-child) {
+	margin-left: 0.5em;
+	margin-right: 0.5em;
+}
+
+.beneficTooltip p {
+	margin: 0;
+	font-weight: bold;
+
+	border-bottom: 1px solid #5D5FEF;
+	cursor: pointer;
+
+	transition: 0.3s opacity;
+}
+
+.beneficTooltip {
+	transition: 0.3s opacity;
+}
+
+.beneficTooltip:hover {
+	opacity: 0.6;
+}
+
+.beneficIcon {
+	border-radius: 100%;
+	object-fit: cover;
+}
+
+.row {
+	display: flex;
+
+	flex-flow: row nowrap;
+	align-items: center;
+}
+
+.spaced {
+	justify-content: space-between;
+}
+
+.full {
+	width: 100%;
+}
+
+.separator {
+	margin-left: 0.5em;
+	margin-right: 0.5em;
+}
+
+.authorRow p {
+	color: rgba(255, 255, 255, 0.6);
+}
+
+.contentArea {
+	margin-top: 0.5em;
+
+	display: flex;
+
+	width: 100%;
+
+	flex-flow: row nowrap;
+	align-items: stretch;
+}
+
+.description {
+	margin: 0;
+	margin-bottom: 0.5em;
+}
+
+.contentImg {
+	border-radius: 10px;
+
+	margin-right: 1.5em;
+}
+
+.rightInfoArea {
+	display: flex;
+
+	flex-flow: column nowrap;
+
+	justify-content: space-between;
+	align-items: stretch;
+
+	min-height: 100%;
+	width: 100%;
+
+	flex-grow: 1;
+}
+
+.column {
+	display: flex;
+
+	flex-flow: column nowrap;
+	justify-content: flex-start;
+	align-items: stretch;
+}
+
+.actionButton {
+	border-radius: 5px;
+
+	font-size: 0.5em;
+}
+
+.actionButton h1 {
+	font-size: 2em;
+	margin-right: 0;
+
+	font-weight: bold;
+}
+
+.primaryButton {
+	width: 70%;
+	background-color: #5D5FEF;
+}
+
+.primaryButton:hover {
+	background-color: #7879F1;
+}
+
+.actionRow {
+	margin-top: 1em;
+}
+
+.actionRow>*:last-child {
+	flex-grow: 1;
+
+	margin-left: 0.7em;
+}
+
+.shareIcon {
+	margin-left: 0.25em;
+}
+
+.statusIndicator {
+	display: flex;
+
+	flex-flow: row nowrap;
+	justify-content: center;
+	align-items: center;
+
+	width: 100%;
+
+	border-radius: 0.5em;
+
+	font-weight: bold;
+}
+
+.statusIndicator>* {
+	opacity: 0.8;
+}
+
+.statusIndicator>*:first-child {
+	margin-right: 0.25em;
+}
+
+.accepted {
+	background-color: #3E3F92;
+}
+
+.rejected {
+	color: white;
+	background-color: #5A153A;
+}
+
+.link {
+	border-bottom: 2px solid #5D5FEF;
+
+	transition: 0.3s opacity;
+	cursor: pointer;
+}
+
+.link:hover {
+	opacity: 0.6;
+}

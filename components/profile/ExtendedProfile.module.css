@@ -113,7 +113,7 @@
 }
 
 .textInfo>*:not(:first-child) {
-	margin-top: 0.5em;
+	margin-top: 0.25em;
 }
 
 .actionButtons {
@@ -165,6 +165,8 @@
 
 	font-family: "Roboto", "Helvetica Neue", sans-serif;
 	margin: 0;
+
+	margin-top: 1em;
 }
 
 .bio.editing:hover {
@@ -174,4 +176,75 @@
 .addrLabel {
 	font-weight: bold;
 	opacity: 0.6;
+}
+
+.infoRow {
+	display: flex;
+
+	flex-flow: row nowrap;
+	justify-content: flex-start;
+	align-items: center;
+}
+
+.infoRow>* {
+	padding: 0;
+	margin: 0;
+
+	font-size: 1.2em;
+}
+
+.infoRow>*:not(:first-child) {
+	margin-left: 0.5em;
+}
+
+.primaryLabel {
+	color: #5D5FEF;
+}
+
+.description {
+	font-size: 1.2em;
+}
+
+.infoSection {
+	margin-top: 1em;
+
+	width: 100%;
+	max-height: 100%;
+
+	display: flex;
+
+	flex-flow: column nowrap;
+	justify-content: flex-start;
+	align-items: flex-start;
+}
+
+.propFeed {
+	display: flex;
+
+	flex-flow: column nowrap;
+
+	justify-content: flex-start;
+	align-items: stretch;
+
+	width: 100%;
+}
+
+.propFeed>* {
+	margin-bottom: 2em;
+}
+
+.daoCarousel {
+	display: flex;
+
+	flex-flow: row nowrap;
+	justify-content: flex-start;
+	align-items: stretch;
+
+	max-width: 100%;
+
+	overflow: scroll;
+}
+
+.daoCarousel>* {
+	margin-right: 0.5em;
 }

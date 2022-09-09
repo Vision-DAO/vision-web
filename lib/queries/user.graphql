@@ -1,0 +1,77 @@
+query UserStats($id:ID!) @live {
+  user(id:$id) {
+    id,
+    ideas {
+      dao {
+        id
+      },
+      props {
+        props {
+          id
+        },
+      },
+      votes {
+        votes {
+          votes,
+        },
+      },
+      tokens {
+        dao {
+          id
+        },
+        balance,
+      },
+    },
+  },
+}
+
+query UserFeed($id:ID!) @live {
+  user(id:$id) {
+    ideas {
+      tokens {
+        balance
+        dao {
+          id
+          name
+          ticker
+          ipfsAddr
+          users {
+            id
+          }
+        }
+      }
+      props {
+        props {
+          id
+          ipfsAddr
+          title
+          author {
+            id
+          }
+          funder {
+            id
+            supply
+          }
+          toFund
+          votesFor
+          status
+          expiration
+          createdAt
+          finalizedAt
+        }
+      }
+    }
+  }
+}
+
+query GetAllUsers @live {
+  users {
+    id
+  }
+}
+
+query GetUserBalance($iID: ID!) @live(interval: 5000) {
+  investorProfile(id: $iID) {
+    balance
+  }
+}

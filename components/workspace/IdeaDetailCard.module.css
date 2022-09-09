@@ -63,11 +63,25 @@
 
 .cardTitleInfo {
 	border-bottom: 0.5px solid rgba(255, 255, 255, 0.5);
-	
+
 	margin-top: 0;
 	padding-bottom: 1.5rem;
 
 	display: flex;
+	flex-flow: column nowrap;
+	justify-content: flex-start;
+	align-items: stretch;
+}
+
+.description {
+	margin-top: 0.5em;
+}
+
+.cardHeader {
+	display: flex;
+
+	flex-flow: row nowrap;
+
 	justify-content: space-between;
 	align-items: center;
 }

@@ -1,0 +1,9 @@
+query Search($text: String!) {
+  ideaPropSearch(text: $text) {
+    id,
+    name,
+    ipfsAddr,
+    ticker
+  }
+}
+

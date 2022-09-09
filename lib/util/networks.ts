@@ -3,16 +3,35 @@ import {
 	useViewerConnection as useConnection,
 	EthereumAuthProvider,
 } from "@self.id/framework";
+import { useWeb3 } from "./web3";
 import { IDX } from "@ceramicstudio/idx";
 
 export type Network = "ethereum" | "polygon" | "polygon-test" | "unknown";
+
+/**
+ * Registries deployed to different networks (used for bootstrapping).
+ */
+export const registries: Map<string, string | null> = new Map([
+	["ethereum", null],
+	["polygon", null],
+	["polygon-test", "0x5000e273188Ce07f11dd7a270A16a17Bff071176"],
+]);
+
+export const zAddr = "0x0000000000000000000000000000000000000000";
 
 /*
  * Mappings from network names to addresses of statically deployed proposal
  * contracts.
  */
 export const staticProposals: { [net: string]: string } = {
-	"polygon-test": "0xe8d1141D509e1274BD323D1f4a0d735402D25d64",
+	"polygon-test": "0x5093Cf303a3d934b5621bB13723b74CfF42487c8",
+};
+
+/**
+ * Address of the Vision token on different networks.
+ */
+export const visTokenAddr: { [net: string]: string } = {
+	"polygon-test": "0x2a0073Bd141EfAb52A1177532e4971fDbC7E44d7",
 };
 
 /**
@@ -21,6 +40,11 @@ export const staticProposals: { [net: string]: string } = {
 export const AuthContext: Context<
 	[EthereumAuthProvider | null, (e: EthereumAuthProvider) => void]
 > = createContext([null, null]);
+
+/**
+ * Instantiated when the user connects to ethereum.
+ */
+export const VisContext: Context<string> = createContext(null);
 
 export const ConnectionContext: Context<[ConnStatus, () => void]> =
 	createContext([
@@ -85,6 +109,29 @@ export const connectMetamask = async (ethProvider: any): Promise<void> => {
 	await ethProvider.request({ method: "eth_requestAccounts" });
 };
 
+export const formatBig = (n: number): string =>
+	Intl.NumberFormat("en-US", {
+		notation: "compact",
+		maximumFractionDigits: 2,
+	}).format(n);
+
+/**
+ * Produces a locale string suitable to ERC-20 balances.
+ */
+export const formatErc = (n: number): string => formatBig(n / Math.pow(10, 18));
+
+/**
+ * Formats a date object in YYYY/mm/d format.
+ */
+export const formatDateObj = (d: Date): string =>
+	`${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
+
+/**
+ * Extracts the month, day, and year from a UNIX timestamp.
+ */
+export const formatDate = (n: number): string =>
+	formatDateObj(new Date(n * 1000));
+
 /**
  * Gets a list of the user's active accounts.
  */
@@ -126,6 +173,27 @@ export const requestChangeNetwork = async (ethProvider: any): Promise<void> => {
  */
 export const useConnStatus = (): [ConnStatus, () => void] =>
 	useContext(ConnectionContext);
+
+/**
+ * Consumes the global Vision token address.
+ */
+export const useVisAddr = (): string => useContext(VisContext);
+
+/**
+ * Gets the currently active Ethereum account.
+ */
+export const useEthAddr = (): string => {
+	const [, eth] = useWeb3();
+	const [accs, setAccounts] = useState<string[]>([]);
+
+	useEffect(() => {
+		(async () => {
+			setAccounts(await accounts(eth));
+		})();
+	}, [!eth]);
+
+	return accs.length > 0 ? accs[0] : "";
+};
 
 /**
  * Gets the ethereum chain ID from the ethereum provider.
@@ -240,4 +308,10 @@ export const provideConnStatus = (
 		ethConnection,
 		() => setEthConnection({ ...ethConnection, initialized: true }),
 	];
+};
+
+export const useRegistry = (): string => {
+	const [conn] = useConnStatus();
+
+	return registries.get(conn.network);
 };

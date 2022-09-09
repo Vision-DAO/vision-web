@@ -1,0 +1,25 @@
+.row {
+	display: flex;
+
+	flex-flow: row nowrap;
+	justify-content: flex-start;
+	align-items: center;
+}
+
+.pfp {
+	border-radius: 50%;
+
+	object-fit: cover;
+
+	margin-right: 0.75em;
+}
+
+.row a {
+	color: white;
+	text-decoration: none;
+	border-bottom: 0.5px solid #5D5FEF;
+}
+
+.row p {
+	margin: 0;
+}

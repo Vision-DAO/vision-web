@@ -11,6 +11,8 @@ import defaultProfileIcon from "../../public/icons/account_circle_white_48dp.svg
 import defaultBackground from "../../public/images/default_background.jpg";
 import { blobify } from "../../lib/util/blobify";
 import { IpfsContext, getAll } from "../../lib/util/ipfs";
+import { useStream } from "../../lib/util/graph";
+import { UserStatsQuery, UserFeedQuery } from "../../.graphclient";
 
 /**
  * Renders a profile for the user with the specified 3ID ID and ethereum address.
@@ -32,6 +34,20 @@ export const UserProfile = ({ id, addr }: { id: string; addr: string }) => {
 
 	// And the locally active user's profile for mutation purposes
 	const selfProfile = useViewerRecord("basicProfile");
+
+	// Post counts, balances
+	const stats = useStream<UserStatsQuery>(
+		{
+			user: { ideas: [], id: addr },
+		},
+		(graph) => graph.UserStats({ id: addr }),
+		[addr]
+	);
+	const feed = useStream<UserFeedQuery>(
+		{ user: { ideas: [] } },
+		(graph) => graph.UserFeed({ id: addr }),
+		[addr]
+	);
 
 	// Generate an empty profile if the record doesn't exist
 	if (!profile.content) profile.content = {};
@@ -89,6 +105,8 @@ export const UserProfile = ({ id, addr }: { id: string; addr: string }) => {
 			name={profile.content.name}
 			addr={addr}
 			bio={profile.content.description}
+			stats={stats}
+			feed={feed}
 			background={bg || defaultBackground.src}
 			profilePicture={pfp || defaultProfileIcon.src}
 			editable={connection.status == "connected" && connection.selfID.id == id}

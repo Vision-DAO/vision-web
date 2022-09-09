@@ -4,7 +4,7 @@
 	flex-flow: row nowrap;
 
 	justify-content: center;
-	align-items: center;
+	align-items: stretch;
 }
 
 .rowLabelItem>*:first-child {
@@ -31,7 +31,7 @@
 }
 
 .labelButton {
-	color: #5D5FEF;
+	color: #44BF39;
 
 	border-bottom: 1px solid #5D5FEF;
 
@@ -48,10 +48,303 @@
 
 .labelFail {
 	color: #FF0000;
-	border-bottom-color: #FF0000;
+	border-bottom-color: #5A153A;
 }
 
 .labelDone {
 	color: #44BF39;
 	border-bottom-color: #44BF39;
+}
+
+.propRow {
+	display: flex;
+
+	flex-flow: row nowrap;
+
+	justify-content: space-between;
+	align-items: center;
+
+	width: 100%;
+	height: 12vh;
+}
+
+.propIcon {
+	border-radius: 10px;
+
+	border: 1px solid rgba(255, 255, 255, 0.5);
+
+	margin-right: 1em;
+
+	object-fit: cover;
+
+	min-width: 12vw;
+}
+
+.leftInfo {
+	display: flex;
+
+	flex-flow: row nowrap;
+	justify-content: flex-start;
+	align-items: stretch;
+
+	flex-grow: 2;
+
+	margin-right: 15%;
+	min-width: 0;
+
+	height: 100%;
+}
+
+.propStat {
+	background-color: #1D1D1D;
+
+	display: flex;
+
+	flex-flow: column nowrap;
+	justify-content: center;
+	align-items: center;
+
+	border-radius: 5px;
+
+	width: 7vw;
+	height: 100%;
+}
+
+.propStat:not(:last-child) {
+	margin-right: 1em;
+}
+
+.propStat h1, .propStat p {
+	margin: 0;
+}
+
+.propStat h1 {
+	font-size: 3em;
+}
+
+.propStat p {
+	text-transform: uppercase;
+
+	font-size: 0.75em;
+	whitespace: wrap;
+	text-align: center;
+}
+
+@media only screen and (max-width: 1354px) {
+	.propStat h1 {
+		font-size: 2em;
+	}
+}
+
+@media only screen and (max-width: 798px) {
+	.propStat svg {
+		font-size: 2em;
+	}
+
+	.propStat h1 {
+		font-size: 1em;
+	}
+}
+
+@media only screen and (max-width: 950px) {
+	.leftInfo {
+		margin-right: 5%;
+	}
+}
+
+.propStat svg {
+	font-size: 4em;
+}
+
+.rightInfo {
+	display: flex;
+
+	flex-flow: row nowrap;
+
+	justify-content: flex-end;
+	align-items: stretch;
+
+	flex-shrink: 0;
+
+	height: 100%;
+}
+
+.propTextInfo {
+	flex-grow: 1;
+	flex-shrink: 2;
+
+	max-width: 100%;
+	min-width: 0;
+
+	display: flex;
+
+	flex-flow: column nowrap;
+	justify-content: space-between;
+	align-items: stretch;
+}
+
+.row {
+	display: flex;
+
+	flex-flow: row nowrap;
+
+	align-items: center;
+}
+
+.full {
+	width: 100%;
+}
+
+.spaced {
+	justify-content: space-between;
+}
+
+.propTitle {
+	font-weight: normal;
+
+	margin: 0;
+}
+
+.propDescription {
+	color: rgba(255, 255, 255, 0.6);
+
+	margin-top: 0.25em;
+	margin-bottom: 0.25em;
+}
+
+.separator {
+	margin: 0;
+
+	margin-left: 0.5em;
+	margin-right: 0.5em;
+}
+
+.noMargin {
+	margin: 0;
+}
+
+.authorRow {
+	color: rgba(255, 255, 255, 0.6);
+}
+
+.explanationsList {
+	display: flex;
+
+	flex-flow: row nowrap;
+	justify-content: space-between;
+	align-items: center;
+
+	max-width: 100%;
+
+	margin-top: 0.75em;
+}
+
+.explanationsList p {
+	margin: 0;
+}
+
+.explanationsList>* {
+	text-overflow: ellipsis;
+	overflow: hidden;
+
+	display: flex;
+
+	flex-flow: row nowrap;
+	align-items: center;
+}
+
+.explanationsList>*>*:last-child {
+	text-overflow: ellipsis;
+	overflow: hidden;
+	white-space: nowrap;
+}
+
+.explanationsList>*>*:first-child {
+	margin-right: 0.25em;
+
+	font-weight: bold;
+}
+
+.yesExplanation {
+	justify-content: flex-start;
+}
+
+.yesExplanation>p:first-child {
+	color: #44BF39;
+}
+
+.noExplanation>p:first-child {
+	color: #FF0000;
+}
+
+.yesExplanation>p:last-child {
+	margin-right: 0.5em;
+}
+
+.noExplanation {
+	justify-content: flex-end;
+}
+
+.actorLink {
+	color: white;
+
+	text-decoration: underline;
+	text-decoration-color: #5D5FEF;
+
+	cursor: pointer;
+
+	transition: 0.3s opacity;
+}
+
+.actorLink:hover {
+	opacity: 0.6;
+}
+
+.finalizeButton {
+	border-radius: 5px;
+
+	padding: 1em;
+	font-size: 0.75em;
+}
+
+.goodStat {
+	background-color: #5D5FEF;
+}
+
+.badStat {
+	background-color: #5A153A;
+}
+
+.status {
+	background-color: #1D1D1D;
+
+	margin: 0;
+	padding: 0.5em;
+
+	text-align: center;
+
+	border: 0.25px solid rgba(255, 255, 255, 0.25);
+	border-radius: 5px;
+
+	box-sizing: border-box;
+
+	color: rgba(255, 255, 255, 0.6);
+}
+
+.status:not(:last-child) {
+	margin-bottom: 0.5em;
+}
+
+.errMsg {
+	background-color: #5A153A;
+}
+
+.clickableStat {
+	cursor: pointer;
+
+	transition: 0.3s opacity;
+}
+
+.clickableStat:hover {
+	opacity: 0.6;
 }

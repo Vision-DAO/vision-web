@@ -1,81 +1,288 @@
-import { OutlinedListEntry } from "../../status/OutlinedListEntry";
-import { ExtendedProposalInformation, ExtendedIdeaInformation } from "../../../lib/util/ipfs";
-import { OutlinedListEntryProps } from "../../status/OutlinedListEntry";
-import { formatTime12Hr } from "../idea/activity/ActivityEntry";
-import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
-import FullscreenRoundedIcon from "@mui/icons-material/FullscreenRounded";
-import { useState, useEffect } from "react";
-import Idea from "../../../value-tree/build/contracts/Idea.json";
+import {
+	useIdeaImage,
+	useIdeaDescription,
+	useActorTitleNature,
+	useSymbol,
+	useActionLink,
+} from "../../../lib/util/ipfs";
+import { Fragment, useState } from "react";
+import { PercentageLine } from "./PercentageLine";
+import ClearIcon from "@mui/icons-material/ClearRounded";
+import CheckIcon from "@mui/icons-material/CheckRounded";
+import SavingsIcon from "@mui/icons-material/SavingsRounded";
 import styles from "./ProposalLine.module.css";
-import { useConnStatus, explorers } from "../../../lib/util/networks";
-import Web3 from "web3";
-
-export const formatDate = (d: Date): string => `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
+import Idea from "../../../value-tree/build/contracts/Idea.json";
+import {
+	useEthAddr,
+	formatDateObj,
+	formatErc,
+} from "../../../lib/util/networks";
+import { useWeb3 } from "../../../lib/util/web3";
+import { GetPropsQuery, GetDaoAboutQuery } from "../../../.graphclient";
+import { ProfileTooltip } from "../../status/ProfileTooltip";
+import { FilledButton } from "../../status/FilledButton";
+import { LinearProgress, CircularProgress } from "@mui/material";
+import { Skeleton } from "@mui/material";
+import { useRouter } from "next/router";
 
 /**
  * Renders the following information about a proposal on a line, with a callback
  * when the user clicks an "expand" button.
  */
-export const ProposalLine = ({ addr, prop, web3, props, onExpand, onFinalize }: { web3: Web3, addr: string, prop: ExtendedProposalInformation, props?: OutlinedListEntryProps, onExpand?: () => void, onFinalize?: () => void }) => {
-	const [conn, ] = useConnStatus();
-	const [nVoters, setNVoters] = useState<number>(0);
-	const [[totalVotes, possibleVotes], setTotalVotes] = useState<[number, number]>([0, 0]);
-	const [expired, setExpired] = useState<boolean>((new Date()) > prop.expiry);
+export const ProposalLine = ({
+	prop,
+	oldProp,
+	parent,
+	onExpand,
+}: {
+	prop:
+		| GetPropsQuery["idea"]["activeProps"][0]
+		| GetPropsQuery["idea"]["children"][0];
+	oldProp?: GetPropsQuery["idea"]["children"][0];
+	parent: GetDaoAboutQuery["idea"];
+	onExpand?: () => void;
+}) => {
+	// Binary data loaded via IPFS
+	const icon = useIdeaImage(prop.ipfsAddr);
+	const description = useIdeaDescription(prop.ipfsAddr);
+	const router = useRouter();
+	const account = useEthAddr();
 
-	let title = addr;
+	// Errors, or messages that were emitted upon finalizing
+	const [errMsg, setErrMsg] = useState<string | null>(null);
+	const [depMsg, setDepMsg] = useState<string | null>(null);
+	const [pending, setPending] = useState<boolean>(false);
 
-	// Find the title of the proposal, and use that, alternatively
-	for (const d of Object.values(prop.data)) {
-		if (d.kind === "utf-8")
-			title = (new TextDecoder()).decode(d.data);
-	}
+	const [releasePending, setReleasePending] = useState<boolean>(false);
 
-	useEffect(() => {
-		const isExpired = (new Date() > prop.expiry);
-		if (isExpired !== expired || nVoters !== prop.nVoters) {
-			setExpired(isExpired);
-			setNVoters(prop.nVoters);
+	// Human-readable party to fund
+	const [toFund] = useActorTitleNature(prop.toFund);
+	const fundeeURL = useActionLink(prop.toFund, router);
+	const ticker = useSymbol(prop.rate.token);
+	const oldTicker = useSymbol(oldProp?.rate.token);
+	const [web3] = useWeb3();
 
-			// Reload the number of votes to accurately display information relevant
-			// to the success of the proposal
-			(async () => {
-				const contract = new web3.eth.Contract(Idea.abi, prop.parentAddr);
+	/**
+	 * Gets a human readable time difference between a and b.
+	 */
+	const getHRDiff = (a: Date, b: Date): [string, string] => {
+		const diff = a.getTime() - b.getTime();
 
-				const used = await contract.methods.balanceOf(prop.addr).call();
-				const supply = await contract.methods.totalSupply().call();
+		const diffLabels = {
+			604800000: "week",
+			86400000: "day",
+			3600000: "hour",
+		};
 
-				// Update the vote count
-				setTotalVotes([used, supply]);
-			})();
+		for (const [key, label] of Object.entries(diffLabels).sort(
+			([keyA], [keyB]) => Number(keyB) - Number(keyA)
+		)) {
+			const diffLimit = Number(key);
+
+			if (diff < diffLimit) continue;
+
+			const limitDiff = Math.round(diff / diffLimit);
+
+			return [`${limitDiff}`, `${label}${limitDiff !== 1 ? "s" : ""}`];
 		}
-	});
 
-	const successful = (totalVotes && totalVotes > (0.5 * possibleVotes));
+		const secDiff = Math.round(diff / 1000);
+		return [`${secDiff}`, `second${secDiff !== 1 ? "s" : ""}`];
+	};
+
+	const [expTime, expLabel] = getHRDiff(
+		new Date(prop.expiration * 1000),
+		new Date()
+	);
+	const [ageTime, ageLabel] = getHRDiff(
+		new Date(),
+		new Date(prop.createdAt * 1000)
+	);
+
+	/**
+	 * Finalizes the current proposal.
+	 */
+	const onFinalize = async () => {
+		setPending(true);
+
+		const contract = new web3.eth.Contract(Idea.abi, prop.funder.id);
+		contract.methods
+			.finalizeProp(prop.id)
+			.send({ from: account })
+			.on("error", (e: string) => {
+				setPending(false);
+
+				setErrMsg(e);
+			})
+			.on("transactionHash", (hash: string) => {
+				setDepMsg(`Finalizing proposal: ${hash}`);
+			})
+			.on("receipt", () => {
+				setPending(false);
+			});
+	};
+
+	/**
+	 * Releases designated funds from this proposal, if possible.
+	 */
+	const onReleaseFunds = async () => {
+		setReleasePending(true);
+
+		const contract = new web3.eth.Contract(Idea.abi, prop.funder.id);
+		contract.methods
+			.disperseFunding(prop.toFund)
+			.send({ from: account })
+			.on("error", (e: string) => {
+				setReleasePending(false);
+
+				setErrMsg(e);
+			})
+			.on("transactionHash", (hash: string) => {
+				setDepMsg(`Releasing funds: ${hash}`);
+			})
+			.on("receipt", () => {
+				setReleasePending(false);
+
+				setDepMsg("Funds released!");
+			});
+	};
 
 	return (
-		<OutlinedListEntry styles={ props }>
-			<div className={ styles.rowLabelItem }>
-				<ArrowForwardRoundedIcon />
-				<a href={ `${explorers[conn.network]}/address/${prop.destAddr}` } target="_blank" rel="noopener noreferrer">{ prop.destAddr.substring(0, 12) }...</a>
-			</div>
-			<a href={ `${explorers[conn.network]}/address/${addr}` } target="_blank" rel="noopener noreferrer"><b>{ title.substring(0, 24) }{ title.length > 24 ? "..." : "" }</b></a>
-			<div className={ styles.rowLabelItem }>
-				<p><b>Votes:</b></p>
-				<p>{ (totalVotes / (10 ** 18)).toLocaleString() }</p>
-			</div>
-			<div className={ styles.rowLabelItem }>
-				<p className={ expired ? (successful ? styles.labelDone : styles.labelFail) : "" }><b>{ expired ? "Done:" : "Ongoing:" }</b></p>
-				<p>{ expired ? "Expired" : "Expires" } { formatDate(prop.expiry) } { formatTime12Hr(prop.expiry) }</p>
-			</div>
-			{ expired ?
-				<div className={ styles.rowLabelItem }>
-					<p className={ `${styles.labelButton} ${successful ? styles.labelDone : styles.labelFail}` } onClick={ onFinalize }><b>Finalize Proposal</b></p>
+		<div className={styles.propRow}>
+			<div className={styles.leftInfo}>
+				<img
+					className={styles.propIcon}
+					height="100%"
+					width="12vw"
+					src={icon}
+				/>
+				<div className={styles.propTextInfo}>
+					<div className={styles.topTextInfo}>
+						<div className={`${styles.row} ${styles.spaced} ${styles.full}`}>
+							<h2
+								className={`${styles.propTitle} ${styles.actorLink}`}
+								onClick={onExpand}
+							>
+								{prop.title}
+							</h2>
+							<div className={`${styles.row} ${styles.authorRow}`}>
+								<ProfileTooltip addr={prop.author.id} />
+								<p className={styles.separator}>•</p>
+								<p className={styles.noMargin}>
+									{formatDateObj(new Date(Number(prop.createdAt) * 1000))}
+								</p>
+							</div>
+						</div>
+						{description !== undefined ? (
+							<p className={styles.propDescription}>{description}</p>
+						) : (
+							<div className={styles.descSkeleton}>
+								{" "}
+								<Skeleton variant="text" width="100%" />
+								<Skeleton width="100%" variant="text" />{" "}
+								<Skeleton variant="text" width="80%" />{" "}
+							</div>
+						)}
+					</div>
+					<div className={styles.bottomTextInfo}>
+						{depMsg ? (
+							<p className={styles.status}>{depMsg}</p>
+						) : errMsg !== null ? (
+							<p className={`${styles.errMsg} ${styles.status}`}>{errMsg}</p>
+						) : new Date() > new Date(Number(prop.expiration) * 1000) &&
+						  prop.status === "Pending" ? (
+							<FilledButton
+								className={styles.finalizeButton}
+								onClick={onFinalize}
+								label="Finalize Proposal"
+							/>
+						) : (
+							[
+								<PercentageLine
+									percentage={Number(prop.votesFor) / Number(parent.supply)}
+								/>,
+								<div className={styles.explanationsList}>
+									<div className={styles.yesExplanation}>
+										<p>Yes:</p>
+										<p>
+											Change the funding rate for{" "}
+											<a className={styles.actorLink} onClick={fundeeURL}>
+												{toFund}
+											</a>{" "}
+											to {formatErc(Number(prop.rate.value))} {ticker}
+										</p>
+									</div>
+									<div className={styles.noExplanation}>
+										<p>No:</p>
+										<p>
+											Keep the funding rate at {oldProp?.rate.value ?? 0}{" "}
+											{oldTicker}
+										</p>
+									</div>
+								</div>,
+							]
+						)}
+						{pending && <LinearProgress />}
+					</div>
 				</div>
-				: <></>
-			}
-			<div className={ styles.expandButton } onClick={ onExpand }>
-				<FullscreenRoundedIcon fontSize="large" className={ styles.expandIcon } />
 			</div>
-		</OutlinedListEntry>
+			<div className={styles.rightInfo}>
+				<div className={styles.propStat}>
+					<h1>
+						{formatErc(Number(prop.votesFor) + Number(prop.votesAgainst))}
+					</h1>
+					<p>Votes</p>
+				</div>
+				{expTime.includes("-") ? (
+					Number(prop.votesFor) > 0.5 * Number(parent.supply) ? (
+						prop.status === "Pending" ? (
+							<div className={`${styles.goodStat} ${styles.propStat}`}>
+								<p>Proposal</p>
+								<CheckIcon fontSize="large" />
+								<p>Accepted</p>
+							</div>
+						) : (
+							<div
+								className={`${styles.goodStat} ${styles.propStat} ${styles.clickableStat}`}
+								onClick={onReleaseFunds}
+							>
+								{!releasePending ? (
+									<Fragment>
+										<SavingsIcon />
+										<p>Release Funding</p>
+									</Fragment>
+								) : (
+									<CircularProgress />
+								)}
+							</div>
+						)
+					) : (
+						<div className={`${styles.badStat} ${styles.propStat}`}>
+							<p>Proposal</p>
+							<ClearIcon />
+							<p>Rejected</p>
+						</div>
+					)
+				) : (
+					<div className={styles.propStat}>
+						{
+							{
+								Pending: (
+									<Fragment>
+										<p>Expires In</p>
+										<h1>{expTime}</h1>
+										<p>{expLabel}</p>
+									</Fragment>
+								),
+							}[prop.status]
+						}
+					</div>
+				)}
+				<div className={styles.propStat}>
+					<h1>{ageTime}</h1>
+					<p>{ageLabel} Old</p>
+				</div>
+			</div>
+		</div>
 	);
 };

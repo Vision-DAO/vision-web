@@ -1,56 +1,89 @@
 import {
 	useState,
+	useEffect,
 	ChangeEvent,
 	FocusEvent,
-	useEffect,
 	useContext,
 	ReactElement,
 } from "react";
 import SearchRounded from "@mui/icons-material/SearchRounded";
 import ExpandMore from "@mui/icons-material/ExpandMoreRounded";
 import ExpandLess from "@mui/icons-material/ExpandLessRounded";
-import { BasicIdeaInformation } from "../workspace/IdeaBubble";
-import { loadBasicIdeaInfo, IpfsContext } from "../../lib/util/ipfs";
-import { useWeb3 } from "../../lib/util/web3";
+import { Skeleton } from "@mui/material";
 import styles from "./SearchBar.module.css";
+import {
+	SearchQuery,
+	SearchDocument,
+	SearchQueryVariables,
+	GetAllUsersQuery,
+	execute,
+} from "../../.graphclient";
+import { blobify } from "../../lib/util/blobify";
+import {
+	useProfiles,
+	IpfsStoreContext,
+	IpfsContext,
+	getAll,
+} from "../../lib/util/ipfs";
+import { useRouter } from "next/router";
 
 const defaultSearchText = "The next big thing...";
 
 export const SearchEntry = ({
+	iconSrc,
 	title,
-	term,
+	ticker,
+	addr,
 	onClick,
 	onHoverState,
 }: {
+	iconSrc?: string;
 	title: string;
-	term: string;
+	ticker?: string;
+	addr: string;
 	onClick: () => void;
 	onHoverState: (state: boolean) => void;
 }) => {
-	const termStart = title.toLowerCase().indexOf(term);
-	let elems = [
-		<p key="start">{title.substring(termStart + term.length, title.length)}</p>,
-	];
+	const [ipfsCache, setIpfsCache] = useContext(IpfsStoreContext);
+	const ipfs = useContext(IpfsContext);
+	const [icon, setIcon] = useState<string | undefined | null>(undefined);
 
-	if (term.length > 0)
-		elems = [
-			<p key="middle" className={styles.activeResult}>
-				<b>{title.substring(termStart, termStart + term.length)}</b>
-			</p>,
-			...elems,
-		];
+	useEffect(() => {
+		if (!iconSrc) return;
 
-	if (termStart !== 0)
-		elems = [<p key="end">{title.substring(0, termStart)}</p>, ...elems];
+		if (iconSrc in ipfsCache && "icon" in ipfsCache[iconSrc]) {
+			setIcon(ipfsCache[iconSrc]["icon"] as string);
+
+			return;
+		}
+
+		// Load the icon
+		getAll(ipfs, iconSrc).then((imgBlob) => {
+			// Turn the image data into an src, and update the UI
+			const blob = blobify(window, imgBlob, null);
+
+			setIpfsCache(iconSrc, "icon", blob);
+			setIcon(blob);
+		});
+	}, [iconSrc]);
 
 	return (
 		<div
 			onClick={onClick}
-			className={styles.resultsRow}
+			className={styles.resultsEntry}
 			onMouseEnter={() => onHoverState(true)}
 			onMouseLeave={() => onHoverState(false)}
 		>
-			{elems}
+			{icon ? (
+				<img src={icon} className={styles.resultIcon} />
+			) : (
+				icon === undefined && <Skeleton variant="circular" />
+			)}
+			<p className={styles.formalText} style={{ fontWeight: "bold" }}>
+				{title}
+			</p>
+			{ticker && <p style={{ opacity: "0.6" }}>{ticker}</p>}
+			<p style={{ flexGrow: 2, textAlign: "end" }}>{addr}</p>
 		</div>
 	);
 };
@@ -60,57 +93,88 @@ export const SearchEntry = ({
  * the input criteria below it.
  */
 export const SearchBar = ({
-	haystack,
 	selected,
 	hovered,
 	dehovered,
 }: {
-	haystack: string[];
 	selected: (selected: string) => void;
 	hovered: (selected: string) => void;
 	dehovered: (dehovered: string) => void;
 }) => {
+	// Allow searching through user profiles, as well
+	const users = { users: [] };
+	const profiles = useProfiles(
+		users.users.map((user: GetAllUsersQuery["users"][0]) => user.id)
+	);
+	const router = useRouter();
+
 	const [searchText, setSearchText] = useState<string>(defaultSearchText);
 	const [searchResults, setSearchResults] = useState<ReactElement[]>([]);
-	const [ideaInfo, setIdeaInfo] = useState<{
-		[ideaAddr: string]: BasicIdeaInformation | null;
-	}>({});
-
-	const ipfs = useContext(IpfsContext);
-	const [web3] = useWeb3();
+	const [queuedQuery, setQueuedQuery] = useState<ReturnType<
+		typeof setTimeout
+	> | null>(null);
 
 	// The search bar can be minimized
 	const [expanded, setExpanded] = useState<boolean>(true);
 
 	// Recalculate the displayed query results
-	const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+	const handleChange = async (e: ChangeEvent<HTMLInputElement>) => {
 		setExpanded(true);
 		setSearchText(e.target.value);
-		setSearchResults(
-			Object.values(ideaInfo)
-				.filter((info) => info !== null)
-				.filter((info) =>
-					info.title
-						.toLocaleLowerCase()
-						.includes(e.target.value.toLocaleLowerCase())
-				)
-				.map((info) => (
-					<SearchEntry
-						key={info.addr}
-						title={info.title}
-						term={e.target.value.toLocaleLowerCase()}
-						onClick={() => selected(info.addr)}
-						onHoverState={(state: boolean) => {
-							if (state) {
-								hovered(info.addr);
 
-								return;
-							}
+		// Wait 2 seconds after typing has stopped to search
+		if (queuedQuery) clearTimeout(queuedQuery);
 
-							dehovered(info.addr);
-						}}
-					/>
-				))
+		setQueuedQuery(
+			setTimeout(async () => {
+				// Assume the user wants results with all keywords
+				const query: SearchQueryVariables = {
+					text: e.target.value.replaceAll(" ", " & "),
+				};
+
+				const terms = e.target.value.toLowerCase().split(" ");
+
+				const res = await execute(SearchDocument, query);
+				const data: SearchQuery = res.data ?? {
+					ideaPropSearch: [],
+				};
+
+				const matchingProfiles = Object.entries(profiles)
+					.filter(([, profile]) => profile.name !== undefined)
+					.filter(([, profile]) =>
+						terms.every((term) => profile.name.toLowerCase().includes(term))
+					);
+
+				setSearchResults([
+					...data.ideaPropSearch.map((info) => (
+						<SearchEntry
+							key={info.id}
+							addr={info.id}
+							ticker={info.ticker}
+							title={info.name}
+							onClick={() => selected(info.id)}
+							onHoverState={(state: boolean) => {
+								if (state) {
+									hovered(info.id);
+
+									return;
+								}
+
+								dehovered(info.id);
+							}}
+						/>
+					)),
+					...matchingProfiles.map(([addr, profile]) => (
+						<SearchEntry
+							title={profile.name}
+							addr={addr}
+							onClick={() => router.push(`/profile/${addr}`)}
+							onHoverState={() => {}}
+							iconSrc={profile.image?.original.src.replaceAll("ipfs://", "")}
+						/>
+					)),
+				]);
+			}, 500)
 		);
 	};
 
@@ -120,26 +184,6 @@ export const SearchBar = ({
 			setSearchResults([]);
 		}
 	};
-
-	useEffect(() => {
-		(async () => {
-			for (const idea of haystack) {
-				// Check that the idea has not already been loaded
-				if (idea in ideaInfo) continue;
-
-				// Mark the idea as being loaded
-				setIdeaInfo((allInfo) => {
-					return { ...allInfo, [idea]: null };
-				});
-
-				// Load the ideap
-				const info = await loadBasicIdeaInfo(ipfs, web3, idea);
-				setIdeaInfo((allInfo) => {
-					return { ...allInfo, [idea]: info };
-				});
-			}
-		})();
-	}, [haystack]);
 
 	// Toggles the expansion state
 	const handleExpand = () => setExpanded((expanded) => !expanded);

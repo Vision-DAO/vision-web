@@ -40,3 +40,13 @@
 
 	transition: 0.3s width, min-width, max-width;
 }
+
+.loadContainer {
+	display: flex;
+
+	justify-content: center;
+	align-items: center;
+	width: 100%;
+
+	height: 100%;
+}

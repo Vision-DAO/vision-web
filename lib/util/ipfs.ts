@@ -1,27 +1,16 @@
 import { create } from "ipfs-core";
-import { serialize, deserialize } from "bson";
-import { blobify } from "./blobify";
+import { deserialize } from "bson";
 import { createContext, useContext, useEffect, useState } from "react";
-import {
-	useConnStatus,
-	networkIdeasTopic,
-	Network,
-	explorers,
-	ConnStatus,
-} from "./networks";
-import { isIdeaContract } from "./discovery";
-import { Message } from "ipfs-core-types/src/pubsub";
-import {
-	MarketMetrics,
-	OnlyIdeaDetailProps,
-	ExtendedIdeaInformation,
-} from "../../components/workspace/IdeaDetailCard";
-import { BasicIdeaInformation } from "../../components/workspace/IdeaBubble";
-import { staticIdeas } from "../../pages/index";
-import Idea from "../../value-tree/build/contracts/Idea.json";
-import Prop from "../../value-tree/build/contracts/Prop.json";
-import Web3 from "web3";
-import { Contract } from "web3-eth-contract";
+import { usePublicRecord, useClient } from "@self.id/framework";
+import { blobify } from "./blobify";
+import { useWeb3 } from "./web3";
+import { useGraph, useStream } from "./graph";
+import { GetUserBalanceQuery, Scalars } from "../../.graphclient";
+import { chainId, IdxContext, explorers, useConnStatus } from "./networks";
+import { Caip10Link } from "@ceramicnetwork/stream-caip10-link";
+import { BasicProfile } from "@datamodels/identity-profile-basic";
+import { AbiItem } from "web3-utils";
+import { useRouter } from "next/router";
 
 /**
  * An alias for the type of the IPFS constructor.
@@ -34,114 +23,14 @@ export type IpfsClient = Awaited<ReturnType<typeof create>>;
 export const IpfsContext: React.Context<IpfsClient> = createContext(undefined);
 
 /**
- * A global context providing a cache for proposals.
+ * A global cache storing object mappings for requested CID's.
  */
-export const ProposalsContext: React.Context<
+export const IpfsStoreContext: React.Context<
 	[
-		{ [addr: string]: GossipProposalInformation[] },
-		(addr: string, info: GossipProposalInformation) => void
+		{ [cid: string]: { [kind: string]: unknown } },
+		(cid: string, key: string, v: unknown) => void
 	]
-> = createContext([{}, null]);
-
-/**
- * Available gossiped data about a proposal.
- * Users shold manually load contract-related data. See
- * ExtendedProposalInformation for that.
- */
-export interface GossipProposalInformation {
-	/* Metadata attached to the proposal */
-	dataIpfsAddr: string;
-
-	/* The contract address of the proposal */
-	addr: string;
-}
-
-/**
- * Ideas can be funded with new funds, or existing funds belonging to the
- * controlling smart contract.
- */
-export enum FundingKind {
-	Treasury,
-	Mint,
-}
-
-/**
- * Represents the details of how an Idea is funded.
- */
-export interface FundingRate {
-	/* The contract sending the funding rate */
-	sender: string;
-
-	/* The token used for funding */
-	token: string;
-
-	/* The number of tokens left */
-	value: number;
-
-	/* How often the funds can be claimed */
-	interval: number;
-
-	/* When the funds expire */
-	expiry: Date;
-
-	/* When the funds were last claimed */
-	lastClaimed: Date;
-
-	/* Where the idea's funds should come from */
-	kind: FundingKind;
-}
-
-/* TODO: Display information regarding votes - counts, who voted for what */
-export interface ExtendedProposalInformation {
-	data: IdeaData[];
-
-	addr: string;
-
-	parentAddr: string;
-	title: string;
-
-	/* The address of the thing being proposed */
-	destAddr: string;
-
-	rate: FundingRate;
-
-	nVoters: number;
-
-	/* When the proposal expires */
-	expiry: Date;
-}
-
-/**
- * A parsed vote for a proposal.
- */
-export interface ProposalVote {
-	/* The voter's decision */
-	contents: FundingRate;
-
-	/* The nmber of tokens committed to this voted value */
-	weight: number;
-}
-
-/* All available information from IPFS and smart contract storage about a
- * Proposal */
-export type AllProposalInformation = GossipProposalInformation &
-	ExtendedProposalInformation;
-
-/**
- * A global instance of the currently loaded, expanded idea that is guaranteed
- * to be loaded, if the child is rendered.
- */
-export const ActiveIdeaContext: React.Context<
-	[ExtendedIdeaInformation, (details: ExtendedIdeaInformation) => void]
-> = createContext(undefined);
-
-/**
- * A global instance of the currently loaded, expanded proposal that is
- * guaranteed to be loaded, i fthe child is rendered.
- */
-export const ActiveProposalContext: React.Context<
-	[ExtendedProposalInformation, (details: ExtendedProposalInformation) => void]
-> = createContext(undefined);
+> = createContext(null);
 
 /**
  * Types of data recognizable and renderable on the Vision UI.
@@ -172,277 +61,41 @@ export interface IdeaData {
 	data: Uint8Array;
 }
 
-export type RawEthPropRate = {
-	token: string;
-	value: string;
-	intervalLength: string;
-	expiry: string;
-	lastClaimed: string;
-	kind: string;
-};
-
-export type RawEthPropVote = {
-	rate: RawEthPropRate;
-	votes: string;
-};
-
-// Map ethereum-packed enum types to js enums
-const fundingKinds = [FundingKind.Treasury, FundingKind.Mint];
-
-const extractRawFundingRate = async (
-	nVoters: number,
-	expired: boolean,
-	w: Web3,
-	propContract: Contract
-): Promise<RawEthPropRate> => {
-	const parentContract = new w.eth.Contract(
-		Idea.abi,
-		await propContract.methods.governed().call()
-	);
-
-	if (nVoters > 0) {
-		const parentEntry = await parentContract.methods
-			.fundedIdeas(await propContract.methods.toFund().call())
-			.call();
-
-		if (expired && parentEntry.expiry !== "0") {
-			return parentEntry;
-		}
-
-		return await propContract.methods.finalFundsRate().call();
-	}
-
-	return await propContract.methods.rate().call();
-};
-
 /**
- * Loads all information available about a proposal from IPFS and ethereum.
+ * Extracts the image attached to an idea.
  */
-export const loadExtendedProposalInfo = async (
+export const loadIdeaImageSrc = async (
 	ipfs: IpfsClient,
-	w: Web3,
-	prop: GossipProposalInformation
-): Promise<ExtendedProposalInformation> => {
-	// Details for a proposal are contained:
-	// - on ethereum
-	// - on IPFS
-	// Load both
-	const contract = new w.eth.Contract(Prop.abi, prop.addr);
-	const data = await loadIdeaBinaryData(
-		ipfs,
-		await contract.methods.ipfsAddr().call()
-	);
+	ipfsAddr: string
+): Promise<string | undefined> => {
+	const data = await loadIdeaBinaryData(ipfs, ipfsAddr);
 
-	// Ethereum stores structs as packed arrays. Further processing will be necessary
-	const nVoters = await contract.methods.nVoters().call();
-	const expired = new Date() > (await contract.methods.expiresAt().call());
-
-	// Calculate the final rate, or the null rate, depending on if any users voted
-	const {
-		token,
-		value,
-		intervalLength: interval,
-		expiry,
-		lastClaimed,
-		kind,
-	}: RawEthPropRate = await extractRawFundingRate(
-		nVoters,
-		expired,
-		w,
-		contract
-	);
-
-	const rate: FundingRate = {
-		token,
-		value: parseInt(value) || 0,
-		interval: parseInt(interval) || 0,
-		expiry: new Date(parseInt(expiry) || 0 * 1000),
-		lastClaimed: new Date(parseInt(lastClaimed) || 0 * 1000),
-		sender: await contract.methods.governed().call(),
-
-		// Enums are represented as indices in Ethereum
-		kind: fundingKinds[kind],
-	};
-
-	return {
-		data,
-		addr: prop.addr,
-		parentAddr: await contract.methods.governed().call(),
-		destAddr: await contract.methods.toFund().call(),
-		nVoters,
-		title: await contract.methods.title().call(),
-
-		// Unix timestamps are / 10000
-		expiry: new Date((await contract.methods.expiresAt().call()) * 1000),
-
-		rate,
-	};
-};
-
-/**
- * Gets all of the addresses that voted on a proposal.
- */
-export const loadAllProposalVoters = async (
-	web3: Web3,
-	propAddr: string
-): Promise<string[]> => {
-	const contract = new web3.eth.Contract(Prop.abi, propAddr);
-	const nVoters = parseInt(await contract.methods.nVoters().call());
-
-	// Collect all addresses that voted
-	return await Promise.all(
-		Array.from(Array(nVoters).keys()).map((i: number) =>
-			contract.methods.voters(i).call()
-		)
-	);
-};
-
-/**
- * Loads and parses a vote for a voter for a proposal, or returns NULL if no such
- * vote exists.
- */
-export const loadProposalVote = async (
-	web3: Web3,
-	propAddr: string,
-	voterAddr: string
-): Promise<ProposalVote> => {
-	const contract = new web3.eth.Contract(Prop.abi, propAddr);
-
-	try {
-		const rawVote: RawEthPropVote = await contract.methods
-			.refunds(voterAddr)
-			.call();
-
-		if (!rawVote) return null;
-
-		return {
-			contents: {
-				token: rawVote.rate.token,
-				value: parseInt(rawVote.rate.value) || 0,
-				interval: parseInt(rawVote.rate.intervalLength) || 0,
-				expiry: new Date(parseInt(rawVote.rate.expiry) || 0 * 1000),
-				lastClaimed: new Date(parseInt(rawVote.rate.lastClaimed) || 0 * 1000),
-				kind: fundingKinds[parseInt(rawVote.rate.kind) || 0],
-				sender: await contract.methods.governed().call(),
-			},
-			weight: parseInt(rawVote.votes) || 0,
-		};
-	} catch (e) {
-		console.warn(e);
-
-		return null;
-	}
-};
-
-/**
- * Fills out an Idea's bubble info to load the idea's card display.
- */
-export const loadExtendedIdeaInfo = async (
-	ipfs: IpfsClient,
-	network: Network,
-	w: Web3,
-	basicDetails: BasicIdeaInformation
-): Promise<ExtendedIdeaInformation> => {
-	// TODO: Load market info from uniswap with The Graph,
-	// and use pubsub topics for individual contracts to aggregate info about
-	// market info (don't scan through history if it can be avoided)
-	const metrics: MarketMetrics = {
-		newProposals: 0,
-		deltaPrice: 0,
-		finalizedProposals: 0,
-	};
-
-	const contract = new w.eth.Contract(Idea.abi, basicDetails.addr);
-
-	// TODO: Cache using gossip information,
-	// 1000 blocks is not enough to load all info
-	const ideaLogs = await contract.getPastEvents("allEvents", {
-		fromBlock: (await w.eth.getBlockNumber()) - 500,
-		toBlock: "latest",
-	});
-
-	let creationDate = new Date();
-
-	// The very first event from the contract indicates when it was created
-	for (const log of ideaLogs) {
-		creationDate = new Date(
-			((await w.eth.getBlock(log.blockNumber)).timestamp as number) * 1000
-		);
-
-		break;
-	}
-
-	// All ideas have metadata stored on IPFS
-	const ipfsAddr = await contract.methods.ipfsAddr().call();
-	const data: IdeaData[] = await loadIdeaBinaryData(ipfs, ipfsAddr);
-
-	// Render nothing if the user did not provide a description
-	let description = "";
-
-	for (const d of Object.values(data)) {
-		if (d.kind == "utf-8") {
-			description = decodeIdeaDataUTF8(d.data);
-		}
-	}
-
-	// TODO: Load market metrics with The Graph
-	const extendedInfo: OnlyIdeaDetailProps = {
-		description: description,
-		data: data,
-		totalSupply: await contract.methods.totalSupply().call(),
-		ticker: await contract.methods.symbol().call(),
-		marketCap: 0,
-		price: 0,
-		explorerURI: explorers[network],
-		createdAt: creationDate,
-		nChildren: await contract.methods.numChildren().call(),
-	};
-
-	return { ...metrics, ...basicDetails, ...extendedInfo };
-};
-
-/**
- * Loads information from IPFS and Ethereum necessary to render a basic idea information bubble.
- */
-export const loadBasicIdeaInfo = async (
-	ipfs: IpfsClient,
-	w: Web3,
-	ideaAddr: string
-): Promise<BasicIdeaInformation> => {
-	const contract = new w.eth.Contract(Idea.abi, ideaAddr);
-
-	// Load the idea's image
-	let image = undefined;
-
-	// TODO: Abstract this out to prevent re-render
-	// (binary data is a dependency for both basic information and extended info yikes)
-	const allData = await loadIdeaBinaryData(
-		ipfs,
-		await contract.methods.ipfsAddr().call()
-	);
-
-	// Find image data for the idea, and keep the most recently loaded one
-	for (const d of Object.values(allData)) {
+	for (const d of data) {
 		if (d.kind === "image-blob") {
-			try {
-				const f: FileData = deserialize(d.data, {
-					promoteBuffers: true,
-				}) as FileData;
+			const data = deserialize(d.data, { promoteBuffers: true }) as FileData;
 
-				image = blobify(window, f.contents, null);
-			} catch (e) {
-				console.debug(e);
-
-				image = "";
-			}
+			const blob = blobify(window, data.contents, null);
+			return blob;
 		}
 	}
 
-	return {
-		title: await contract.methods.name().call(),
-		image: image,
-		addr: ideaAddr,
-	};
+	return undefined;
+};
+
+/**
+ * Extracts the description attached to an idea.
+ */
+export const loadIdeaDescription = async (
+	ipfs: IpfsClient,
+	ipfsAddr: string
+): Promise<string | undefined> => {
+	const data = await loadIdeaBinaryData(ipfs, ipfsAddr);
+
+	for (const d of data) {
+		if (d.kind === "utf-8") return decodeIdeaDataUTF8(d.data);
+	}
+
+	return undefined;
 };
 
 /**
@@ -458,7 +111,12 @@ export const loadIdeaBinaryData = async (
 
 	// Data fields are optional for all ideas
 	try {
-		data = deserialize(rawData, { promoteBuffers: true }) as IdeaData[];
+		const deserialized = deserialize(rawData, {
+			promoteBuffers: true,
+		}) as IdeaData[];
+
+		if (Array.isArray(deserialized)) data = deserialized;
+		else data = Object.values(deserialized);
 	} catch (e) {
 		console.warn(e);
 	}
@@ -476,338 +134,6 @@ export const decodeIdeaDataUTF8 = (d: Uint8Array): string => {
 };
 
 /**
- * A hook providing a component with an up-to-date list of the most popular root ideas on vision,
- * and a hook for advertising new parents on vision.
- */
-export const useParents = (
-	defaults?: Map<string, string[]>
-): [Set<string>, (ideaAddr: string) => void] => {
-	// IPFS provides a pub/sub mechanism that we can use for discovery
-	const ipfs = useContext(IpfsContext);
-	const [ideas, setIdeas] = useState<Set<string>>(new Set());
-
-	// Segregate IPFS data by network
-	const [connInfo] = useConnStatus();
-
-	if (!ipfs)
-		return [new Set([...ideas, ...defaults.get(connInfo.network)]), () => ({})];
-
-	// TODO: Validation before registration in browser
-	const handleIdea = (msg: Message) => {
-		const dec = new TextDecoder("utf-8");
-		const idea = dec.decode(msg.data);
-
-		if (!ideas.has(idea)) {
-			console.debug(`receive idea ${idea} <- ${networkIdeasTopic(connInfo)}`);
-
-			setIdeas(new Set([...ideas, idea]));
-		}
-	};
-
-	// Collect up-to-date information on the root-level ideas stored on vision
-	useEffect(() => {
-		const topic = networkIdeasTopic(connInfo);
-		ipfs.pubsub.subscribe(topic, handleIdea);
-
-		return () => {
-			ipfs.pubsub.unsubscribe(topic, handleIdea);
-		};
-	});
-
-	// Allow the user to publish ideas via the callback
-	return [
-		new Set([...ideas, ...defaults.get(connInfo.network)]),
-		(ideaAddr: string) => {
-			const enc = new TextEncoder();
-
-			console.debug(`pub idea ${ideaAddr} -> ${networkIdeasTopic(connInfo)}`);
-
-			ipfs.pubsub.publish(networkIdeasTopic(connInfo), enc.encode(ideaAddr));
-		},
-	];
-};
-
-/**
- * Listens to the active proposals for an idea via IPFS, and generate a handler
- * for publishing new proposals.
- *
- * TODO: Abstract Idea and Proposal pub/sub
- */
-export const useProposals = (
-	ideaAddr: string
-): [GossipProposalInformation[], (prop: GossipProposalInformation) => void] => {
-	const ipfs = useContext(IpfsContext);
-	const [proposals, addProposal]: [
-		{ [addr: string]: GossipProposalInformation[] },
-		(addr: string, prop: GossipProposalInformation) => void
-	] = useContext(ProposalsContext);
-
-	if (!ipfs) return [[], () => ({})];
-
-	const handleProp = (msg: Message) => {
-		try {
-			const prop: GossipProposalInformation = deserialize(msg.data, {
-				promoteBuffers: true,
-			}) as GossipProposalInformation;
-
-			if (proposals[ideaAddr].includes(prop)) return;
-
-			// Append the proposal to the list of proposals
-			addProposal(ideaAddr, prop);
-		} catch (e) {
-			console.warn(e);
-		}
-	};
-
-	useEffect(() => {
-		ipfs.pubsub.subscribe(ideaAddr, handleProp);
-
-		return () => {
-			ipfs.pubsub.unsubscribe(ideaAddr, handleProp);
-		};
-	});
-
-	const pub = (prop: GossipProposalInformation) => {
-		ipfs.pubsub.publish(ideaAddr, serialize(prop));
-		addProposal(ideaAddr, prop);
-	};
-
-	return [proposals[ideaAddr] ?? [], pub];
-};
-
-/**
- * Loads basic information and funding rates for all accepted children of the indicated idea.
- */
-export const useFundedChildren = (
-	addr: string,
-	web3: Web3,
-	ipfs: IpfsClient
-): [
-	{ [addr: string]: FundingRate },
-	{ [addr: string]: BasicIdeaInformation }
-] => {
-	const [isValid, setIsValid] = useState<boolean>(undefined);
-	const [children, setChildren] = useState<
-		[{ [addr: string]: FundingRate }, { [addr: string]: BasicIdeaInformation }]
-	>([{}, {}]);
-	const [numChildren, setNchildren] = useState<number>(0);
-	const [conn] = useConnStatus();
-
-	// An example of an idea contract. Used for ensuring that this is a valid Idea
-	// contract, since a hook cannot be called conditionally - the logic inside
-	// it must be
-	const exemplar = staticIdeas.get(conn.network)[0];
-
-	useEffect(() => {
-		// The idea has not been determined to be an instance of the Idea contract
-		if (isValid === undefined) {
-			setIsValid(false);
-
-			(async () => {
-				setIsValid(
-					await isIdeaContract(web3, addr, await web3.eth.getCode(exemplar))
-				);
-			})();
-		}
-
-		if (!isValid) return;
-
-		(async () => {
-			const contract = new web3.eth.Contract(Idea.abi, addr);
-			const nChildren = parseInt(await contract.methods.numChildren().call());
-
-			if (numChildren !== nChildren) {
-				setNchildren(nChildren);
-
-				return;
-			}
-
-			// The children have already been loaded
-			if (Object.keys(children[0]).length === numChildren) {
-				return;
-			}
-
-			setChildren(await getFundedChildren(addr, web3, ipfs, conn));
-		})();
-	});
-
-	if (!ipfs || !web3) return [{}, {}];
-
-	return children;
-};
-
-/**
- * The addresses that have already been visited by the graph traversal engine,
- * and the addresses found by the traversal engine.
- */
-export interface GraphTraversalState {
-	// The addresses that the traversal engine has already passed over
-	visited: Set<string>;
-
-	// The addresses the graph traversal passed over, with a list of incoming
-	// edges for each node
-	found: { [addr: string]: { [parent: string]: FundingRate } };
-}
-
-/**
- * Gets a list of the addresses and funding rates of all children funded by
- * the idea specified by the given idea address. Assumes that the indicated
- * address is the address of a valid Idea.
- *
- * Pred: `addr` is the address of a valid Idea
- */
-export const getFundedChildren = async (
-	addr: string,
-	web3: Web3,
-	ipfs: IpfsClient,
-	conn: ConnStatus
-): Promise<
-	[{ [addr: string]: FundingRate }, { [addr: string]: BasicIdeaInformation }]
-> => {
-	const contract = new web3.eth.Contract(Idea.abi, addr);
-	const exemplar = staticIdeas.get(conn.network)[0];
-	const contractCode = await web3.eth.getCode(exemplar);
-
-	const childAddrs = await getChildAddrs(addr, web3);
-
-	const childRates: [string, RawEthPropRate][] = await Promise.all(
-		childAddrs.map((addr: string) =>
-			contract.methods
-				.fundedIdeas(addr)
-				.call()
-				.then((rate: RawEthPropRate) => [addr, rate])
-		)
-	);
-
-	const parentAddr = addr;
-
-	// Convert eth ABI rates into actual rates
-	const parsedChildRates: { [addr: string]: FundingRate } = childRates.reduce(
-		(prev, [addr, rate]) => {
-			return {
-				...prev,
-				[addr]: {
-					token: rate.token,
-					value: parseInt(rate.value) || 0,
-					interval: parseInt(rate.intervalLength) || 0,
-					expiry: new Date((parseInt(rate.expiry) || 0) * 1000),
-					lastClaimed: new Date((parseInt(rate.lastClaimed) || 0) * 1000),
-					sender: parentAddr,
-
-					// Enums are represented as indices in Ethereum
-					kind: fundingKinds[rate.kind],
-				},
-			};
-		},
-		{}
-	);
-
-	const childIdeaDetails: [string, BasicIdeaInformation][] = await Promise.all(
-		childAddrs.map((addr: string) => {
-			return (async (): Promise<[string, BasicIdeaInformation]> => {
-				if (await isIdeaContract(web3, addr, contractCode))
-					return loadBasicIdeaInfo(ipfs, web3, addr).then(
-						(info: BasicIdeaInformation) => {
-							const res: [string, BasicIdeaInformation] = [addr, info];
-							return res;
-						}
-					);
-
-				const res: [string, BasicIdeaInformation] = [
-					addr,
-					{ title: `${addr.substring(0, 12)}...`, image: null, addr },
-				];
-				return res;
-			})();
-		})
-	);
-	const parsedChildDetails: { [addr: string]: BasicIdeaInformation } =
-		childIdeaDetails.reduce((prev, [addr, details]) => {
-			return { ...prev, [addr]: details };
-		}, {});
-
-	return [parsedChildRates, parsedChildDetails];
-};
-
-/**
- * Gets a list of the addresses of the children funded by the idea `addr`.
- *
- * Pred: assumes that `addr` is the address of a valid Idea.
- */
-export const getChildAddrs = async (
-	addr: string,
-	web3: Web3
-): Promise<string[]> => {
-	const contract = new web3.eth.Contract(Idea.abi, addr);
-	const nChildren = parseInt(await contract.methods.numChildren().call());
-
-	const childIndices = Array(nChildren)
-		.fill(1)
-		.map((v, i) => i);
-
-	// Gets a list of the addresses of children of the contract
-	return await Promise.all(
-		childIndices.map((i) => contract.methods.children(i).call())
-	);
-};
-
-/**
- * Gets a list of all the children funded by this idea, and all of the
- * children of those children, with a list of funding rates for each of the
- * returned children.
- *
- * Pred: `addr` is the address of a valid Idea
- */
-export const getAllIdeaDescendants = async (
-	addr: string,
-	web3: Web3,
-	visited: Set<string>,
-	ipfs: IpfsClient,
-	conn: ConnStatus
-): Promise<GraphTraversalState> => {
-	// Skip any addresses that should be filtered out
-	if (visited.has(addr)) {
-		return { visited, found: {} };
-	}
-
-	// If this is not a valid Idea contract, add it to the list of visited
-	// addresses, but return nothing
-	const exemplar = staticIdeas.get(conn.network)[0];
-	const exemplarCode = await web3.eth.getCode(exemplar);
-
-	if (!(await isIdeaContract(web3, addr, exemplarCode))) {
-		return { visited: new Set([...visited, addr]), found: {} };
-	}
-
-	const [edges, children] = await getFundedChildren(addr, web3, ipfs, conn);
-	visited.add(addr);
-
-	if (Object.values(children).length === 0) {
-		return { visited, found: {} };
-	}
-
-	const found = {};
-	Object.values(children).map(({ addr }: BasicIdeaInformation) => {
-		found[addr] = { ...found[addr], [edges[addr].sender]: edges[addr] };
-	});
-
-	for (const child of Object.values(children).map(
-		({ addr }: BasicIdeaInformation) => addr
-	)) {
-		const { visited: childVisited, found: childFound } =
-			await getAllIdeaDescendants(child, web3, visited, ipfs, conn);
-		visited = new Set([...visited, ...childVisited]);
-
-		// Merge child edges with edges from other branches
-		Object.entries(childFound).forEach(([k, v]) => {
-			found[k] = { ...found[k], v };
-		});
-	}
-
-	return { found, visited };
-};
-
-/**
  * Loads all available data at a given IPFS path.
  */
 export const getAll = async (
@@ -816,7 +142,6 @@ export const getAll = async (
 ): Promise<Uint8Array> => {
 	const stream = ipfs.cat(url);
 	let blob: Uint8Array = new Uint8Array();
-
 	for await (const chunk of stream) {
 		// Append the new chunk to the existing chunks
 		const sink = new Uint8Array(blob.length + chunk.length);
@@ -827,4 +152,323 @@ export const getAll = async (
 	}
 
 	return blob;
+};
+
+/**
+ * Loads the image of the DAO via IPFS.
+ */
+export const useIdeaImage = (ipfsAddr: string): string | undefined => {
+	const [cache, setCache] = useContext(IpfsStoreContext);
+	const ipfs = useContext(IpfsContext);
+
+	useEffect(() => {
+		if (!ipfsAddr || ipfsAddr === "") return;
+
+		if (ipfsAddr in cache && "icon" in cache[ipfsAddr]) return;
+
+		(async () => {
+			const icon = await loadIdeaImageSrc(ipfs, ipfsAddr);
+			setCache(ipfsAddr, "icon", icon);
+		})();
+	}, [ipfsAddr]);
+
+	if (ipfsAddr in cache && "icon" in cache[ipfsAddr])
+		return cache[ipfsAddr]["icon"] as string;
+
+	return undefined;
+};
+
+/**
+ * Loads the description of the DAO via IPFS.
+ */
+export const useIdeaDescription = (ipfsAddr: string): string | undefined => {
+	const [ipfsCache, setIpfsCache] = useContext(IpfsStoreContext);
+	const ipfs = useContext(IpfsContext);
+
+	// The description of the DAO is stored on IPFS, off-chain
+	useEffect(() => {
+		if (ipfsAddr in ipfsCache && "description" in ipfsCache[ipfsAddr]) return;
+
+		// Trigger a load of the description of the DAO
+		(async () => {
+			const res = await loadIdeaDescription(ipfs, ipfsAddr);
+
+			if (res === undefined) return;
+
+			setIpfsCache(ipfsAddr, "description", res);
+		})();
+	}, [ipfsAddr]);
+
+	return ipfsAddr in ipfsCache && "description" in ipfsCache[ipfsAddr]
+		? (ipfsCache[ipfsAddr]["description"] as string)
+		: undefined;
+};
+
+/**
+ * Gets the ceramic profile of the user.
+ */
+export const useCeramicId = (addr: string): string | undefined => {
+	const [id, setId] = useState<string | undefined>(undefined);
+
+	const [, eth] = useWeb3();
+	const client = useClient();
+
+	// Load the user's ceramic ID
+	useEffect(() => {
+		(async () => {
+			const netV = await chainId(eth);
+			const link = await Caip10Link.fromAccount(
+				client.ceramic,
+				`eip155:${netV}:${addr}`
+			);
+
+			if (!link || !link.did) return;
+
+			setId(link.did);
+		})();
+	}, []);
+
+	return id;
+};
+
+/**
+ * Gets the username of the user with the indicated ethereum address.
+ */
+export const useUserName = (addr: string): string | undefined => {
+	const id = useCeramicId(addr);
+	const profile = usePublicRecord("basicProfile", id);
+
+	return id ? profile.content?.name ?? undefined : undefined;
+};
+
+/**
+ * Displays the profile picture of the user with the indicated address, or
+ * returns undefined.
+ */
+export const useUserPic = (addr: string): string | undefined => {
+	const [image, setImage] = useState<string | undefined>(undefined);
+	const id = useCeramicId(addr);
+	const profile = usePublicRecord("basicProfile", id);
+
+	const ipfs = useContext(IpfsContext);
+	const [ipfsCache, setIpfsCache] = useContext(IpfsStoreContext);
+
+	// Load the user's profile picture
+	useEffect(() => {
+		if (id === undefined) return;
+
+		if (!profile.content?.image.original.src) return;
+
+		const imgCid = profile.content.image.original.src;
+
+		if (imgCid in ipfsCache && "icon" in ipfsCache[imgCid]) {
+			setImage(ipfsCache[imgCid]["icon"] as string);
+
+			return;
+		}
+
+		// Load in the image
+		getAll(ipfs, imgCid.replaceAll("ipfs://", "")).then((imgBlob) => {
+			// Turn the image data into an src, and update the UI
+			const blob = blobify(window, imgBlob, null);
+
+			setIpfsCache(imgCid, "icon", blob);
+			setImage(blob);
+		});
+	}, [profile.content?.image.original.src, id === undefined]);
+
+	return image;
+};
+
+/**
+ * Loads the profiles of all users specified.
+ */
+export const useProfiles = (
+	addrs: string[]
+): { [addr: string]: BasicProfile } => {
+	const [profiles, setProfiles] = useState<{ [addr: string]: BasicProfile }>(
+		{}
+	);
+	const [, eth] = useWeb3();
+	const [idx] = useContext(IdxContext);
+	const client = useClient();
+
+	// Loads the cermaic profiles of all specified users
+	useEffect(() => {
+		(async () => {
+			const netV = await chainId(eth);
+
+			// Load user ID's in parallel
+			await Promise.all(
+				addrs.map(async (addr: string) => {
+					const link = await Caip10Link.fromAccount(
+						client.ceramic,
+						`eip155:${netV}:${addr}`
+					);
+					if (!link || !link.did) return;
+
+					const profile = await idx.get("basicProfile", link.did);
+					if (!profile) return;
+
+					setProfiles((profiles) => {
+						return { ...profiles, [addr]: profile as BasicProfile };
+					});
+				})
+			);
+		})();
+	}, [addrs.length]);
+
+	return profiles;
+};
+
+/**
+ * Gets the ticker symbol of the specified ERC-20, or returns an empty string..
+ */
+export const useSymbol = (addr: string): string => {
+	// See previous TODO on modularity
+	const erc20Abi: AbiItem[] = [
+		{
+			constant: true,
+			inputs: [],
+			name: "symbol",
+			outputs: [{ name: "", type: "string" }],
+			payable: false,
+			stateMutability: "view",
+			type: "function",
+		},
+	];
+	const [web3] = useWeb3();
+	const [symbol, setSymbol] = useState<string>("");
+
+	useEffect(() => {
+		if (addr === "") return;
+
+		(async () => {
+			try {
+				const contract = new web3.eth.Contract(erc20Abi, addr);
+				const symbol = await contract.methods.symbol().call();
+
+				setSymbol(symbol);
+			} catch (e) {
+				console.warn(e);
+
+				setSymbol("");
+			}
+		})();
+	}, [addr]);
+
+	return symbol;
+};
+
+/**
+ * Gets the title of the given DAO, or the name of the given user.
+ */
+export const useActorTitleNature = (
+	addr: string
+): [string, "user" | "dao" | "addr"] => {
+	const graph = useGraph();
+
+	const [daoTitle, setDaoTitle] = useState<string | null>(null);
+	const username = useUserName(addr);
+
+	useEffect(() => {
+		(async () => {
+			setDaoTitle((await graph.GetDaoTitle({ id: addr })).idea?.name);
+		})();
+	}, [addr]);
+
+	if (daoTitle) return [daoTitle, "dao"];
+	else if (username) return [username, "user"];
+
+	return [addr, "addr"];
+};
+
+export const useActorTitle = (addr: string): string =>
+	useActorTitleNature(addr)[0];
+
+/**
+ * Gets the IPFS address associated with the idea.
+ */
+export const useIdeaIpfsAddr = (addr: string): string => {
+	const graph = useGraph();
+
+	const [ipfsAddr, setIpfsAddr] = useState<string>("");
+
+	useEffect(() => {
+		(async () => {
+			setIpfsAddr((await graph.GetIpfsAddr({ id: addr })).idea?.ipfsAddr);
+		})();
+	}, [addr]);
+
+	return ipfsAddr;
+};
+
+/**
+ * Gets the binary data associated with the IPFS content at the specified CID.
+ */
+export const useIdeaBinaryData = (cid: string): IdeaData[] => {
+	const [data, setData] = useState([]);
+	const [ipfsCache, setIpfsCache] = useContext(IpfsStoreContext);
+	const ipfs = useContext(IpfsContext);
+
+	useEffect(() => {
+		if (!cid) return;
+
+		if (cid in ipfsCache && "all" in ipfsCache[cid]) {
+			setData(ipfsCache[cid]["all"] as IdeaData[]);
+
+			return;
+		}
+
+		(async () => {
+			const loaded = await loadIdeaBinaryData(ipfs, cid);
+			setIpfsCache(cid, "all", loaded);
+			setData(loaded);
+		})();
+	}, [cid]);
+
+	return data;
+};
+
+/**
+ * Generates a link to click on the indicated asset, be it a normal address, a
+ * user, or a DAO.
+ */
+export const useActionLink = (
+	addr: string,
+	router: ReturnType<typeof useRouter>
+): (() => void) => {
+	const [, nature] = useActorTitleNature(addr);
+	const [conn] = useConnStatus();
+
+	return {
+		user: () => router.push(`/profile/${addr}`),
+		dao: () => router.push(`/ideas/${addr}`),
+		addr: () => window.open(`${explorers[conn.network]}/address/${addr}`),
+	}[nature];
+};
+
+/**
+ * Gets the balance of the user belonging to the dao indicated with the provided
+ * ETH address.
+ */
+export const useUserBalance = (addr: string, daoAddr: string): number => {
+	const stream = useStream<GetUserBalanceQuery>(
+		{ investorProfile: { balance: 0 as unknown as Scalars["BigInt"] } },
+		(graph) =>
+			graph.GetUserBalance({
+				iID: `i${addr}:${daoAddr}`,
+			}) as unknown as Promise<AsyncIterable<GetUserBalanceQuery>>,
+		[addr, daoAddr]
+	);
+
+	const [prevValue, setPrevValue] = useState<number>(0);
+
+	useEffect(() => {
+		const newB = stream.investorProfile?.balance;
+
+		if (newB) setPrevValue(Number(newB));
+	}, [stream.investorProfile?.balance]);
+
+	return Number(stream.investorProfile?.balance ?? prevValue);
 };

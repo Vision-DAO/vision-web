@@ -1,0 +1,45 @@
+query PropInfo($id: ID!) @live {
+  prop(id:$id) {
+    id
+    funder {
+      id
+      name
+      supply
+      ticker
+    }
+    toFund
+    rate {
+      token
+      value
+      intervalLength
+      expiry
+      lastClaimed
+      kind
+    }
+    author {
+      id
+    }
+    votesFor
+    votesAgainst
+    voters {
+      id
+    }
+    votes {
+      votes
+      kind
+      createdAt
+      voter {
+        user {
+          id
+        }
+      }
+      id
+    }
+    ipfsAddr
+    title
+    expiration
+    createdAt
+    finalizedAt
+    status
+  }
+}

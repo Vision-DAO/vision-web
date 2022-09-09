@@ -6,6 +6,8 @@
 	align-items: stretch;
 
 	overflow: auto;
+
+	margin-bottom: 3em;
 }
 
 .mediaInputLabel {
@@ -35,6 +37,14 @@
 	font-size: 1rem;
 }
 
+.formItem>*:first-child:not(:last-child) {
+	margin-bottom: 0.25em;
+}
+
+.shortLabel {
+	width: 5em;
+}
+
 .formItemList {
 	display: flex;
 
@@ -57,12 +67,11 @@
 
 	flex-flow: row nowrap;
 
-	justify-content: space-between;
+	justify-content: flex-start;
 	align-items: baseline;
 }
 
 .formLine>*:last-child {
-	flex-grow: 1;
 	margin-left: 1em;
 }
 
@@ -72,4 +81,25 @@
 
 .fullWidthInput {
 	width: 100%;
+}
+
+.fullWidthInput>* {
+	width: 100%;
+}
+
+.formItem h1 {
+	margin: 0;
+}
+
+.multiItemLine {
+	display: flex;
+
+	flex-flow: row nowrap;
+
+	justify-content: flex-start;
+	align-items: stretch;
+}
+
+.multiItemLine>*:first-child {
+	margin-right: 2em;
 }

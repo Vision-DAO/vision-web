@@ -50,6 +50,8 @@
 	align-items: center;
 
 	overflow: hidden;
+
+	cursor: pointer;
 }
 
 .flowAddr>a {
@@ -64,7 +66,7 @@
 
 .flowValue {
 	display: flex;
-	
+
 	flex-flow: column nowrap;
 	justify-content: center;
 	align-items: center;
@@ -77,6 +79,14 @@
 	margin-left: 1em;
 
 	white-space: nowrap;
+}
+
+.tokenLink {
+	cursor: pointer;
+}
+
+.tokenLink>*:first-child {
+	margin-left: 0.5em;
 }
 
 .flowValue>.arrow {

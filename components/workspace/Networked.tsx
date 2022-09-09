@@ -1,6 +1,7 @@
 import React from "react";
 import { useContext, useEffect, useState } from "react";
 import { IpfsContext } from "../../lib/util/ipfs";
+import { ClientContext } from "../../lib/util/graph";
 import { Caip10Link } from "@ceramicnetwork/stream-caip10-link";
 import { CeramicApi } from "@ceramicnetwork/common";
 import {
@@ -33,6 +34,7 @@ export const NetworkedWorkspace = ({
 	const [accountsSynced, setAccountsSynced] = useState(false);
 	const web3 = useWeb3();
 	const ipfs = useContext(IpfsContext);
+	const graphClient = useContext(ClientContext);
 	const [auth] = useContext(AuthContext);
 	let content: { title: string; message: string; loading?: boolean } | null =
 		null;
@@ -71,7 +73,7 @@ export const NetworkedWorkspace = ({
 		};
 	}
 
-	if (connection.status === "connecting") {
+	if (connection.status === "connecting" || graphClient === undefined) {
 		content = {
 			title: "Connecting",
 			message: "Forming a connection to the Ceramic network.",

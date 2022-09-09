@@ -3,11 +3,13 @@ import { DetailNavigatorLayout } from "../../../components/workspace/DetailNavig
 import { IdeaInfoPanel } from "../../../components/workspace/idea/IdeaInfoPanel";
 import { IdeaVisualInfoWindow } from "../../../components/workspace/idea/IdeaVisualInfoWindow";
 import { IdeaActivityPanel } from "../../../components/workspace/idea/IdeaActivityPanel";
-import { ExtendedIdeaInformation } from "../../../components/workspace/IdeaDetailCard";
-import { ActiveIdeaContext } from "../../../lib/util/ipfs";
-import { useWeb3 } from "../../../lib/util/web3";
 import styles from "./about.module.css";
-import { pages, loader } from "../../../lib/util/ideas/module";
+import {
+	pages,
+	loader,
+	titleExtractor,
+	ActiveIdeaContext,
+} from "../../../lib/util/ideas/module";
 
 /**
  * A sub-navigation context that allows a user to view basic information about
@@ -15,23 +17,32 @@ import { pages, loader } from "../../../lib/util/ideas/module";
  * market metrics about the idea.
  */
 export const About = () => {
-	// See NavigatorLayout container. This will never be NULL
-	const [idea, ]: [ExtendedIdeaInformation, unknown] = useContext(ActiveIdeaContext);
-	const [web3, ] = useWeb3();
+	const [idea] = useContext(ActiveIdeaContext);
 
+	// See NavigatorLayout container. This will never be NULL
 	return (
-		<div className={ styles.infoContainers }>
-			<div className={ styles.splitPanel }>
-				<IdeaInfoPanel idea={ idea } />
-				<IdeaVisualInfoWindow idea={ idea } />
+		<div className={styles.infoContainers}>
+			<div className={styles.splitPanel}>
+				<IdeaInfoPanel idea={idea} />
+				<IdeaVisualInfoWindow idea={idea} />
 			</div>
-			<IdeaActivityPanel web3={ web3 } idea={ idea } />
+			<IdeaActivityPanel idea={idea} />
 		</div>
 	);
 };
 
 // Using a wrapper guarantees that access to the currently selected idea's
 // information will succeed
-About.getLayout = (page: ReactElement) => <DetailNavigatorLayout title="Idea" pages={ pages } loader={ loader } ctx={ ActiveIdeaContext }>{ page }</DetailNavigatorLayout>;
+About.getLayout = (page: ReactElement) => (
+	<DetailNavigatorLayout
+		title="Idea"
+		contentTitle={titleExtractor}
+		ctx={ActiveIdeaContext}
+		pages={pages}
+		loader={loader}
+	>
+		{page}
+	</DetailNavigatorLayout>
+);
 
 export default About;

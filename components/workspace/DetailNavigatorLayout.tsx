@@ -2,33 +2,40 @@ import styles from "./DetailNavigatorLayout.module.css";
 import { useRouter } from "next/router";
 import BackIcon from "@mui/icons-material/ArrowBackIosRounded";
 import CircularProgress from "@mui/material/CircularProgress";
-import { IpfsContext } from "../../lib/util/ipfs";
-import { IpfsClient } from "../../lib/util/ipfs";
-import { useConnStatus, ConnStatus } from "../../lib/util/networks";
-import { useWeb3 } from "../../lib/util/web3";
-import Web3 from "web3";
+import { useConnStatus, explorers } from "../../lib/util/networks";
 import { ModalContext } from "../../lib/util/modal";
-import { ReactElement, useEffect, useContext, Context } from "react";
+import { useGraph } from "../../lib/util/graph";
+import { ReactElement, Context, useEffect, useContext, useState } from "react";
 import { WarningMessage } from "../status/WarningMessage";
+import { Sdk } from "../../.graphclient";
 
-export interface Detailable {
-	title?: string;
-	explorerURI?: string;
-	addr?: string;
+interface IDAble {
+	id: string;
 }
-
-const refreshRate = 2000;
 
 /**
  * See nextjs documentation on layouts: a wrapper for all pages on an
  * info detail screen that ensures all rendered children have a loaded, cached
  * Idea context available.
  */
-export const DetailNavigatorLayout = <T extends Detailable,>({ title, pages, children, ctx, loader }: { title: string, pages: string[], children: ReactElement, ctx: Context<[T, (v: T) => void]>, loader: (ipfs: IpfsClient, web3: Web3, eth: any, conn: ConnStatus, addr: string) => Promise<T> }) => {
+export const DetailNavigatorLayout = <T extends IDAble>({
+	title,
+	pages,
+	children,
+	ctx,
+	loader,
+	contentTitle,
+}: {
+	title: string;
+	pages: string[];
+	children: ReactElement;
+	ctx: Context<[T | undefined, (v: T | undefined) => void]>;
+	loader: (graph: Sdk, addr: string) => AsyncIterable<T | null>;
+	contentTitle: (v: T) => string;
+}) => {
 	const router = useRouter();
-	const ipfs = useContext(IpfsContext);
-	const [conn,] = useConnStatus();
-	const [web3, eth] = useWeb3();
+	const [conn] = useConnStatus();
+	const graph = useGraph();
 
 	// The address of the currently loaded idea should be used as a temporary
 	// label, but will be replaced by the proper name of the idea
@@ -40,56 +47,43 @@ export const DetailNavigatorLayout = <T extends Detailable,>({ title, pages, chi
 	let addr: string;
 
 	// Nextjs props have multiple possible values
-	if (Array.isArray(addrs))
-		addr = addrs[0];
-	else
-		addr = addrs;
+	if (Array.isArray(addrs)) addr = addrs[0];
+	else addr = addrs;
 
-	const [ideaInfo, setIdeaInfo] = useContext(ctx);
-	const [modal, ] = useContext(ModalContext);
+	const [ideaInfo, setIdeaInfo] = useState<T | null | undefined>(undefined);
+	const [globalIdeaInfo, setGlobalIdeaInfo] = useContext(ctx);
+	const [modal] = useContext(ModalContext);
 
 	useEffect(() => {
-		// The wrong idea is loaded
-		if (ideaInfo && ideaInfo.addr !== addr) {
-			setIdeaInfo(undefined);
-		}
+		let signal = false;
 
-		// A render hasn't even been triggered if the active idea is undefined
-		// Note: the ideaInfo should be set back to undefined after it is unloaded
-		if (ideaInfo === undefined) {
-			setIdeaInfo(null);
+		(async () => {
+			for await (const info of loader(graph, addr)) {
+				if (signal) return;
 
-			loader(ipfs, web3, eth, conn, addr)
-				.then((v) => {
-					if (!v)
-						return;
-					
-					setIdeaInfo(v);
-				});
-		}
+				if ((ideaInfo && !info) || info.id !== addr) continue;
 
-		const handle = setInterval(() => {
-			loader(ipfs, web3, eth, conn, addr)
-				.then((v) => {
-					if (!v)
-						return;
-					
-					setIdeaInfo(v);
-				});
-		}, refreshRate);
+				if (info) setGlobalIdeaInfo(info);
+				setIdeaInfo(info);
+			}
+		})();
 
-		return () => clearInterval(handle);
-	});
+		return () => {
+			signal = true;
+		};
+	}, [addr]);
 
 	// If IdeaInfo is undefined, a load hasn't even been attempted, which
 	// indicates that it could not be loaded for some reason, presumably because
 	// it is not a valid idea
-	let toRender: ReactElement = <WarningMessage title={`Invalid ${title}`} message={`The selected ${title.toLowerCase()} cannot be loaded. Check the address, or try again later.`} />;
+	let toRender: ReactElement;
 
-	if (ideaInfo === null) {
+	if (ideaInfo === undefined) {
 		toRender = <CircularProgress />;
-	} else if (ideaInfo === undefined) {
-		toRender = <WarningMessage title="Error 404" message="Idea Does Not Exist" />;
+	} else if (ideaInfo === null || !globalIdeaInfo) {
+		toRender = (
+			<WarningMessage title="Error 404" message="Idea Does Not Exist" />
+		);
 	} else {
 		toRender = children;
 	}
@@ -101,32 +95,39 @@ export const DetailNavigatorLayout = <T extends Detailable,>({ title, pages, chi
 	};
 
 	// Where the user should be redirected for info about the idea
-	const ideaURI = `${ (ideaInfo && ideaInfo.explorerURI) || "https://mumbai.polygonscan.com" }/address/${addr}`;
+	const ideaURI = `${explorers[conn.network]}/address/${addr}`;
 
 	return (
-		<div className={ styles.ideaNavigationContainer }>
-			{ modal !== undefined && modal }
-			<div className={ styles.navigationBarContainer }>
-				<BackIcon sx={{ color: "#5D5FEF", cursor: "pointer" }} fontSize="large" onClick={ () => { setIdeaInfo(undefined); router.back(); } } />
+		<div className={styles.ideaNavigationContainer}>
+			{modal !== undefined && modal}
+			<div className={styles.navigationBarContainer}>
+				<BackIcon
+					sx={{ color: "#5D5FEF", cursor: "pointer" }}
+					fontSize="large"
+					onClick={() => {
+						setIdeaInfo(undefined);
+						router.back();
+					}}
+				/>
 				<h2>
 					<b>{title}: </b>
-					<a href={ ideaURI } target="_blank" rel="noopener noreferrer">
-						{ ideaInfo && ideaInfo.title || addr }
+					<a href={ideaURI} target="_blank" rel="noopener noreferrer">
+						{(ideaInfo && contentTitle(ideaInfo)) || addr}
 					</a>
 				</h2>
 			</div>
-			<div className={ styles.navOptionsContainer }>
-				{ pages.map((pageName) =>
+			<div className={styles.navOptionsContainer}>
+				{pages.map((pageName) => (
 					<h2
-						className={ pageName.toLowerCase() == page ? styles.active : "" }
-						key={ pageName }
-						onClick={ () => navigatePage(pageName.toLowerCase()) }
-					>{ pageName }</h2>
-				) }
+						className={pageName.toLowerCase() == page ? styles.active : ""}
+						key={pageName}
+						onClick={() => navigatePage(pageName.toLowerCase())}
+					>
+						{pageName}
+					</h2>
+				))}
 			</div>
-			<div className={ styles.navigatedContent }>
-				{ toRender }
-			</div>
+			<div className={styles.navigatedContent}>{toRender}</div>
 		</div>
 	);
 };

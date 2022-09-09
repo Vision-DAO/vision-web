@@ -1,0 +1,152 @@
+fragment DaoCardInfo on Idea {
+  id
+  ipfsAddr
+  ticker
+  name
+  supply
+  createdAt
+  children {
+    id
+  }
+  activeProps {
+    id
+    createdAt
+    votes {
+      id
+    }
+  }
+  acceptedProps {
+    id
+    finalizedAt
+    votes {
+      id
+    }
+  }
+  rejectedProps {
+    id
+    finalizedAt
+    votes {
+      id
+    }
+  }
+  parents {
+    id
+  }
+  users {
+    id
+  }
+  treasury {
+    token {
+      id
+    }
+    balance
+  }
+}
+
+query GetDaoTitle($id: ID!) {
+  idea(id:$id) {
+    name
+  }
+}
+
+query GetDaoInfo($id: ID!) @live {
+  idea(id:$id) {
+    ...DaoCardInfo
+  }
+}
+
+query GetDaoAbout($id: ID!, $dayStart: BigInt!) @live {
+  idea(id:$id) {
+    ...DaoCardInfo
+    users {
+      user {
+        id
+      }
+      tokens {
+        id
+        balance
+      }
+      props {
+        props {
+          id
+        }
+      }
+    }
+    recentAccepted: acceptedProps(where: {finalizedAt_gt: $dayStart}) {
+      title
+      finalizedAt
+      status
+    }
+    recentRejected: rejectedProps(where: {finalizedAt_gt: $dayStart}) {
+      title
+      finalizedAt
+      status
+    }
+    recentCreated: activeProps(where: {finalizedAt_gt: $dayStart}) {
+      title
+      createdAt
+    }
+    recentTransfers: transfers(where: {createdAt_gt: $dayStart}) {
+      sendUser {
+        id
+      }
+      sendDao {
+        id
+        name
+      }
+      recipDao {
+        id
+        name
+      }
+      recipUser {
+        id
+      }
+      value
+    }
+  }
+}
+
+fragment PropInformation on Prop {
+  id
+  title
+  ipfsAddr
+  author {
+    id
+  }
+  createdAt
+  votesFor
+  votesAgainst
+  expiration
+  toFund
+  status
+  finalizedAt
+  funder {
+    id
+  }
+  rate {
+    token
+    value
+    intervalLength
+    expiry
+    kind
+  }
+}
+
+query GetProps($id: ID!, $dayStart: BigInt!) @live {
+  idea(id:$id) {
+    activeProps(where: { status_not: Accepted }) {
+      ...PropInformation
+    }
+    children {
+      ...PropInformation
+    }
+  }
+}
+
+query GetIpfsAddr($id: ID!) {
+  idea(id:$id) {
+    id
+    ipfsAddr
+  }
+}
+

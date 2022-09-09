@@ -8,7 +8,7 @@
 	border-radius: 5px;
 	border: 0.5px solid rgba(255, 255, 255, 0.25);
 
-	background-color: #141414;
+	background-color: #1E1E1E;
 
 	padding: 1rem;
 
@@ -18,7 +18,7 @@
 }
 
 .outlinedButton:hover {
-	background-color: #1E1E1E;
+	background-color: #141414;
 }
 
 .outlinedButton>* {
@@ -37,11 +37,11 @@
 }
 
 .action {
-	background-color: rgba(93, 95, 239, 0.75);
+	background-color: #5d5fef;
 }
 
 .action:hover {
-	background-color: #5d5fef;
+	background-color: rgba(93, 95, 239, 0.75);
 }
 
 .error {
