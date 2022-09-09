@@ -107,11 +107,16 @@ export const connectMetamask = async (ethProvider: any): Promise<void> => {
 	await ethProvider.request({ method: "eth_requestAccounts" });
 };
 
+export const formatBig = (n: number): string =>
+	Intl.NumberFormat("en-US", {
+		notation: "compact",
+		maximumFractionDigits: 2,
+	}).format(n);
+
 /**
  * Produces a locale string suitable to ERC-20 balances.
  */
-export const formatErc = (n: number): string =>
-	(n / Math.pow(10, 18)).toLocaleString();
+export const formatErc = (n: number): string => formatBig(n / Math.pow(10, 18));
 
 /**
  * Formats a date object in YYYY/mm/d format.

@@ -80,8 +80,11 @@ export const VisionaryListDisplay = ({
 									<p>Stake</p>
 									<p>
 										<b>
-											{(state.visionaries[selectedVisionary] / idea.supply) *
-												100}
+											{Math.round(
+												(state.visionaries[selectedVisionary] /
+													Number(idea.supply)) *
+													10000
+											) / 100}
 											%
 										</b>
 									</p>
@@ -103,7 +106,7 @@ export const VisionaryListDisplay = ({
 									<VisionaryBubble
 										seed={visionary}
 										onClick={() => setSelectedVisionary(visionary)}
-										size={canvasHeight * (balance / idea.supply)}
+										size={canvasHeight * (balance / Number(idea.supply))}
 										active={selectedVisionary === visionary}
 										key={visionary}
 									/>

@@ -1,6 +1,6 @@
 import { UserFeedDaoRepr } from "../../lib/util/graph";
 import { useIdeaDescription } from "../../lib/util/ipfs";
-import { formatErc } from "../../lib/util/networks";
+import { formatErc, formatBig } from "../../lib/util/networks";
 import styles from "./IdeaCard.module.css";
 import { Skeleton } from "@mui/material";
 import MapIcon from "@mui/icons-material/Map";
@@ -14,10 +14,14 @@ export const IdeaCard = ({
 	idea,
 	balance,
 	onShowMap,
+	props,
+	votes,
 	onShowIdea,
 }: {
 	idea: UserFeedDaoRepr;
 	balance: number;
+	props: number;
+	votes: number;
 	onShowMap: (id: string) => void;
 	onShowIdea: (id: string) => void;
 }) => {
@@ -40,6 +44,12 @@ export const IdeaCard = ({
 					/>
 				</div>
 			</div>
+			<div className={styles.infoLine}>
+				<div className={styles.compoundLabel}>
+					<p>{formatBig(idea.users.length)}</p>
+					<p className={styles.secondary}>Members</p>
+				</div>
+			</div>
 			{description === undefined ? (
 				<div className={styles.loadingContainer}>
 					<Skeleton />
@@ -50,16 +60,20 @@ export const IdeaCard = ({
 			) : (
 				<p>{description}</p>
 			)}
-			<div className={`${styles.infoLine} ${styles.spread}`}>
+			<div className={`${styles.infoLine} ${styles.infoArea}`}>
+				<div className={styles.compoundLabel}>
+					<p>{props}</p>
+					<p className={styles.secondary}>Proposals Authored</p>
+				</div>
+				<div className={styles.compoundLabel}>
+					<p>{votes}</p>
+					<p className={styles.secondary}>Votes Cast</p>
+				</div>
 				<div className={styles.compoundLabel}>
 					<p>
 						{formatErc(balance)} <b>{idea.ticker}</b>
 					</p>
 					<p className={styles.secondary}>Balance</p>
-				</div>
-				<div className={styles.compoundLabel}>
-					<p>{idea.users.length.toLocaleString()}</p>
-					<p className={styles.secondary}>Members</p>
 				</div>
 			</div>
 		</div>

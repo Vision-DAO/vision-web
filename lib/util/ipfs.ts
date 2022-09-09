@@ -238,7 +238,7 @@ export const useUserName = (addr: string): string | undefined => {
 	const id = useCeramicId(addr);
 	const profile = usePublicRecord("basicProfile", id);
 
-	return profile.content?.name ?? undefined;
+	return id ? profile.content?.name ?? undefined : undefined;
 };
 
 /**

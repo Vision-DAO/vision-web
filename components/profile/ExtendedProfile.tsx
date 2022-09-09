@@ -126,7 +126,7 @@ export const ExtendedProfile = ({
 	const { voteCount, propCount } = stats.user?.ideas.reduce(
 		({ voteCount, propCount }, { props: { props }, votes: { votes } }) => {
 			return {
-				voteCount: voteCount + votes.reduce((sum, v) => sum + v.votes, 0),
+				voteCount: voteCount + votes.length,
 				propCount: propCount + props.length,
 			};
 		},
@@ -135,17 +135,21 @@ export const ExtendedProfile = ({
 
 	// Create a card for each DAO the user participates in
 	const daoCards =
-		feed.user?.ideas.map(({ tokens: { dao: idea, balance } }) => (
-			<IdeaCard
-				key={idea.id}
-				idea={idea}
-				balance={balance}
-				onShowMap={() =>
-					router.push({ pathname: "/", query: { idea: idea.id } })
-				}
-				onShowIdea={(id) => router.push(`/ideas/${id}/about`)}
-			/>
-		)) ?? [];
+		feed.user?.ideas.map(
+			({ tokens: { dao: idea, balance }, props: { props } }) => (
+				<IdeaCard
+					key={idea.id}
+					idea={idea}
+					balance={Number(balance)}
+					props={props.length}
+					votes={voteCount}
+					onShowMap={() =>
+						router.push({ pathname: "/", query: { idea: idea.id } })
+					}
+					onShowIdea={(id) => router.push(`/ideas/${id}/about`)}
+				/>
+			)
+		) ?? [];
 
 	const feedCards = feed.user?.ideas
 		.flatMap(({ props: { props } }) => props)

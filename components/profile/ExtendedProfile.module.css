@@ -233,3 +233,18 @@
 	margin-bottom: 2em;
 }
 
+.daoCarousel {
+	display: flex;
+
+	flex-flow: row nowrap;
+	justify-content: flex-start;
+	align-items: flex-start;
+
+	max-width: 100%;
+
+	overflow: scroll;
+}
+
+.daoCarousel>* {
+	margin-right: 0.5em;
+}

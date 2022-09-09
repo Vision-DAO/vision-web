@@ -180,6 +180,12 @@
 	width: 100%;
 
 	border-radius: 0.5em;
+
+	font-weight: bold;
+}
+
+.statusIndicator>* {
+	opacity: 0.8;
 }
 
 .statusIndicator>*:first-child {

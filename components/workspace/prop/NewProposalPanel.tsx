@@ -140,7 +140,7 @@ export const NewProposalPanel = ({
 				continue;
 			}
 
-			if (propDetails[key] === null || !propDetails[key]) {
+			if (propDetails[key] === null || propDetails[key] === undefined) {
 				setStatusMessage(() => `Missing required proposal field: ${key}.`);
 
 				return;
@@ -300,7 +300,7 @@ export const NewProposalPanel = ({
 								onChange={(d) => setFundingExpiry(d.getTime() / 1000)}
 								renderInput={(params) => (
 									<UnderlinedInput
-										onClick={(e) => params.inputProps.onClick(e)}
+										onClick={params.inputProps.onMouseDown}
 										icon={<CalendarIcon />}
 										placeholder={new Date(fundingExpiry * 1000).toString()}
 									/>
@@ -357,7 +357,7 @@ export const NewProposalPanel = ({
 							onChange={(d) => setParsedExpiry(d.getTime() / 1000)}
 							renderInput={(params) => (
 								<UnderlinedInput
-									onClick={(e) => params.inputProps.onClick(e)}
+									onClick={params.inputProps.onMouseDown}
 									icon={<CalendarIcon />}
 									placeholder={new Date(expiry * 1000).toString()}
 									className={styles.fullWidthInput}
