@@ -17,6 +17,8 @@ export const registries: Map<string, string | null> = new Map([
 	["polygon-test", "0x5000e273188Ce07f11dd7a270A16a17Bff071176"],
 ]);
 
+export const zAddr = "0x0000000000000000000000000000000000000000";
+
 /*
  * Mappings from network names to addresses of statically deployed proposal
  * contracts.

@@ -4,7 +4,6 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import { Skeleton } from "@mui/material";
 import { useViewerRecord } from "@self.id/framework";
-import { useState } from "react";
 import { unwatchIdea, watchIdea } from "../../../lib/util/discovery";
 import {
 	formatErc,
@@ -12,6 +11,8 @@ import {
 	useConnStatus,
 	explorers,
 	useVisAddr,
+	zAddr,
+	useRegistry,
 } from "../../../lib/util/networks";
 import { ModelTypes } from "../../../lib/util/discovery";
 import { useIdeaDescription } from "../../../lib/util/ipfs";
@@ -104,21 +105,38 @@ export const IdeaInfoPanel = ({ idea }: { idea: DAOStatsRepr }) => {
 	const [{ network }] = useConnStatus();
 	const visToken = useVisAddr();
 	const description = useIdeaDescription(idea.ipfsAddr);
+	const reg = useRegistry();
 
 	// Items displayed under the info header, as shown on the figma. See TODO
 	const info = {
-		Members: <p>{idea.users.length.toLocaleString()}</p>,
-		"Date created": <p>{formatDate(idea.createdAt)}</p>,
+		Members: (
+			<p>
+				{idea.users
+					.filter(
+						({ id }) =>
+							![
+								`g${zAddr}:${idea.id}`,
+								`g${idea.id}:${idea.id}`,
+								`g${reg}:${idea.id}`,
+							].includes(id)
+					)
+					.length.toLocaleString()}
+			</p>
+		),
+		"Date created": <p>{formatDate(Number(idea.createdAt))}</p>,
 		"Projects funding": <p>{idea.children.length}</p>,
 		Treasury: (
 			<p>
 				{formatErc(
-					idea.treasury.find((elem) => elem.token.id === visToken)?.balance ?? 0
+					Number(
+						idea.treasury.find((elem) => elem.token.id === visToken)?.balance ??
+							0
+					)
 				)}{" "}
 				<b>VIS</b>
 			</p>
 		),
-		"Total supply": <p>{formatErc(idea.supply)}</p>,
+		"Total supply": <p>{formatErc(Number(idea.supply))}</p>,
 		Contract: (
 			<p>
 				<a

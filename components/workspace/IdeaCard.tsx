@@ -1,6 +1,11 @@
 import { UserFeedDaoRepr } from "../../lib/util/graph";
 import { useIdeaDescription } from "../../lib/util/ipfs";
-import { formatErc, formatBig } from "../../lib/util/networks";
+import {
+	formatErc,
+	formatBig,
+	zAddr,
+	useRegistry,
+} from "../../lib/util/networks";
 import styles from "./IdeaCard.module.css";
 import { Skeleton } from "@mui/material";
 import MapIcon from "@mui/icons-material/Map";
@@ -26,6 +31,7 @@ export const IdeaCard = ({
 	onShowIdea: (id: string) => void;
 }) => {
 	const description = useIdeaDescription(idea.ipfsAddr);
+	const reg = useRegistry();
 
 	return (
 		<div className={styles.card}>
@@ -46,7 +52,18 @@ export const IdeaCard = ({
 			</div>
 			<div className={styles.infoLine}>
 				<div className={styles.compoundLabel}>
-					<p>{formatBig(idea.users.length)}</p>
+					<p>
+						{formatBig(
+							idea.users.filter(
+								({ id }) =>
+									![
+										`g${zAddr}:${idea.id}`,
+										`g${idea.id}:${idea.id}`,
+										`g${reg}:${idea.id}`,
+									].includes(id)
+							).length
+						)}
+					</p>
 					<p className={styles.secondary}>Members</p>
 				</div>
 			</div>
@@ -63,11 +80,15 @@ export const IdeaCard = ({
 			<div className={`${styles.infoLine} ${styles.infoArea}`}>
 				<div className={styles.compoundLabel}>
 					<p>{props}</p>
-					<p className={styles.secondary}>Proposals Authored</p>
+					<p className={styles.secondary}>
+						{`Proposal${props !== 1 ? "s" : ""}`} Authored
+					</p>
 				</div>
 				<div className={styles.compoundLabel}>
 					<p>{votes}</p>
-					<p className={styles.secondary}>Votes Cast</p>
+					<p className={styles.secondary}>
+						{`Vote${votes !== 1 ? "s" : ""}`} Cast
+					</p>
 				</div>
 				<div className={styles.compoundLabel}>
 					<p>

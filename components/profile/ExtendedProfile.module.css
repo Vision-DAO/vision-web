@@ -238,7 +238,7 @@
 
 	flex-flow: row nowrap;
 	justify-content: flex-start;
-	align-items: flex-start;
+	align-items: stretch;
 
 	max-width: 100%;
 
