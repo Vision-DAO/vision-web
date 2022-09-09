@@ -125,7 +125,7 @@ export const Index = () => {
 							onClick={() => setCreatingIdea(true)}
 						/>
 					</div>
-					{activeIdeaInfo !== undefined && (
+					{activeIdea !== undefined && activeIdeaInfo !== undefined && (
 						<div className={styles.ideaDetailsPanel}>
 							<IdeaDetailCard
 								idea={activeIdeaInfo}
