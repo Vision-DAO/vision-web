@@ -12,7 +12,7 @@ import styles from "../index.module.css";
 export const registries: Map<string, string | null> = new Map([
 	["ethereum", null],
 	["polygon", null],
-	["polygon-test", "0x5000e273188Ce07f11dd7a270A16a17Bff071176"],
+	["polygon-test", "0xBEAA7efE5FfE5B018235a406a9378762fac44BDc"],
 ]);
 
 /**

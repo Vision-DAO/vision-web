@@ -14,24 +14,16 @@ export type Network = "ethereum" | "polygon" | "polygon-test" | "unknown";
 export const registries: Map<string, string | null> = new Map([
 	["ethereum", null],
 	["polygon", null],
-	["polygon-test", "0x5000e273188Ce07f11dd7a270A16a17Bff071176"],
+	["polygon-test", "0xBEAA7efE5FfE5B018235a406a9378762fac44BDc"],
 ]);
 
 export const zAddr = "0x0000000000000000000000000000000000000000";
-
-/*
- * Mappings from network names to addresses of statically deployed proposal
- * contracts.
- */
-export const staticProposals: { [net: string]: string } = {
-	"polygon-test": "0x5093Cf303a3d934b5621bB13723b74CfF42487c8",
-};
 
 /**
  * Address of the Vision token on different networks.
  */
 export const visTokenAddr: { [net: string]: string } = {
-	"polygon-test": "0x2a0073Bd141EfAb52A1177532e4971fDbC7E44d7",
+	"polygon-test": "0x67FAF3457157a71b109248BB798bAFC0558765ec",
 };
 
 /**

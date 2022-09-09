@@ -99,8 +99,6 @@ export const ProposalLine = ({
 		new Date(prop.createdAt * 1000)
 	);
 
-	console.log(expTime);
-
 	/**
 	 * Finalizes the current proposal.
 	 */
