@@ -85,6 +85,21 @@ export const ExtendedProfile = ({
 	const visAddr = useVisAddr();
 	const router = useRouter();
 
+	const shareProfile = () => {
+		const url = window.location.href;
+
+		if (navigator.share) {
+			navigator.share({
+				title: `${name}'s Vision Profile`,
+				url: url,
+			});
+
+			return;
+		}
+
+		navigator.clipboard.writeText(url);
+	};
+
 	// Display the user's name, and allow edits if necessary
 	let profileName = (
 		<div className={`${styles.profileName}`}>
@@ -252,7 +267,7 @@ export const ExtendedProfile = ({
 							) : (
 								<EditIcon onClick={() => setEditing(true)} />
 							)}
-							<ShareIcon />
+							<ShareIcon onClick={shareProfile} />
 						</div>
 					</div>
 					<div className={styles.infoRow}>
