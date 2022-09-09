@@ -153,6 +153,7 @@ export const ExtendedProfile = ({
 
 	const feedCards = feed.user?.ideas
 		.flatMap(({ props: { props } }) => props)
+		.sort(({ createdAt: a }, { createdAt: b }) => Number(b) - Number(a))
 		.map((prop) => <PropCard prop={prop} />);
 
 	/**

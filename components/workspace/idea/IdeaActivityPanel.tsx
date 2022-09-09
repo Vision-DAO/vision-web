@@ -72,7 +72,7 @@ export const IdeaActivityPanel = ({
 			if ("createdAt" in e) timestamp = new Date(e.createdAt * 1000);
 
 			if ("title" in e) {
-				title = <p>e.title</p>;
+				title = <p>{e.title}</p>;
 			} else if ("sendUser" in e) {
 				const { url: sUrl, label: sLabel } = transferSender(e);
 				const { url: rUrl, label: rLabel } = transferRecip(e);
