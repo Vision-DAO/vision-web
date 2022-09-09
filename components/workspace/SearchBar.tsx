@@ -16,10 +16,8 @@ import {
 	SearchDocument,
 	SearchQueryVariables,
 	GetAllUsersQuery,
-	GetAllUsersDocument,
 	execute,
 } from "../../.graphclient";
-import { useStream } from "../../lib/util/graph";
 import { blobify } from "../../lib/util/blobify";
 import {
 	useProfiles,
