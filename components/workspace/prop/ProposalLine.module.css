@@ -126,6 +126,34 @@
 	text-transform: uppercase;
 
 	font-size: 0.75em;
+	whitespace: wrap;
+	text-align: center;
+}
+
+@media only screen and (max-width: 1354px) {
+	.propStat h1 {
+		font-size: 2em;
+	}
+}
+
+@media only screen and (max-width: 798px) {
+	.propStat svg {
+		font-size: 2em;
+	}
+
+	.propStat h1 {
+		font-size: 1em;
+	}
+}
+
+@media only screen and (max-width: 950px) {
+	.leftInfo {
+		margin-right: 5%;
+	}
+}
+
+.propStat svg {
+	font-size: 4em;
 }
 
 .rightInfo {
@@ -269,5 +297,54 @@
 }
 
 .actorLink:hover {
+	opacity: 0.6;
+}
+
+.finalizeButton {
+	border-radius: 5px;
+
+	padding: 1em;
+	font-size: 0.75em;
+}
+
+.goodStat {
+	background-color: #5D5FEF;
+}
+
+.badStat {
+	background-color: #5A153A;
+}
+
+.status {
+	background-color: #1D1D1D;
+
+	margin: 0;
+	padding: 0.5em;
+
+	text-align: center;
+
+	border: 0.25px solid rgba(255, 255, 255, 0.25);
+	border-radius: 5px;
+
+	box-sizing: border-box;
+
+	color: rgba(255, 255, 255, 0.6);
+}
+
+.status:not(:last-child) {
+	margin-bottom: 0.5em;
+}
+
+.errMsg {
+	background-color: #5A153A;
+}
+
+.clickableStat {
+	cursor: pointer;
+
+	transition: 0.3s opacity;
+}
+
+.clickableStat:hover {
 	opacity: 0.6;
 }

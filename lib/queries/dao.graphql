@@ -120,6 +120,9 @@ fragment PropInformation on Prop {
   toFund
   status
   finalizedAt
+  funder {
+    id
+  }
   rate {
     token
     value
@@ -131,7 +134,7 @@ fragment PropInformation on Prop {
 
 query GetProps($id: ID!, $dayStart: BigInt!) @live {
   idea(id:$id) {
-    activeProps(where: {expiration_gt: $dayStart}) {
+    activeProps(where: { status_not: Accepted }) {
       ...PropInformation
     }
     children {

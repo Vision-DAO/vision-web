@@ -17,7 +17,12 @@ export const FilledButton = ({
 	children?: ReactElement[];
 }) => {
 	return (
-		<div className={styles.filledButton + " " + className} onClick={onClick}>
+		<div
+			className={
+				(!onClick ? styles.pseudoButton : styles.filledButton) + " " + className
+			}
+			onClick={onClick ?? Function.prototype}
+		>
 			{label && <h1>{label}</h1>}
 			{children}
 		</div>

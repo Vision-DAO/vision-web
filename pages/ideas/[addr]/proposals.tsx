@@ -1,6 +1,6 @@
 import { FilledButton } from "../../../components/status/FilledButton";
 import { GeneralModal } from "../../../components/status/GeneralModal";
-import { GetPropsQuery, GetPropsDocument } from "../../../.graphclient";
+import { GetPropsQuery } from "../../../.graphclient";
 import { IpfsContext } from "../../../lib/util/ipfs";
 import { CircularProgress } from "@mui/material";
 import { useWeb3 } from "../../../lib/util/web3";
@@ -86,19 +86,17 @@ export const Proposals = () => {
 						</div>
 					)}
 				</div>
-				<div className={styles.proposalsList}>
+				<div className={styles.proposalList}>
 					<h2>Funded Proposals</h2>
 					{proposals !== undefined ? (
-						<div>
-							<ProposalsList
-								parent={idea}
-								oldProps={[]}
-								proposals={proposals.idea.children}
-								onSelectProp={(_, propAddr) =>
-									router.push(`/proposals/${propAddr}/about`)
-								}
-							/>
-						</div>
+						<ProposalsList
+							parent={idea}
+							oldProps={[]}
+							proposals={proposals.idea.children}
+							onSelectProp={(_, propAddr) =>
+								router.push(`/proposals/${propAddr}/about`)
+							}
+						/>
 					) : (
 						<div className={styles.loadContainer}>
 							<CircularProgress />
