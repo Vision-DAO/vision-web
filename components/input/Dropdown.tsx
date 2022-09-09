@@ -40,7 +40,11 @@ export const Dropdown = ({
 				options
 					.filter((option) => option !== currOption)
 					.map((elem) => (
-						<p className={styles.option} onClick={() => setCurrOption(elem)}>
+						<p
+							className={styles.option}
+							key={option}
+							onClick={() => setCurrOption(elem)}
+						>
 							{elem}
 						</p>
 					))}

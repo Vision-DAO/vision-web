@@ -72,12 +72,17 @@ export const MultiPageInput = ({
 				>
 					{loading
 						? [
-								<p style={{ marginRight: "0.5em" }}>Loading</p>,
-								<CircularProgress size="1.25em" />,
+								<p key="label" style={{ marginRight: "0.5em" }}>
+									Loading
+								</p>,
+								<CircularProgress size="1.25em" key="load" />,
 						  ]
 						: step < children.length - 1
-						? [<p>Next</p>, <NavigateNextIcon />]
-						: [<p>Done</p>, <DoneIcon />]}
+						? [
+								<p key="label-next">Next</p>,
+								<NavigateNextIcon key="icon-next" />,
+						  ]
+						: [<p key="label-done">Done</p>, <DoneIcon key="icon-done" />]}
 				</FilledButton>
 			</div>
 		</div>
