@@ -19,6 +19,7 @@ import {
 	execute,
 } from "../../.graphclient";
 import { blobify } from "../../lib/util/blobify";
+import { useStream } from "../../lib/util/graph";
 import {
 	useProfiles,
 	IpfsStoreContext,
@@ -102,7 +103,11 @@ export const SearchBar = ({
 	dehovered: (dehovered: string) => void;
 }) => {
 	// Allow searching through user profiles, as well
-	const users = { users: [] };
+	const users = useStream<GetAllUsersQuery>(
+		{ users: [] },
+		(graph) => graph.GetAllUsers({}),
+		[]
+	);
 	const profiles = useProfiles(
 		users.users.map((user: GetAllUsersQuery["users"][0]) => user.id)
 	);
