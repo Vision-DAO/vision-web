@@ -68,6 +68,8 @@ export const UserProfile = ({ id, addr }: { id: string; addr: string }) => {
 					false,
 				]);
 			});
+		} else if (!profile.content.image) {
+			setImages(([[, bg], ..._rest]) => [[null, bg], false]);
 		}
 
 		// Load the user's background picture if it hasn't already been loaded
@@ -83,8 +85,13 @@ export const UserProfile = ({ id, addr }: { id: string; addr: string }) => {
 					false,
 				]);
 			});
+		} else if (!profile.content.background) {
+			setImages(([[pfp, ..._rest], _loading]) => [[pfp, null], false]);
 		}
-	}, [profile.content]);
+	}, [
+		profile.content?.image?.original.src,
+		profile.content?.background?.original.src,
+	]);
 
 	// Show a loading indicator if ceramic hasn't loaded it yet
 	if (profile == null || profile.isLoading || loading || !ctx)
