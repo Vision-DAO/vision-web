@@ -42,7 +42,7 @@ export const Dropdown = ({
 					.map((elem) => (
 						<p
 							className={styles.option}
-							key={option}
+							key={elem}
 							onClick={() => setCurrOption(elem)}
 						>
 							{elem}
