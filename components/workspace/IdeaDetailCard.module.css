@@ -22,6 +22,10 @@
 	transition: 0.3s;
 }
 
+.cardInfo {
+	overflow-x: hidden;
+}
+
 .cardInfo a {
 	color: #5D5FEF;
 }
