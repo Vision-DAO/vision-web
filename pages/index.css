@@ -13,3 +13,24 @@ a {
 a:hover {
 	opacity: 0.8;
 }
+
+body ::-webkit-scrollbar {
+  width: 1em;
+}
+
+body ::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+body ::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.6);
+  border-radius: 20px;
+  border: 6px solid transparent;
+  background-clip: content-box;
+
+  transition: 0.3s;
+}
+
+body ::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.5);
+}
