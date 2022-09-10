@@ -73,7 +73,7 @@ export const Index = () => {
 							</div>
 						</div>
 					</div>
-					{activeIdeaInfo !== undefined && (
+					{activeIdea !== undefined && activeIdeaInfo !== undefined && (
 						<div className={styles.ideaDetailsPanel}>
 							<IdeaDetailCard
 								idea={activeIdeaInfo}
