@@ -226,7 +226,7 @@ export const useCeramicId = (addr: string): string | undefined => {
 
 			setId(link.did);
 		})();
-	}, []);
+	}, [addr]);
 
 	return id;
 };
@@ -257,7 +257,11 @@ export const useUserPic = (addr: string): string | undefined => {
 	useEffect(() => {
 		if (id === undefined) return;
 
-		if (!profile.content?.image.original.src) return;
+		if (!profile.content?.image.original.src) {
+			setImage(undefined);
+
+			return;
+		}
 
 		const imgCid = profile.content.image.original.src;
 
@@ -275,7 +279,7 @@ export const useUserPic = (addr: string): string | undefined => {
 			setIpfsCache(imgCid, "icon", blob);
 			setImage(blob);
 		});
-	}, [profile.content?.image.original.src, id === undefined]);
+	}, [profile.content?.image?.original.src, id]);
 
 	return image;
 };

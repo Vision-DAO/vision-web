@@ -19,6 +19,8 @@ export const ProfileTooltip = ({ addr }: { addr: string }) => {
 	const [imageHeight, setImageHeight] = useState<number>(0);
 	const line = useRef<HTMLAnchorElement>();
 
+	console.log(addr, id, profile.content?.name);
+
 	useEffect(() => {
 		if (!line || !line.current) return;
 

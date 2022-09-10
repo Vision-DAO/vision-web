@@ -5,6 +5,9 @@ fragment DaoCardInfo on Idea {
   name
   supply
   createdAt
+  author {
+    id
+  }
   children {
     id
   }

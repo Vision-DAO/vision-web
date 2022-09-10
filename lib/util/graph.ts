@@ -43,15 +43,23 @@ export const useStream = <T>(
 	const [v, setV] = useState(init);
 
 	useEffect(() => {
+		let ctx = false;
+
 		(async () => {
 			const stream = await streamBuilder(graph);
 
 			if (stream === undefined) return;
 
 			for await (const entry of stream) {
+				if (ctx) return;
+
 				if (!extractorKey || extractorKey in entry) setV(entry);
 			}
 		})();
+
+		return () => {
+			ctx = true;
+		};
 	}, deps);
 
 	if (v === undefined) return init;

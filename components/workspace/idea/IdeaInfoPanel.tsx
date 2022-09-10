@@ -1,5 +1,6 @@
 import styles from "../IdeaDetailCard.module.css";
 import { OutlinedButton } from "../../status/OutlinedButton";
+import { ProfileTooltip } from "../../status/ProfileTooltip";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import { Skeleton } from "@mui/material";
@@ -184,6 +185,7 @@ export const IdeaInfoPanel = ({ idea }: { idea: DAOStatsRepr }) => {
 					</h2>
 					<WatchIdeaButton ideaAddr={idea.id} />
 				</div>
+				<ProfileTooltip addr={idea.author.id} />
 				{description ? (
 					<p className={styles.description}>{description}</p>
 				) : (
