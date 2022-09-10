@@ -25,7 +25,10 @@ export const Index = () => {
 	const [activeIdea, setActiveIdea] = useState<string>(undefined);
 	const activeIdeaInfo = useStream<GetDaoInfoQuery>(
 		undefined,
-		(graph) => graph.GetDaoInfo({ id: activeIdea }),
+		(graph) =>
+			activeIdea === undefined
+				? undefined
+				: graph.GetDaoInfo({ id: activeIdea }),
 		[activeIdea]
 	);
 

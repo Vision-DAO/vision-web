@@ -34,7 +34,10 @@ export const Index = () => {
 	const [activeIdea, setActiveIdea] = useState<string>(undefined);
 	const activeIdeaInfo = useStream<GetDaoInfoQuery>(
 		undefined,
-		(graph) => graph.GetDaoInfo({ id: activeIdea }),
+		(graph) =>
+			activeIdea === undefined
+				? undefined
+				: graph.GetDaoInfo({ id: activeIdea }),
 		[activeIdea]
 	);
 
@@ -43,7 +46,10 @@ export const Index = () => {
 	// and through entries in the registry smart contract.
 	const allIdeas = useStream<GetMapItemsOwnedQuery | null>(
 		{ user: { ideas: [] } },
-		(graph) => graph.GetMapItemsOwned({ id: userAddr }),
+		(graph) =>
+			userAddr !== undefined
+				? graph.GetMapItemsOwned({ id: userAddr })
+				: undefined,
 		[userAddr]
 	);
 
@@ -59,7 +65,7 @@ export const Index = () => {
 
 	const [, setMapSelected, , , setMapZoom, map] = IdeaMap({
 		ideas: {
-			ideas: allIdeas.user.ideas
+			ideas: (allIdeas.user?.ideas ?? [])
 				.filter(
 					(idea: GetMapItemsOwnedQuery["user"]["ideas"][0]) =>
 						idea.tokens.balance > 0
