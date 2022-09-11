@@ -18,6 +18,13 @@ export interface NewIdeaSubmission {
 	datumIpfsHash: string;
 }
 
+const requiredFields = {
+	ideaName: "name for your idea.",
+	ideaTicker: "ticker for your idea.",
+	ideaShares: "token supply of your idea.",
+	data: "description of your idea.",
+};
+
 /**
  * A popup modal containing a form with fields for the necessary argumentst to
  * the Idea smart contract constructor.
@@ -114,16 +121,12 @@ export const NewIdeaModal = ({
 	const handleSubmit = async () => {
 		setErrorMsg("");
 
-		// Minimum, essential fields
-		if (
-			!ideaDetails["ideaName"] ||
-			!ideaDetails["ideaTicker"] ||
-			!ideaDetails["ideaShares"] ||
-			!ideaDetails["data"]
-		) {
-			setErrorMsg("Missing required Idea field.");
+		for (const [key, value] of Object.entries(requiredFields)) {
+			if (!ideaDetails[key]) {
+				setErrorMsg(`Missing required ${value}`);
 
-			return;
+				return;
+			}
 		}
 
 		// NaN or 0 are invalid
