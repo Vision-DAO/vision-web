@@ -1,7 +1,8 @@
 import { IpfsClient, IdeaData, useSymbol } from "../../../lib/util/ipfs";
-import { accounts } from "../../../lib/util/networks";
+import { accounts, formatDate } from "../../../lib/util/networks";
 import { MultiTypeInput } from "../../input/MultiTypeInput";
 import { UnderlinedInput } from "../../input/UnderlinedInput";
+import { formatTime12Hr } from "../../workspace/idea/activity/ActivityEntry";
 import { MultiPageInput } from "../../input/MultiPageInput";
 import { GuidedAddrInput, GuideKind } from "../../input/GuidedAddrInput";
 import { useState } from "react";
@@ -311,6 +312,9 @@ export const NewProposalPanel = ({
 										onClick={params.inputProps.onMouseDown}
 										icon={<CalendarIcon />}
 										placeholder={new Date(fundingExpiry * 1000).toString()}
+										value={`${formatDate(fundingExpiry)} ${formatTime12Hr(
+											new Date(fundingExpiry * 1000)
+										)}`}
 									/>
 								)}
 							/>
@@ -368,6 +372,9 @@ export const NewProposalPanel = ({
 									icon={<CalendarIcon />}
 									placeholder={new Date(expiry * 1000).toString()}
 									className={styles.fullWidthInput}
+									value={`${formatDate(expiry)} ${formatTime12Hr(
+										new Date(expiry * 1000)
+									)}`}
 								/>
 							)}
 						/>
