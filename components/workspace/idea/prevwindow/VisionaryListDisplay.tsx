@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from "react";
 import CircularProgress from "@mui/material/CircularProgress";
 import { GetDaoAboutQuery } from "../../../../.graphclient";
 import { useUserName } from "../../../../lib/util/ipfs";
-import { formatErc } from "../../../../lib/util/networks";
+import { formatErc, zAddr, useRegistry } from "../../../../lib/util/networks";
 import Link from "next/link";
 
 interface listState {
@@ -28,18 +28,28 @@ export const VisionaryListDisplay = ({
 }: {
 	idea: GetDaoAboutQuery["idea"];
 }) => {
-	const state: listState = idea.users.reduce(
-		(accum, user) => {
-			return {
-				visionaries: {
-					[user.user.id]: user.tokens.balance,
-					...accum.visionaries,
-				},
-				visionaryCount: accum.visionaryCount + 1,
-			};
-		},
-		{ visionaries: {}, visionaryCount: 0 }
-	);
+	const reg = useRegistry();
+	const state: listState = idea.users
+		.filter(
+			({ id }) =>
+				![
+					`g${zAddr}:${idea.id}`,
+					`g${idea.id}:${idea.id}`,
+					`g${reg}:${idea.id}`,
+				].includes(id)
+		)
+		.reduce(
+			(accum, user) => {
+				return {
+					visionaries: {
+						[user.user.id]: user.tokens.balance,
+						...accum.visionaries,
+					},
+					visionaryCount: accum.visionaryCount + 1,
+				};
+			},
+			{ visionaries: {}, visionaryCount: 0 }
+		);
 	const [selectedVisionary, setSelectedVisionary] = useState<string>(null);
 	const visionaryName = useUserName(selectedVisionary);
 	const [canvasHeight, setCanvasHeight] = useState<number>(0);
