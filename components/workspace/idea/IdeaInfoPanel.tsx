@@ -3,7 +3,8 @@ import { OutlinedButton } from "../../status/OutlinedButton";
 import { ProfileTooltip } from "../../status/ProfileTooltip";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
-import { Skeleton } from "@mui/material";
+import { Skeleton, CircularProgress } from "@mui/material";
+import { useState, Fragment } from "react";
 import { useViewerRecord } from "@self.id/framework";
 import { unwatchIdea, watchIdea } from "../../../lib/util/discovery";
 import {
@@ -79,21 +80,29 @@ const WatchIdeaButton = ({ ideaAddr }: { ideaAddr: string }) => {
 		"visionWatchedItemAddressesList"
 	>("visionWatchedItemAddressesList");
 	const watched = watchingRecord?.content?.items.includes(ideaAddr) ?? false;
+	const [loading, setLoading] = useState<boolean>(false);
 
 	const watchIdeaCallback = () => {
+		setLoading(true);
+
 		if (watched) {
-			unwatchIdea(ideaAddr, watchingRecord);
+			unwatchIdea(ideaAddr, watchingRecord).then(() => setLoading(false));
 			return;
 		}
 
-		watchIdea(ideaAddr, watchingRecord);
+		watchIdea(ideaAddr, watchingRecord).then(() => setLoading(false));
 	};
 
 	return (
 		<OutlinedButton callback={watchIdeaCallback}>
-			{watched ? <VisibilityIcon /> : <VisibilityOffIcon />}
-			&nbsp;&nbsp;
-			{watched ? "Unwatch" : "Watch"}
+			{loading ? (
+				<CircularProgress size="1em" />
+			) : (
+				<Fragment>
+					{watched ? <VisibilityIcon /> : <VisibilityOffIcon />}
+					&nbsp;&nbsp; {watched ? "Unwatch" : "Watch"}
+				</Fragment>
+			)}
 		</OutlinedButton>
 	);
 };
