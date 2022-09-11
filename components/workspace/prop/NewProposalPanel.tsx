@@ -24,16 +24,22 @@ import Web3 from "web3";
 import { GetDaoAboutQuery } from "../../../.graphclient";
 
 // Fields that must not be null on submission
-const requiredFields = [
-	"title",
-	"parentAddr",
-	"destAddr",
-	"expiry",
-	"dataIpfsAddr",
-	"data",
-];
+const requiredFields = {
+	title: "title",
+	parentAddr: "parentAddr",
+	destAddr: "address to fund",
+	expiry: "voting expiration date",
+	dataIpfsAddr: "metadata attachment",
+	data: "data",
+};
 
-const requiredRateFields = ["token", "value", "kind", "interval", "expiry"];
+const requiredRateFields = {
+	token: "funding token",
+	value: "amount of funds",
+	kind: "pay by",
+	interval: "funding interval",
+	expiry: "funding expiration",
+};
 
 /**
  * Inputs for expiry times are scaled to a unit of time.
@@ -129,7 +135,7 @@ export const NewProposalPanel = ({
 	 * Attempts to deploy the contract, displaying an error message otherwise.
 	 */
 	const deployContract = async () => {
-		for (const key of requiredFields) {
+		for (const [key, value] of Object.entries(requiredFields)) {
 			if (key === "expiry") {
 				if (expiry === 0) {
 					setStatusMessage(() => "Invalid expiry date.");
@@ -141,13 +147,13 @@ export const NewProposalPanel = ({
 			}
 
 			if (propDetails[key] === null || propDetails[key] === undefined) {
-				setStatusMessage(() => `Missing required proposal field: ${key}.`);
+				setStatusMessage(() => `Missing required proposal field: ${value}.`);
 
 				return;
 			}
 		}
 
-		for (const key of requiredRateFields) {
+		for (const [key, value] of Object.entries(requiredRateFields)) {
 			if (key === "expiry") {
 				if (fundingExpiry === 0) {
 					setStatusMessage(() => "Invalid funding expiry date.");
@@ -159,7 +165,7 @@ export const NewProposalPanel = ({
 			}
 
 			if (!propDetails.rate[key]) {
-				setStatusMessage(() => `Missing required proposal field: ${key}.`);
+				setStatusMessage(() => `Missing required proposal field: ${value}.`);
 
 				return;
 			}
@@ -258,7 +264,7 @@ export const NewProposalPanel = ({
 					<UnderlinedInput
 						className={styles.fullWidthInput}
 						placeholder="Give LEMON to Joe for lemonade stand expansion"
-						startingValue=""
+						startingValue={propDetails.title ?? ""}
 						onChange={mutatePropField("title")}
 					/>
 				</div>

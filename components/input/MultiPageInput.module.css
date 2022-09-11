@@ -6,7 +6,12 @@
 
 	align-items: stretch;
 
-	width: 70%;
+	width: 100%;
+
+	grid-column-start: 1;
+	grid-column-end: 2;
+	grid-row-start: 1;
+	grid-row-end: 2;
 }
 
 .stepContainer p {
@@ -60,6 +65,8 @@
 
 .navButton p, .navButton h1 {
 	font-size: 1.25em !important;
+	margin: 0;
+	padding: 0;
 }
 
 .full {
@@ -86,4 +93,13 @@
 	padding: 0;
 	opacity: 0;
 	margin: 0;
+}
+
+.stepDisplay {
+	width: 70%;
+
+	display: grid;
+
+	grid-template-rows: 1fr;
+	grid-template-columns: 1fr;
 }

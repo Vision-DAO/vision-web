@@ -37,8 +37,20 @@ export const MultiPageInput = ({
 	};
 
 	return (
-		<div className={styles.stepContainer}>
-			{children[step]}
+		<div className={styles.stepDisplay}>
+			{children.map((currStep, i) => (
+				<div
+					key={i}
+					className={styles.stepContainer}
+					style={
+						i === step
+							? { opacity: "100%", zIndex: "2" }
+							: { opacity: "0%", pointerEvents: "none" }
+					}
+				>
+					{currStep}
+				</div>
+			))}
 			{Array.isArray(labels) ? (
 				<div className={styles.row}>
 					<div className={styles.stepLabel}>
