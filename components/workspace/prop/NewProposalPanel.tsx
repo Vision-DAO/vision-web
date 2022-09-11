@@ -165,7 +165,10 @@ export const NewProposalPanel = ({
 				continue;
 			}
 
-			if (!propDetails.rate[key]) {
+			if (
+				propDetails.rate[key] === null ||
+				propDetails.rate[key] === undefined
+			) {
 				setStatusMessage(() => `Missing required proposal field: ${value}.`);
 
 				return;
