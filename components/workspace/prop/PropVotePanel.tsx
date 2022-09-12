@@ -71,6 +71,7 @@ export const PropVotePanel = ({
 	}, []);
 
 	// Labels for the vote weight slider
+	const max = maxVotes ? maxVotes / 10 ** 18 : 0;
 	const marks = [
 		{
 			value: 0,
@@ -78,9 +79,7 @@ export const PropVotePanel = ({
 		},
 		{
 			value: maxVotes / 10 ** 18 ?? 0,
-			label: `${maxVotes ? (maxVotes / 10 ** 18).toLocaleString() : "0"} ${
-				voteTicker ?? ""
-			}`,
+			label: max !== 0 ? `${max.toLocaleString()} ${voteTicker ?? ""}` : "",
 		},
 	];
 

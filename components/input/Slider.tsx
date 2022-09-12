@@ -8,6 +8,9 @@ export const StyledSlider = styled(Slider)<SliderProps>(() => ({
 	"& .MuiSlider-thumb": {
 		backgroundColor: "#5D5FEF",
 	},
+	"& .MuiSlider-valueLabelOpen": {
+		zIndex: "5",
+	},
 	"& .MuiSlider-track": {
 		backgroundColor: "rgba(93, 95, 239, 0.75)",
 	},

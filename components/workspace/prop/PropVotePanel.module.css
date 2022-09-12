@@ -67,7 +67,7 @@
 	transition: 0.3s;
 
 	overflow-x: visible;
-	overflow-y: clip;
+	overflow-y: hidden;
 }
 
 .contentContainer.expanded {

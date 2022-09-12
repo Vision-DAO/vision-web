@@ -72,6 +72,7 @@ export const ProposalLine = ({
 			604800000: "week",
 			86400000: "day",
 			3600000: "hour",
+			60000: "minute",
 		};
 
 		for (const [key, label] of Object.entries(diffLabels).sort(
