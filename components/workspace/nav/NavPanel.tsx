@@ -21,6 +21,7 @@ import {
 	AuthContext,
 	IdxContext,
 } from "../../../lib/util/networks";
+import { useGraph } from "../../../lib/util/graph";
 import { getAll, IpfsContext } from "../../../lib/util/ipfs";
 import { blobify } from "../../../lib/util/blobify";
 import Web3 from "web3";
@@ -77,6 +78,7 @@ export const NavPanel = ({ items, onProfileClicked, ctx }: NavProps) => {
 
 	// For loading the user's profile
 	const ipfs = useContext(IpfsContext);
+	const graph = useGraph();
 	const [, setAuth] = useContext(AuthContext);
 	const [, setIdx] = useContext(IdxContext);
 	const [activeAddr, setActiveAddr] = useState(null);
@@ -171,6 +173,37 @@ export const NavPanel = ({ items, onProfileClicked, ctx }: NavProps) => {
 							.then(async () => {
 								const active = (await accounts(window.ethereum))[0];
 								setActiveAddr(active);
+
+								// Add all of the user's vision tokens to metamask
+								let tokens: Set<String> = new Set();
+								for await (const entry of await graph.UserTokenFeed({
+									id: active,
+								})) {
+									if (!entry.user) continue;
+
+									for (const {
+										tokens: {
+											dao: { id, ticker },
+										},
+									} of entry.user.ideas) {
+										if (tokens.has(id)) return;
+
+										tokens.add(id);
+
+										await window.ethereum.request({
+											method: "wallet_watchAsset",
+											params: {
+												type: "ERC20",
+												options: {
+													address: id,
+													symbol: ticker,
+													decimals: 18,
+													image: "",
+												},
+											},
+										});
+									}
+								}
 							});
 					}}
 					severity="action"

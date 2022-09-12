@@ -64,6 +64,19 @@ query UserFeed($id:ID!) @live {
   }
 }
 
+query UserTokenFeed($id:ID!) @live {
+  user(id:$id) {
+    ideas {
+      tokens {
+        dao {
+          id
+          ticker
+        }
+      }
+    }
+  }
+}
+
 query GetAllUsers @live {
   users {
     id
