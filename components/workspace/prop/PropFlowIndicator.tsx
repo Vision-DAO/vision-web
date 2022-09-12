@@ -9,7 +9,6 @@ import EyeRounded from "@mui/icons-material/VisibilityRounded";
 import Web3 from "web3";
 import Lightbulb from "@mui/icons-material/Lightbulb";
 import { useRouter } from "next/router";
-import { useWindowSize } from "@react-hook/window-size";
 
 export const PropFlowIndicator = ({
 	prop,
@@ -21,8 +20,6 @@ export const PropFlowIndicator = ({
 	ipfs: IpfsClient;
 	conn: ConnStatus;
 }) => {
-	const arrow = useRef(null);
-	const arrowContainer = useRef(null);
 	const router = useRouter();
 
 	const funderLink = useActionLink(prop.funder.id, router);
@@ -30,36 +27,6 @@ export const PropFlowIndicator = ({
 
 	const tokenLink = useActionLink(prop.rate.token, router);
 	const fundingTicker = useSymbol(prop.rate.token);
-
-	const [wWidth, wHeight] = useWindowSize();
-
-	const arrowDimensions = {
-		width: 28.4334,
-		arrowWidth: 12.01,
-	};
-
-	const path = (w: number): string => {
-		return `M 16.01 11 H ${4 - w} v 2 h ${
-			arrowDimensions.arrowWidth + w
-		} v 3 L 20 12 l -3.99 -4 z`;
-	};
-
-	useEffect(() => {
-		// Scale up the arrow SVG to fill its parent.
-		if (
-			arrow != null &&
-			arrowContainer != null &&
-			arrow.current.childNodes[0].clientWidth <
-				0.5 * arrowContainer.current.clientWidth
-		) {
-			const w =
-				(arrowContainer.current.clientWidth / arrowDimensions.width) *
-				arrowDimensions.arrowWidth;
-
-			arrow.current.childNodes[0].setAttribute("d", path(w));
-			arrow.current.setAttribute("viewBox", `${(4 - w) * 0.5} 0 24 24`);
-		}
-	}, [wHeight, wWidth]);
 
 	return (
 		<div className={styles.flowIndicatorContainer}>
@@ -75,13 +42,7 @@ export const PropFlowIndicator = ({
 						<b>{fundingTicker}</b>
 					</a>
 				</div>
-				<div ref={arrowContainer} className={styles.arrow}>
-					<ArrowRight
-						ref={arrow}
-						sx={{ color: "#5D5FEF", opacity: 0.8 }}
-						fontSize="large"
-					/>
-				</div>
+				<ArrowRight fontSize="large" sx={{ color: "#5D5FEF" }} />
 			</div>
 			<div className={styles.flowAddr}>
 				<Lightbulb />

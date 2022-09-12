@@ -67,7 +67,7 @@
 .flowValue {
 	display: flex;
 
-	flex-flow: column nowrap;
+	flex-flow: row nowrap;
 	justify-content: center;
 	align-items: center;
 
@@ -79,6 +79,10 @@
 	margin-left: 1em;
 
 	white-space: nowrap;
+}
+
+.flowValue>*:not(:first-child) {
+	margin-left: 0.5em;
 }
 
 .tokenLink {
