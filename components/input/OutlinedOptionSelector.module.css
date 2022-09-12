@@ -76,9 +76,9 @@
 
 .selectedItem {
 	font-weight: bold;
-	background-color: #1D1D1D;
+	background-color: #5D5FEF;
 }
 
 .selectedItem:hover {
-	background-color: #141414;
+	background-color: rgba(93, 95, 239, 0.8);
 }
