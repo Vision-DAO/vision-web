@@ -319,6 +319,7 @@ export const NewProposalPanel = ({
 								inputFormat="MM/dd/yyyy"
 								value={new Date(fundingExpiry * 1000)}
 								onChange={(d) => setFundingExpiry(d.getTime() / 1000)}
+								disablePast
 								renderInput={(params) => (
 									<UnderlinedInput
 										onClick={params.inputProps.onMouseDown}
@@ -377,6 +378,7 @@ export const NewProposalPanel = ({
 						<MobileDateTimePicker
 							inputFormat="MM/dd/yyyy"
 							value={new Date(expiry * 1000)}
+							disablePast
 							onChange={(d) => setParsedExpiry(d.getTime() / 1000)}
 							renderInput={(params) => (
 								<UnderlinedInput
