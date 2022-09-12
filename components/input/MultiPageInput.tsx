@@ -1,4 +1,4 @@
-import { ReactElement, useState } from "react";
+import { ReactElement, useState, useEffect } from "react";
 import styles from "./MultiPageInput.module.css";
 import { FilledButton } from "../status/FilledButton";
 import { OutlinedButton } from "../status/OutlinedButton";
@@ -15,10 +15,12 @@ export const MultiPageInput = ({
 	children,
 	labels,
 	onSubmit,
+	pageSetter,
 }: {
 	children: ReactElement[];
 	labels: ReactElement[] | ReactElement;
 	onSubmit: () => Promise<void>;
+	pageSetter?: (pageSetter: (page: number) => void) => void;
 }) => {
 	const [step, setStep] = useState<number>(0);
 	const [loading, setLoading] = useState<boolean>(false);
@@ -35,6 +37,13 @@ export const MultiPageInput = ({
 			setLoading(false);
 		});
 	};
+
+	useEffect(() => {
+		if (pageSetter)
+			pageSetter((page) => {
+				setStep(page);
+			});
+	}, []);
 
 	return (
 		<div className={styles.stepDisplay}>

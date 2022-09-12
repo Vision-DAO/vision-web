@@ -26,20 +26,20 @@ import { GetDaoAboutQuery } from "../../../.graphclient";
 
 // Fields that must not be null on submission
 const requiredFields = {
-	title: "title",
-	parentAddr: "parentAddr",
-	destAddr: "address to fund",
-	expiry: "voting expiration date",
-	dataIpfsAddr: "metadata attachment",
-	data: "data",
+	title: { label: "title", page: 0 },
+	parentAddr: { label: "parentAddr", page: 0 },
+	destAddr: { label: "address to fund", page: 1 },
+	expiry: { label: "voting expiration date", page: 3 },
+	dataIpfsAddr: { label: "metadata attachment", page: 0 },
+	data: { label: "data", page: 0 },
 };
 
 const requiredRateFields = {
-	token: "funding token",
-	value: "amount of funds",
-	kind: "pay by",
-	interval: "funding interval",
-	expiry: "funding expiration",
+	token: { label: "funding token", page: 2 },
+	value: { label: "amount of funds", page: 2 },
+	kind: { label: "pay by", page: 2 },
+	interval: { label: "funding interval", page: 1 },
+	expiry: { label: "funding expiration", page: 1 },
 };
 
 /**
@@ -70,6 +70,7 @@ export const NewProposalPanel = ({
 	parent: GetDaoAboutQuery["idea"];
 	onDeploy: () => void;
 }) => {
+	const [setInputPage, setSetInputPage] = useState(null);
 	const [statusMessage, setStatusMessage] = useState<string>("");
 	const [deploying, setDeploying] = useState<boolean>(false);
 
@@ -136,10 +137,11 @@ export const NewProposalPanel = ({
 	 * Attempts to deploy the contract, displaying an error message otherwise.
 	 */
 	const deployContract = async () => {
-		for (const [key, value] of Object.entries(requiredFields)) {
+		for (const [key, { label, page }] of Object.entries(requiredFields)) {
 			if (key === "expiry") {
 				if (expiry === 0) {
 					setStatusMessage(() => "Invalid expiry date.");
+					setInputPage(page);
 
 					return;
 				}
@@ -148,16 +150,18 @@ export const NewProposalPanel = ({
 			}
 
 			if (propDetails[key] === null || propDetails[key] === undefined) {
-				setStatusMessage(() => `Missing required proposal field: ${value}.`);
+				setStatusMessage(() => `Missing required proposal field: ${label}.`);
+				setInputPage(page);
 
 				return;
 			}
 		}
 
-		for (const [key, value] of Object.entries(requiredRateFields)) {
+		for (const [key, { label, page }] of Object.entries(requiredRateFields)) {
 			if (key === "expiry") {
 				if (fundingExpiry === 0) {
 					setStatusMessage(() => "Invalid funding expiry date.");
+					setInputPage(page);
 
 					return;
 				}
@@ -169,7 +173,8 @@ export const NewProposalPanel = ({
 				propDetails.rate[key] === null ||
 				propDetails.rate[key] === undefined
 			) {
-				setStatusMessage(() => `Missing required proposal field: ${value}.`);
+				setStatusMessage(() => `Missing required proposal field: ${label}.`);
+				setInputPage(page);
 
 				return;
 			}
@@ -261,7 +266,11 @@ export const NewProposalPanel = ({
 		);
 
 	return (
-		<MultiPageInput labels={inputs} onSubmit={deployContract}>
+		<MultiPageInput
+			labels={inputs}
+			onSubmit={deployContract}
+			pageSetter={(setter) => setSetInputPage(() => setter)}
+		>
 			<div className={styles.formContainer} key="Info">
 				<div className={`${styles.formItem} ${styles.fullFormItem}`}>
 					<h1>Title</h1>
