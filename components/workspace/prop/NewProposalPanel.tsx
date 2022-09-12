@@ -199,9 +199,9 @@ export const NewProposalPanel = ({
 							.toBN(propDetails.rate.value)
 							.mul(web3.utils.toBN(10).pow(web3.utils.toBN(18))),
 						propDetails.rate.interval,
-						fundingExpiry,
+						Math.ceil(fundingExpiry),
 						propDetails.dataIpfsAddr,
-						expiry,
+						Math.ceil(expiry),
 					],
 				})
 				.send({
