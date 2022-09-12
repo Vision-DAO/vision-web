@@ -447,7 +447,7 @@ export const useActionLink = (
 
 	return {
 		user: () => router.push(`/profile/${addr}`),
-		dao: () => router.push(`/ideas/${addr}`),
+		dao: () => router.push(`/ideas/${addr}/about`),
 		addr: () => window.open(`${explorers[conn.network]}/address/${addr}`),
 	}[nature];
 };
