@@ -9,6 +9,7 @@ import EyeRounded from "@mui/icons-material/VisibilityRounded";
 import Web3 from "web3";
 import Lightbulb from "@mui/icons-material/Lightbulb";
 import { useRouter } from "next/router";
+import { useWindowSize } from "@react-hook/window-size";
 
 export const PropFlowIndicator = ({
 	prop,
@@ -29,6 +30,8 @@ export const PropFlowIndicator = ({
 
 	const tokenLink = useActionLink(prop.rate.token, router);
 	const fundingTicker = useSymbol(prop.rate.token);
+
+	const [wWidth, wHeight] = useWindowSize();
 
 	const arrowDimensions = {
 		width: 28.4334,
@@ -56,7 +59,7 @@ export const PropFlowIndicator = ({
 			arrow.current.childNodes[0].setAttribute("d", path(w));
 			arrow.current.setAttribute("viewBox", `${(4 - w) * 0.5} 0 24 24`);
 		}
-	}, [window.innerHeight, window.innerWidth]);
+	}, [wHeight, wWidth]);
 
 	return (
 		<div className={styles.flowIndicatorContainer}>
