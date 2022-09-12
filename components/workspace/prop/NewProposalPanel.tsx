@@ -81,7 +81,7 @@ export const NewProposalPanel = ({
 	const [fundingExpiry, setFundingExpiry] = useState<number>(
 		new Date().getTime() / 1000
 	);
-	const fundingKinds = ["Spending Treasury", `Making More ${parent.ticker}`];
+	const fundingKinds = ["Treasury Allocation", `Making More ${parent.ticker}`];
 
 	// Default form values. ALL are required
 	const [propDetails, setPropDetails] = useState<AllProposalInformation>({
@@ -341,7 +341,7 @@ export const NewProposalPanel = ({
 							options={
 								propDetails.rate.token.toLowerCase() === parent.id.toLowerCase()
 									? fundingKinds
-									: ["Spending Treasury"]
+									: ["Treasury Allocation"]
 							}
 							onChange={(option) =>
 								mutateRateField("kind")(fundingKinds.indexOf(option))
