@@ -78,7 +78,11 @@ export const IdeaDetailCard = ({ idea, onClose }: IdeaDetailProps) => {
 					className={styles.goButton}
 					onClick={() => router.push(`/ideas/${id}/about`)}
 				/>
-				<FilledButton className={styles.buyButton} label={`Buy ${name}`} />
+				<FilledButton
+					className={styles.buyButton}
+					label={`Trade ${name}`}
+					onClick={() => router.push("https://app.uniswap.org")}
+				/>
 			</div>
 		</div>
 	);
