@@ -57,7 +57,6 @@ export const IdeaActivityPanel = ({
 		...idea.recentCreated,
 		...idea.recentTransfers,
 	]
-		.sort((a, b) => timestamp(a) - timestamp(b))
 		.map((e) => {
 			let timestamp = new Date();
 			let event = "NewProposal";
@@ -95,7 +94,8 @@ export const IdeaActivityPanel = ({
 				label: title,
 				timestamp: timestamp,
 			};
-		});
+		})
+		.sort(({ timestamp: a }, { timestamp: b }) => b.getTime() - a.getTime());
 
 	// Make a synthetic event if the idea was created recently
 	if (ideaCreatedAt > dayStart)
