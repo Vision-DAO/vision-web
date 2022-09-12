@@ -72,7 +72,7 @@ export const NewProposalPanel = ({
 }) => {
 	const [setInputPage, setSetInputPage] = useState(null);
 	const [statusMessage, setStatusMessage] = useState<string>("");
-	const [deploying, setDeploying] = useState<boolean>(false);
+	const [, setDeploying] = useState<boolean>(false);
 
 	// The number of seconds to multiply the input by (e.g., days, hours, minutes)
 	const [timeMultiplier, setTimeMultiplier] = useState<number>(86400);
