@@ -8,7 +8,6 @@ import { GuidedAddrInput, GuideKind } from "../../input/GuidedAddrInput";
 import { useState } from "react";
 import { serialize } from "bson";
 import { Dropdown } from "../../input/Dropdown";
-import BigNumber from "bignumber.js";
 import {
 	MobileDatePicker,
 	MobileDateTimePicker,
@@ -184,11 +183,6 @@ export const NewProposalPanel = ({
 		const registry = new web3.eth.Contract(Idea.abi, parent.id);
 		const deployer = (await accounts(eth))[0];
 
-		console.log(
-			propDetails.rate.value,
-			new BigNumber(propDetails.rate.value).times(new BigNumber(10).pow(18))
-		);
-
 		try {
 			setDeploying(true);
 
@@ -201,9 +195,9 @@ export const NewProposalPanel = ({
 						propDetails.destAddr,
 						propDetails.rate.token,
 						propDetails.rate.kind,
-						new BigNumber(propDetails.rate.value).times(
-							new BigNumber(10).pow(18)
-						),
+						web3.utils
+							.toBN(propDetails.rate.value)
+							.mul(web3.utils.toBN(10).pow(web3.utils.toBN(18))),
 						propDetails.rate.interval,
 						fundingExpiry,
 						propDetails.dataIpfsAddr,
