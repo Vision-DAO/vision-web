@@ -5,6 +5,7 @@ import { useUserPic, useCeramicId } from "../../lib/util/ipfs";
 import { Skeleton } from "@mui/material";
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
+import { useWindowSize } from "@react-hook/window-size";
 
 /**
  * Renders a clickable link displaying the username of the user, their profile
@@ -18,6 +19,7 @@ export const ProfileTooltip = ({ addr }: { addr: string }) => {
 	const profile = usePublicRecord("basicProfile", id);
 	const [imageHeight, setImageHeight] = useState<number>(0);
 	const line = useRef<HTMLAnchorElement>();
+	const [wWidth, wHeight] = useWindowSize();
 
 	useEffect(() => {
 		if (!line || !line.current) return;
@@ -28,7 +30,7 @@ export const ProfileTooltip = ({ addr }: { addr: string }) => {
 			parseFloat(style.paddingTop) + parseFloat(style.paddingBottom);
 
 		setImageHeight(lineHeight * 1.5);
-	}, [line.current === null, window.innerHeight, window.innerWidth]);
+	}, [line.current === null, wWidth, wHeight]);
 
 	return (
 		<div className={styles.row}>

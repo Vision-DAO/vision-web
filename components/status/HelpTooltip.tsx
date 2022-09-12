@@ -1,5 +1,6 @@
 import styles from "./HelpTooltip.module.css";
 import { ReactElement, useEffect, useRef, useState } from "react";
+import { useWindowSize } from "@react-hook/window-size";
 
 /**
  * Displays a question mark, with some information next to it upon click.
@@ -17,6 +18,7 @@ export const HelpTooltip = ({
 	const cRef = useRef(undefined);
 	const tRef = useRef(undefined);
 	const [pos, setPos] = useState<[number, number]>([0, 0]);
+	const [wWidth, wHeight] = useWindowSize();
 
 	useEffect(() => {
 		if (!cRef.current || !tRef.current) return;
@@ -34,8 +36,8 @@ export const HelpTooltip = ({
 		cRef?.current?.getBoundingClientRect().left ?? 0,
 		tRef?.current?.clientHeight ?? 0,
 		tRef?.current?.offsetWidth ?? 0,
-		window.innerHeight,
-		window.innerWidth,
+		wWidth,
+		wHeight,
 	]);
 
 	const posStyles = {

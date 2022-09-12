@@ -2,7 +2,7 @@
 	min-width: 100%;
 	min-height: 100%;
 
-	overflow: auto;
+	overflow: hidden;
 
 	grid-row-start: 1;
 	grid-row-end: 2;

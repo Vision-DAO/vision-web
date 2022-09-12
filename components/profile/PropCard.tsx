@@ -19,6 +19,7 @@ import { PercentageLine } from "../workspace/prop/PercentageLine";
 import { ProfileTooltip } from "../status/ProfileTooltip";
 import { useRef, useState, useEffect } from "react";
 import { useRouter } from "next/router";
+import { useWindowSize } from "@react-hook/window-size";
 
 /**
  * Renders the name of the beneficiary of a proposal.
@@ -36,6 +37,8 @@ export const BeneficTooltip = ({ beneficiary }: { beneficiary: string }) => {
 
 	const actionLink = useActionLink(beneficiary, router);
 
+	const [wWidth, wHeight] = useWindowSize();
+
 	useEffect(() => {
 		if (line.current === null) return;
 
@@ -45,7 +48,7 @@ export const BeneficTooltip = ({ beneficiary }: { beneficiary: string }) => {
 			parseFloat(style.paddingTop) + parseFloat(style.paddingBottom);
 
 		setLineHeight(lineHeight * 1.5);
-	}, [window.innerHeight, window.innerWidth, line.current === null]);
+	}, [wHeight, wWidth, line.current === null]);
 
 	return (
 		<div className={styles.beneficTooltip} onClick={actionLink}>
