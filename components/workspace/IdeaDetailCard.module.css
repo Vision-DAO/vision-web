@@ -177,7 +177,7 @@
 }
 
 .goButton {
-	min-width: 50%;
+	flex-grow: 1;
 }
 
 .buyButton {
@@ -188,6 +188,10 @@
 	margin-left: 1rem;
 
 	text-overflow: ellipsis;
+
+	cursor: pointer;
+
+	transition: 0.3s;
 }
 
 .buyButton:hover {
