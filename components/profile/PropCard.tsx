@@ -115,11 +115,7 @@ export const PropCard = ({
 				<BeneficTooltip beneficiary={prop.toFund} />
 			</div>
 			<div className={styles.contentArea}>
-				{icon ? (
-					<img className={styles.contentImg} src={icon} width="25%" />
-				) : (
-					<Skeleton variant="rectangular" width="25%" height="5em" />
-				)}
+				{icon && <img className={styles.contentImg} src={icon} width="25%" />}
 				<div className={styles.rightInfoArea}>
 					<div className={styles.column}>
 						{description ? (
