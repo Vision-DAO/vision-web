@@ -4,7 +4,7 @@ import defaultProfileIcon from "../../../public/icons/round_account_circle_white
 import { Skeleton, CircularProgress } from "@mui/material";
 import namehash from "@ensdomains/eth-ens-namehash";
 import { useEffect, useState } from "react";
-import EditIcon from "@mui/icons-material/Edit";
+import LogoutIcon from "@mui/icons-material/LogoutRounded";
 import { blobify } from "../../../lib/util/blobify";
 import { useWeb3 } from "../../../lib/util/web3";
 import { accounts } from "../../../lib/util/networks";
@@ -69,11 +69,25 @@ const UserProfile = ({
 		}
 	}
 
+	const logout = () => {
+		document.cookie.split(";").forEach((c) => {
+			document.cookie =
+				c.trim().split("=")[0] +
+				"=;" +
+				"expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+		});
+
+		window.location.href = `${window.location.protocol}//${window.location.host}`;
+	};
+
 	return (
 		<div className={`${styles.profileContainer} ${u.name || styles.default}`}>
 			{pfp}
 			<div className={styles.username}>
-				<h1>{u.name || "My Profile"}</h1>
+				<div className={styles.nameRow}>
+					<LogoutIcon onClick={logout} className={styles.logoutBtn} />{" "}
+					<h1>{u.name || "My Profile"}</h1>
+				</div>
 				{id === null ? <Skeleton variant="text" /> : <AddrOrEns addr={addr} />}
 			</div>
 		</div>

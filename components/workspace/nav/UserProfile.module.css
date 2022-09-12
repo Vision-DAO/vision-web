@@ -67,3 +67,11 @@
 .actionIcon {
 	margin-right: 0.5rem;
 }
+
+.nameRow {
+	display: flex;
+
+	flex-flow: row nowrap;
+	justify-content: center;
+	align-items: center;
+}
