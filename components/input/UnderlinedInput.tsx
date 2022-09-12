@@ -78,11 +78,10 @@ export const UnderlinedInput = ({
 	if (multiline) return <textarea {...ourProps} />;
 
 	return (
-		<div className={styles.inputContainer}>
+		<div className={styles.inputContainer} onClick={onClick}>
 			{icon}
 			<input
 				ref={innerRef}
-				onClick={onClick}
 				{...props}
 				{...ourProps}
 				style={

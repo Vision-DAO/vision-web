@@ -1,3 +1,13 @@
+.inputContainer {
+	display: flex;
+	flex-flow: row nowrap;
+
+	justify-content: flex-start;
+	align-items: center;
+
+	cursor: pointer;
+}
+
 .underlinedInput {
 	color: white;
 
@@ -20,18 +30,12 @@
 
 	padding-left: 0;
 	padding-right: 0;
+
+	cursor: text;
 }
 
 .underlinedInput:focus {
 	opacity: 1;
-}
-
-.inputContainer {
-	display: flex;
-	flex-flow: row nowrap;
-
-	justify-content: flex-start;
-	align-items: center;
 }
 
 .inputContainer>*:first-child:not(:last-child) {
