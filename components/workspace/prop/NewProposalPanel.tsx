@@ -184,6 +184,11 @@ export const NewProposalPanel = ({
 		const registry = new web3.eth.Contract(Idea.abi, parent.id);
 		const deployer = (await accounts(eth))[0];
 
+		console.log(
+			propDetails.rate.value,
+			new BigNumber(propDetails.rate.value).times(new BigNumber(10).pow(18))
+		);
+
 		try {
 			setDeploying(true);
 
