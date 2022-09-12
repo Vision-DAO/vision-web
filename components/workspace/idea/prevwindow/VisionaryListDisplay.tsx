@@ -67,7 +67,7 @@ export const VisionaryListDisplay = ({
 
 	return (
 		<div className={`${winStyles.prevWindow} ${styles.visionaryWindow}`}>
-			<h2 className={winStyles.prevWindowHeader}>Visionaries</h2>
+			<h2 className={winStyles.prevWindowHeader}>Members</h2>
 			{state === null || state === undefined ? (
 				<div className={styles.loadingContainer}>
 					<CircularProgress />

@@ -1,7 +1,8 @@
 import Web3 from "web3";
 import styles from "./NewIdeaModal.module.css";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Fragment } from "react";
 import { accounts, useRegistry } from "../../lib/util/networks";
+import { HelpTooltip } from "../status/HelpTooltip";
 import { IdeaData } from "../../lib/util/ipfs";
 import CloseIcon from "@mui/icons-material/CloseRounded";
 import LinearProgress from "@mui/material/LinearProgress";
@@ -164,6 +165,8 @@ export const NewIdeaModal = ({
 		{
 			placeholder: "# of Idea Coins",
 			name: "ideaShares",
+			explainer:
+				"Can be changed later. Generally, a higher supply means a lower price, and a lower supply means a higher price.",
 		},
 	];
 
@@ -177,14 +180,21 @@ export const NewIdeaModal = ({
 			</div>
 			<div className={styles.modalForm}>
 				<div className={styles.modalFormTextDetails}>
-					{inputs.map(({ placeholder, name }) => (
-						<UnderlinedInput
-							key={name}
-							placeholder={placeholder}
-							onChange={(val) =>
-								setIdeaDetails({ ...ideaDetails, [name]: val })
-							}
-						/>
+					{inputs.map(({ placeholder, name, ...rest }) => (
+						<Fragment>
+							{"explainer" in rest && (
+								<HelpTooltip>
+									<p>{rest.explainer}</p>
+								</HelpTooltip>
+							)}
+							<UnderlinedInput
+								key={name}
+								placeholder={placeholder}
+								onChange={(val) =>
+									setIdeaDetails({ ...ideaDetails, [name]: val })
+								}
+							/>
+						</Fragment>
 					))}
 				</div>
 				<MultiTypeInput

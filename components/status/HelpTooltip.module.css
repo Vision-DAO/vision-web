@@ -1,0 +1,74 @@
+.tooltip>* {
+	padding: 0;
+	margin: 0;
+
+	text-align: left;
+
+	color: rgba(255, 255, 255, 0.6);
+}
+
+.tooltip {
+	position: absolute;
+
+	opacity: 0;
+	pointer-events: none;
+
+	background-color: #1E1E1E;
+
+	border-radius: 5px;
+	border: 0.25px solid rgba(255, 255, 255, 0.25);
+
+	padding: 0.5em;
+
+	max-width: 30vw;
+
+	box-sizing: border-box;
+
+	z-index: 3;
+
+	transition: 0.2s;
+}
+
+.tooltip.right {
+	margin-left: 0.25em;
+}
+
+.tooltip.left {
+	margin-left: -0.25em;
+}
+
+.qTooltip {
+	border-radius: 50%;
+
+
+	height: 1.5em;
+	width: 1.5em;
+
+	text-align: center;
+
+	display: flex;
+
+	flex-flow: row nowrap;
+	justify-content: center;
+	align-items: center;
+}
+
+.qTooltip>p {
+	padding: 0;
+	margin: 0;
+
+	font-size: 0.75em;
+}
+
+.qTooltip:hover .tooltip, .tooltip:hover {
+	opacity: 100%;
+	pointer-events: auto;
+}
+
+.primary {
+	background-color: #5D5FEF;
+}
+
+.secondary {
+	background-color: #1e1e1e;
+}

@@ -1,6 +1,7 @@
 import styles from "../IdeaDetailCard.module.css";
 import { OutlinedButton } from "../../status/OutlinedButton";
 import { ProfileTooltip } from "../../status/ProfileTooltip";
+import { HelpTooltip } from "../../status/HelpTooltip";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import { Skeleton, CircularProgress } from "@mui/material";
@@ -148,15 +149,25 @@ export const IdeaInfoPanel = ({ idea }: { idea: DAOStatsRepr }) => {
 		),
 		"Total supply": <p>{formatErc(Number(idea.supply))}</p>,
 		Contract: (
-			<p>
-				<a
-					href={`${explorers[network]}/address/${idea.id}`}
-					target="_blank"
-					rel="noopener noreferrer"
-				>
-					{idea.id}
-				</a>
-			</p>
+			<Fragment>
+				<p>
+					<a
+						href={`${explorers[network]}/address/${idea.id}`}
+						target="_blank"
+						rel="noopener noreferrer"
+					>
+						{idea.id}
+					</a>
+				</p>
+				<HelpTooltip tooltipPos="left">
+					<p>
+						The address of the smart contract on Polygon representing your idea,
+						viewable on a 3rd party site. Your idea's contract may or may not
+						have historical transactions associated with it. You will need to
+						re-connect web3.
+					</p>
+				</HelpTooltip>
+			</Fragment>
 		),
 	};
 

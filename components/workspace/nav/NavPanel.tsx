@@ -1,6 +1,7 @@
 import UserProfile from "./UserProfile";
 import { CircularProgress } from "@mui/material";
 import OutlinedButton from "../../status/OutlinedButton";
+import { HelpTooltip } from "../../status/HelpTooltip";
 
 import styles from "./NavPanel.module.css";
 
@@ -170,13 +171,6 @@ export const NavPanel = ({ items, onProfileClicked, ctx }: NavProps) => {
 							.then(async () => {
 								const active = (await accounts(window.ethereum))[0];
 								setActiveAddr(active);
-								const auth = new EthereumAuthProvider(window.ethereum, active);
-
-								connect(auth);
-								setAuth(auth);
-								setIdx(
-									new IDX({ ceramic: client.ceramic as unknown as CeramicApi })
-								);
 							});
 					}}
 					severity="action"
@@ -184,6 +178,35 @@ export const NavPanel = ({ items, onProfileClicked, ctx }: NavProps) => {
 					<h2>
 						Connect to <b>Polygon</b>
 					</h2>
+				</OutlinedButton>
+			</div>
+		);
+	}
+
+	if (connected && sessionInfo === undefined && activeAddr) {
+		profileDisp = (
+			<div className={styles.loginBtnContainer}>
+				<OutlinedButton
+					callback={() => {
+						const auth = new EthereumAuthProvider(window.ethereum, activeAddr);
+
+						connect(auth);
+						setAuth(auth);
+						setIdx(
+							new IDX({ ceramic: client.ceramic as unknown as CeramicApi })
+						);
+					}}
+					severity="action"
+				>
+					<h2>
+						Connect to <b>Ceramic</b>
+					</h2>
+					<HelpTooltip style="secondary">
+						<p>
+							Logging in with ceramic gives you access to social features like
+							profile pictures, and bios. Using ceramic is required for now.
+						</p>
+					</HelpTooltip>
 				</OutlinedButton>
 			</div>
 		);

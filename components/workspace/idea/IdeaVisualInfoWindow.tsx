@@ -43,7 +43,7 @@ export const IdeaVisualInfoWindow = ({
 			content: <IdeaMetadataDisplay data={data} />,
 			navIcon: <InfoRounded fontSize="large" />,
 		},
-		Visionaries: {
+		Members: {
 			content: <VisionaryListDisplay idea={idea} />,
 			navIcon: <AccountCircleRounded fontSize="large" />,
 		},
