@@ -97,7 +97,7 @@
 }
 
 .yAxisTitle {
-	writing-mode: sideways-lr;
+	writing-mode: vertical-lr;
 	text-align: center;
 
 	padding: 0;

@@ -67,7 +67,7 @@ export const PropVoteVisualization = ({
 					<div className={styles.graphYText}>
 						<p className={styles.yAxisTitle}># of Votes</p>
 						<div className={styles.graphYLabels}>
-							<p>{(max / 10 ** 18).toLocaleString() || 0}</p>
+							<p>{formatErc(max) || 0}</p>
 							<p>0</p>
 						</div>
 					</div>
