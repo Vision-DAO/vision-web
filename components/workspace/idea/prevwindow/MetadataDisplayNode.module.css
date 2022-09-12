@@ -1,7 +1,7 @@
 .metaNodeContainer {
-	padding: 1rem;
+	padding: 1em;
 
-	margin: 0.5rem;
+	margin: 0.5em;
 
 	background-color: #1D1D1D;
 
@@ -46,7 +46,7 @@
 }
 
 .fileNode a {
-	margin-left: 1rem;
+	margin-left: 1em;
 	color: #5D5FEF;
 }
 
@@ -66,5 +66,5 @@
 }
 
 .imageNode img {
-	margin-bottom: 1rem;
+	margin-bottom: 1em;
 }

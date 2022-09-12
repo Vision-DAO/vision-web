@@ -11,7 +11,7 @@
 	justify-content: flex-start;
 	align-items: stretch;
 
-	padding-top: 1.5rem;
+	padding-top: 1.5em;
 
 	max-height: 100%;
 	box-sizing: border-box;
@@ -22,8 +22,8 @@
 }
 
 .searchContent {
-	margin-left: 1rem;
-	margin-right: 1rem;
+	margin-left: 1em;
+	margin-right: 1em;
 }
 
 .resultsArea {
@@ -40,7 +40,7 @@
 }
 
 .resultsArea>*{
-	margin-top: 0.5rem;
+	margin-top: 0.5em;
 
 	color: white;
 
@@ -60,11 +60,11 @@
 	align-items: center;
 
 	color: rgba(255, 255, 255, 0.5);
-	font-size: 1.5rem;
+	font-size: 1.5em;
 
 	transition: 0.3s color;
 
-	margin-bottom: 1rem;
+	margin-bottom: 1em;
 }
 
 .queryArea:hover {
@@ -76,7 +76,7 @@
 }
 
 .queryArea>input {
-	font-size: 1.5rem;
+	font-size: 1.5em;
 
 	width: 100%;
 
@@ -96,17 +96,17 @@
 }
 
 .queryArea>*:not(:first-child) {
-	margin-left: 1rem;
+	margin-left: 1em;
 }
 
 .queryArea>svg {
 	transform: scalex(-1);
 
-	font-size: 2rem;
+	font-size: 2em;
 }
 
 .queryArea.hasResults {
-	padding-bottom: 1rem;
+	padding-bottom: 1em;
 	border-bottom: 0.5px solid rgba(255, 255, 255, 0.25);
 }
 
@@ -123,7 +123,7 @@
 	background-color: rgba(255, 255, 255, 0.125);
 	transition: 0.3s;
 
-	margin-top: 0.5rem;
+	margin-top: 0.5em;
 }
 
 .expansionTab>svg {

@@ -17,7 +17,7 @@
 }
 
 .username {
-	margin: 0.5rem;
+	margin: 0.5em;
 
 	display: flex;
 
@@ -30,7 +30,7 @@
 }
 
 .username h1 {
-	font-size: 1.75rem;
+	font-size: 1.75em;
 	margin: 0;
 }
 
@@ -65,7 +65,7 @@
 }
 
 .actionIcon {
-	margin-right: 0.5rem;
+	margin-right: 0.5em;
 }
 
 .nameRow {

@@ -26,15 +26,15 @@
 }
 
 .submitButton {
-	margin-top: 2rem;
+	margin-top: 2em;
 
 	border-radius: 5px;
 }
 
 .formItem {
-	margin-top: 1rem;
-	margin-bottom: 1rem;
-	font-size: 1rem;
+	margin-top: 1em;
+	margin-bottom: 1em;
+	font-size: 1em;
 }
 
 .formItem>*:first-child:not(:last-child) {
@@ -55,7 +55,7 @@
 }
 
 .formItemList>*:not(:first-child) { 
-	margin-left: 2rem;
+	margin-left: 2em;
 }
 
 .dateUnitSelector {

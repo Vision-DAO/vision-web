@@ -2,7 +2,7 @@
 	border-bottom: 2px solid #5D5FEF;
 
 	margin: 0;
-	padding-bottom: 0.5rem;
+	padding-bottom: 0.5em;
 }
 
 .prevWindow {
@@ -13,7 +13,7 @@
 	justify-content: flex-start;
 	align-items: flex-start;
 
-	padding: 2rem;
+	padding: 2em;
 	overflow: hidden;
 
 	height: 100%;

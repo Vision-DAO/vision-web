@@ -42,7 +42,7 @@
 }
 
 .selectorItem>svg {
-	margin-right: 0.5rem;
+	margin-right: 0.5em;
 	opacity: 0.5;
 
 	transition: 0.3s;

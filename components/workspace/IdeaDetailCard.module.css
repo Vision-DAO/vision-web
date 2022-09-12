@@ -10,7 +10,7 @@
 
 	background-color: #1D1D1D;
 
-	padding: 1.5rem;
+	padding: 1.5em;
 
 	opacity: 1;
 	transition: 0.3s;
@@ -58,18 +58,18 @@
 .cardTitle {
 	display: inline-block;
 
-	margin-top: 0.75rem;
+	margin-top: 0.75em;
 	margin-bottom: 0;
 
 	border-bottom: 2px solid #5D5FEF;
-	padding-bottom: 0.5rem;
+	padding-bottom: 0.5em;
 }
 
 .cardTitleInfo {
 	border-bottom: 0.5px solid rgba(255, 255, 255, 0.5);
 
 	margin-top: 0;
-	padding-bottom: 1.5rem;
+	padding-bottom: 1.5em;
 
 	display: flex;
 	flex-flow: column nowrap;
@@ -108,8 +108,8 @@
 }
 
 .infoLine {
-	margin-bottom: 0.25rem;
-	margin-top: 0.25rem;
+	margin-bottom: 0.25em;
+	margin-top: 0.25em;
 }
 
 .cardMetrics {
@@ -130,12 +130,12 @@
 .metric>* {
 	font-weight: bold;
 
-	margin-top: 0.75rem;
+	margin-top: 0.75em;
 	margin-bottom: 0;
 }
 
 .metric>.metricValue {
-	margin-right: 0.5rem;
+	margin-right: 0.5em;
 }
 
 .posValueMetric {
@@ -160,7 +160,7 @@
 }
 
 .cardActions {
-	margin-top: 2rem;
+	margin-top: 2em;
 
 	display: flex;
 
@@ -172,8 +172,8 @@
 .cardActions>* {
 	border-radius: 5px;
 
-	font-size: 1rem;
-	padding: 1rem;
+	font-size: 1em;
+	padding: 1em;
 }
 
 .goButton {
@@ -185,7 +185,7 @@
 
 	flex-grow: 1;
 
-	margin-left: 1rem;
+	margin-left: 1em;
 
 	text-overflow: ellipsis;
 

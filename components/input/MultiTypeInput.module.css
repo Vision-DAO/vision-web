@@ -3,7 +3,7 @@
 }
 
 .inputItems {
-	margin-top: 1.5rem;
+	margin-top: 1.5em;
 
 	display: flex;
 
@@ -16,7 +16,7 @@
 }
 
 .inputItems>*:last-child {
-	margin-top: 1rem;
+	margin-top: 1em;
 }
 
 .inputItems>*:only-child {

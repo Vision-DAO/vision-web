@@ -13,7 +13,7 @@
 
 	background-color: #151515;
 
-	padding: 2rem;
+	padding: 2em;
 }
 
 .newIdeaModalContainer h1 {
@@ -54,12 +54,12 @@
 }
 
 .modalForm>* {
-	margin-top: 1.5rem;
-	margin-bottom: 1.5rem;
+	margin-top: 1.5em;
+	margin-bottom: 1.5em;
 }
 
 .modalFormTextDetails {
-	margin-top: 2rem;
+	margin-top: 2em;
 
 	display: flex;
 
@@ -69,11 +69,11 @@
 }
 
 .modalFormTextDetails>* {
-	margin-right: 1rem;
+	margin-right: 1em;
 }
 
 .submitButton {
-	margin-top: 2.5rem;
+	margin-top: 2.5em;
 
 	border-radius: 5px;
 }

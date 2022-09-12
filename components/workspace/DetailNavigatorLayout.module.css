@@ -41,7 +41,7 @@
 }
 
 .navigationBarContainer>* {
-	margin-right: 1.5rem;
+	margin-right: 1.5em;
 }
 
 .navigatedContent {
@@ -62,13 +62,13 @@
 	display: flex;
 
 	flex-flow: row nowrap;
-	
+
 	justify-content: flex-start;
 	align-items: center;
 }
 
 .navOptionsContainer>* {
-	margin-right: 2rem;
+	margin-right: 2em;
 
 	cursor: pointer;
 
@@ -76,7 +76,7 @@
 
 	transition: 0.3s;
 
-	padding-bottom: 0.5rem;
+	padding-bottom: 0.5em;
 }
 
 .navOptionsContainer>*:hover {

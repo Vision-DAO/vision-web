@@ -20,7 +20,7 @@
 
 .navItems>* {
 	width: 100%;
-	padding-bottom: 1rem;
+	padding-bottom: 1em;
 
 	display: flex;
 
@@ -38,10 +38,10 @@
 }
 
 .infoSection {
-	margin-top: 1.5rem;
+	margin-top: 1.5em;
 
-	padding-top: 0.5rem;
-	padding-bottom: 0.5rem;
+	padding-top: 0.5em;
+	padding-bottom: 0.5em;
 
 	display: flex;
 	flex-flow: column nowrap;
@@ -49,7 +49,7 @@
 	justify-content: center;
 	align-items: center;
 
-	padding: 1rem;
+	padding: 1em;
 	width: 100%;
 }
 
@@ -64,7 +64,7 @@
 	justify-content: center;
 	align-items: center;
 
-	padding-bottom: 2rem;
+	padding-bottom: 2em;
 }
 
 .guttered.separated>* {
@@ -76,6 +76,6 @@
 }
 
 .loginBtnContainer {
-	padding-left: 1rem;
-	padding-right: 1rem;
+	padding-left: 1em;
+	padding-right: 1em;
 }

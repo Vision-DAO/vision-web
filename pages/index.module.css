@@ -47,7 +47,7 @@
 .hud {
 	height: 100%;
 
-	padding: 2rem;
+	padding: 2em;
 
 	display: grid;
 	grid-template: repeat(2, 50%) / repeat(2, 50%);
@@ -116,7 +116,7 @@
 }
 
 .zoomButton {
-	padding: 1rem;
+	padding: 1em;
 
 	display: flex;
 
