@@ -222,9 +222,7 @@ export const useCeramicId = (addr: string): string | undefined => {
 				`eip155:${netV}:${addr}`
 			);
 
-			if (!link || !link.did) return;
-
-			setId(link.did);
+			setId(link?.did);
 		})();
 	}, [addr]);
 
@@ -281,7 +279,7 @@ export const useUserPic = (addr: string): string | undefined => {
 		});
 	}, [profile.content?.image?.original.src, id]);
 
-	return image;
+	return id ? image : undefined;
 };
 
 /**
