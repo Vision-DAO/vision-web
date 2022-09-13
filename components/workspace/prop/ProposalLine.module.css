@@ -291,6 +291,8 @@
 
 .noExplanation {
 	justify-content: flex-end;
+
+	min-width: 10%;
 }
 
 .actorLink {
@@ -358,4 +360,12 @@
 
 .clickableStat:hover {
 	opacity: 0.6;
+}
+
+.topTextInfo {
+	min-height: 0;
+
+	overflow: auto;
+
+	margin-bottom: 0.5em;
 }

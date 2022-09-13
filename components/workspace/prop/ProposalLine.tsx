@@ -16,6 +16,7 @@ import {
 	useEthAddr,
 	formatDateObj,
 	formatErc,
+	formatBig,
 } from "../../../lib/util/networks";
 import { useWeb3 } from "../../../lib/util/web3";
 import { GetPropsQuery, GetDaoAboutQuery } from "../../../.graphclient";
@@ -155,12 +156,14 @@ export const ProposalLine = ({
 	return (
 		<div className={styles.propRow}>
 			<div className={styles.leftInfo}>
-				<img
-					className={styles.propIcon}
-					height="100%"
-					width="12vw"
-					src={icon}
-				/>
+				{icon && (
+					<img
+						className={styles.propIcon}
+						height="100%"
+						width="12vw"
+						src={icon}
+					/>
+				)}
 				<div className={styles.propTextInfo}>
 					<div className={styles.topTextInfo}>
 						<div className={`${styles.row} ${styles.spaced} ${styles.full}`}>
@@ -220,8 +223,8 @@ export const ProposalLine = ({
 									<div className={styles.noExplanation}>
 										<p>No:</p>
 										<p>
-											Keep the funding rate at {oldProp?.rate.value ?? 0}{" "}
-											{oldTicker}
+											Keep the funding rate at{" "}
+											{formatErc(Number(oldProp?.rate.value ?? 0))} {oldTicker}
 										</p>
 									</div>
 								</div>
@@ -262,7 +265,7 @@ export const ProposalLine = ({
 								)}
 							</div>
 						) : (
-							<div className={`${styles.badStat} ${styles.propStat}`}>
+							<div className={`${styles.goodStat} ${styles.propStat}`}>
 								<p>Funding</p>
 								<ClearIcon />
 								<p>Spent</p>
