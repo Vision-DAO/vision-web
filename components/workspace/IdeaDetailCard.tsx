@@ -81,7 +81,7 @@ export const IdeaDetailCard = ({ idea, onClose }: IdeaDetailProps) => {
 				<FilledButton
 					className={styles.buyButton}
 					label={`Trade ${name}`}
-					onClick={() => router.push("https://app.uniswap.org")}
+					onClick={() => window.open("https://app.uniswap.org", "_blank")}
 				/>
 			</div>
 		</div>
