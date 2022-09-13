@@ -114,7 +114,7 @@ export const ProposalLine = ({
 			.on("error", (e: string) => {
 				setPending(false);
 
-				setErrMsg(e);
+				setErrMsg(typeof e === "string" ? e : e.message);
 			})
 			.on("transactionHash", (hash: string) => {
 				setDepMsg(`Finalizing proposal: ${hash}`);
