@@ -14,27 +14,6 @@ import { PropFlowIndicator } from "./PropFlowIndicator";
 import { formatTime12Hr } from "../idea/activity/ActivityEntry";
 import Web3 from "web3";
 
-/**
- * Prints out a second interval as a prefixed, formatted string.
- *
- * This is lazy as shit idc.
- */
-export const formatInterval = (interval: number): string => {
-	if (interval < 60) {
-		return `${interval} Second${interval != 1 ? "s" : ""}`;
-	}
-
-	if (interval < 3600) {
-		return `${interval / 60} Minute${interval / 60 != 1 ? "s" : ""}`;
-	}
-
-	if (interval < 86400) {
-		return `${interval / 3600} Hour${interval / 3600 != 1 ? "s" : ""}`;
-	}
-
-	return `${interval / 86400} Day${interval / 86400 != 1 ? "s" : ""}`;
-};
-
 export const PropInfoPanel = ({
 	web3,
 	ipfs,
@@ -51,9 +30,9 @@ export const PropInfoPanel = ({
 	const destName = useActorTitle(prop.toFund);
 
 	const metrics = {
-		"Funding Interval": formatInterval(Number(prop.rate.intervalLength)),
 		"Funding Type": prop.rate.kind,
 		"Funding Amount": formatErc(Number(prop.rate.value)),
+		Spent: prop.rate.spent ? "Yes" : "No",
 		"Users Voted": prop.voters.length,
 		[new Date() > expiry ? "Expired" : "Expires"]: `${formatDate(
 			expiry

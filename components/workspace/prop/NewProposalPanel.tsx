@@ -7,7 +7,6 @@ import { MultiPageInput } from "../../input/MultiPageInput";
 import { GuidedAddrInput, GuideKind } from "../../input/GuidedAddrInput";
 import { useState } from "react";
 import { serialize } from "bson";
-import { Dropdown } from "../../input/Dropdown";
 import {
 	MobileDatePicker,
 	MobileDateTimePicker,
@@ -37,18 +36,6 @@ const requiredRateFields = {
 	token: { label: "funding token", page: 2 },
 	value: { label: "amount of funds", page: 2 },
 	kind: { label: "pay by", page: 2 },
-	interval: { label: "funding interval", page: 1 },
-	expiry: { label: "funding expiration", page: 1 },
-};
-
-/**
- * Inputs for expiry times are scaled to a unit of time.
- */
-const timeMultipliers = {
-	Days: 86400,
-	Hours: 3600,
-	Minutes: 60,
-	Seconds: 1,
 };
 
 /**
@@ -73,18 +60,13 @@ export const NewProposalPanel = ({
 	const [statusMessage, setStatusMessage] = useState<string>("");
 	const [, setDeploying] = useState<boolean>(false);
 
-	// The number of seconds to multiply the input by (e.g., days, hours, minutes)
-	const [timeMultiplier, setTimeMultiplier] = useState<number>(86400);
 	const [expiry, setParsedExpiry] = useState<number>(
-		new Date().getTime() / 1000
-	);
-	const [fundingExpiry, setFundingExpiry] = useState<number>(
 		new Date().getTime() / 1000
 	);
 	const fundingKinds = ["Treasury Allocation", `Making More ${parent.ticker}`];
 
 	// Default form values. ALL are required
-	const [propDetails, setPropDetails] = useState<AllProposalInformation>({
+	const [propDetails, setPropDetails] = useState({
 		parentAddr,
 		destAddr: "",
 		address: "",
@@ -92,9 +74,6 @@ export const NewProposalPanel = ({
 			token: "",
 			value: 0,
 			kind: null,
-			interval: null,
-			expiry: null,
-			lastClaimed: null,
 		},
 		expiry: null,
 		nVoters: 0,
@@ -198,8 +177,6 @@ export const NewProposalPanel = ({
 						web3.utils
 							.toBN(propDetails.rate.value)
 							.mul(web3.utils.toBN(10).pow(web3.utils.toBN(18))),
-						propDetails.rate.interval,
-						Math.ceil(fundingExpiry),
 						propDetails.dataIpfsAddr,
 						Math.ceil(expiry),
 					],
@@ -256,8 +233,7 @@ export const NewProposalPanel = ({
 				<p key="desc-1">
 					Make your proposal stand out by describing what it will do.
 				</p>,
-				<p key="desc-2">{`Who will ${parent.name} be funding, and for how long?`}</p>,
-				<p key="desc-3">{`How much will ${parent.name} pay, and how will it pay?`}</p>,
+				<p key="desc-2">{`Who will ${parent.name} be funding, how much will it pay?`}</p>,
 				<p key="desc-4">How long will voting on your proposal last?</p>,
 			]
 		) : (
@@ -285,63 +261,22 @@ export const NewProposalPanel = ({
 				</div>
 			</div>
 			<div className={styles.formContainer} key="ToFund">
-				<div className={`${styles.formItem} ${styles.fullFormItem}`}>
-					<h1>Address to Fund</h1>
-					<GuidedAddrInput
-						onChange={mutatePropField("destAddr")}
-						className={styles.fullWidthInput}
-					/>
-				</div>
-				<div className={styles.multiItemLine}>
-					<div className={styles.formItem} style={{ overflowY: "visible" }}>
-						<h1>Released Every</h1>
-						<div className={styles.formLine}>
-							<UnderlinedInput
-								placeholder="1"
-								startingValue=""
-								onChange={(v: string) =>
-									mutateRateField("interval")(parseInt(v) * timeMultiplier)
-								}
-								onAttemptChange={(s: string) => (isNaN(parseInt(s)) ? "" : s)}
-								className={styles.shortLabel}
-							/>
-							<Dropdown
-								options={Object.keys(timeMultipliers)}
-								onChange={(unit) => setTimeMultiplier(timeMultipliers[unit])}
-							/>
-						</div>
+				<div className={`${styles.multiItemLine} ${styles.fullWidthInput}`}>
+					<div className={`${styles.formItem}`}>
+						<h1>Address to Fund</h1>
+						<GuidedAddrInput
+							onChange={mutatePropField("destAddr")}
+							className={styles.fullWidthInput}
+						/>
 					</div>
 					<div className={styles.formItem}>
-						<h1>Available Until</h1>
-						<LocalizationProvider dateAdapter={AdapterDateFns}>
-							<MobileDatePicker
-								inputFormat="MM/dd/yyyy"
-								value={new Date(fundingExpiry * 1000)}
-								onChange={(d) => setFundingExpiry(d.getTime() / 1000)}
-								disablePast
-								renderInput={(params) => (
-									<UnderlinedInput
-										onClick={params.inputProps.onMouseDown}
-										icon={<CalendarIcon />}
-										placeholder={new Date(fundingExpiry * 1000).toString()}
-										value={`${formatDate(fundingExpiry)} ${formatTime12Hr(
-											new Date(fundingExpiry * 1000)
-										)}`}
-									/>
-								)}
-							/>
-						</LocalizationProvider>
+						<h1>Funding Token</h1>
+						<GuidedAddrInput
+							onChange={mutateRateField("token")}
+							className={styles.fullWidthInput}
+							guides={new Set([GuideKind.Daos])}
+						/>
 					</div>
-				</div>
-			</div>
-			<div className={styles.formContainer} key="Pay">
-				<div className={styles.formItem}>
-					<h1>Funding Token</h1>
-					<GuidedAddrInput
-						onChange={mutateRateField("token")}
-						className={styles.fullWidthInput}
-						guides={new Set([GuideKind.Daos])}
-					/>
 				</div>
 				<div className={`${styles.multiItemLine} ${styles.fullWidthInput}`}>
 					<div className={styles.formItem}>

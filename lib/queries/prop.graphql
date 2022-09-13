@@ -11,9 +11,7 @@ query PropInfo($id: ID!) @live {
     rate {
       token
       value
-      intervalLength
-      expiry
-      lastClaimed
+      spent
       kind
     }
     author {

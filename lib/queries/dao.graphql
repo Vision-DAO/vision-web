@@ -129,8 +129,7 @@ fragment PropInformation on Prop {
   rate {
     token
     value
-    intervalLength
-    expiry
+    spent
     kind
   }
 }

@@ -243,7 +243,7 @@ export const ProposalLine = ({
 								<CheckIcon fontSize="large" />
 								<p>Accepted</p>
 							</div>
-						) : (
+						) : !prop.rate.spent ? (
 							<div
 								className={`${styles.goodStat} ${styles.propStat} ${styles.clickableStat}`}
 								onClick={onReleaseFunds}
@@ -256,6 +256,12 @@ export const ProposalLine = ({
 								) : (
 									<CircularProgress />
 								)}
+							</div>
+						) : (
+							<div className={`${styles.badStat} ${styles.propStat}`}>
+								<p>Funding</p>
+								<ClearIcon />
+								<p>Spent</p>
 							</div>
 						)
 					) : (

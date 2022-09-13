@@ -4,6 +4,9 @@ import Web3 from "web3";
 import { useEthAddr, formatDate, accounts } from "../../../lib/util/networks";
 import BN from "bn.js";
 import { useUserBalance, useSymbol } from "../../../lib/util/ipfs";
+import { useStream } from "../../../lib/util/graph";
+import { GetUserVoteQuery } from "../../../.graphclient";
+import type { Scalars } from "../../../.graphclient";
 import { useState, useEffect } from "react";
 import Idea from "../../../value-tree/build/contracts/Idea.json";
 import Prop from "../../../value-tree/build/contracts/Prop.json";
@@ -43,7 +46,14 @@ export const PropVotePanel = ({
 	const [nVotes, setNvotes] = useState<number>(0);
 
 	// The user's balance of the voting token (the maximum amount they can vote)
-	const maxVotes = useUserBalance(loggedIn, prop.funder.id);
+	const existingVotes = useStream<GetUserVoteQuery>(
+		{ vote: { votes: 0 as unknown as Scalars["BigInt"] } },
+		(graph) => graph.GetUserVote({ vID: `vote${loggedIn}:${prop.id}` }),
+		[loggedIn, prop.id]
+	);
+	const maxVotes =
+		useUserBalance(loggedIn, prop.funder.id) +
+		Number(existingVotes.vote?.votes ?? 0);
 	const voteTicker = useSymbol(prop.funder.id);
 
 	// To save space, this item can be shrunk to just its header
@@ -52,23 +62,12 @@ export const PropVotePanel = ({
 	// Buffer storing any feedback for the user
 	const [errorMsg, setErrorMsg] = useState<string>("");
 
-	// Persisted instance of the contract to which votes can be submitted
-	const [propContract, setPropContract] = useState<Contract>(undefined);
-	const [parentContract, setParentContract] = useState<Contract>(undefined);
-
 	// Renders an indicator for when the vote is being sent
 	const [voteCasting, setVoteCasting] = useState<boolean>(false);
 
 	// Shows the user a dialog indicating that their vote was successful
 	const [confirmationRequired, setConfirmationRequired] =
 		useState<boolean>(false);
-
-	useEffect(() => {
-		if (propContract === undefined) {
-			setPropContract(new web3.eth.Contract(Prop.abi, prop.id));
-			setParentContract(new web3.eth.Contract(Idea.abi, prop.funder.id));
-		}
-	}, []);
 
 	// Labels for the vote weight slider
 	const max = maxVotes ? maxVotes / 10 ** 18 : 0;
@@ -90,6 +89,8 @@ export const PropVotePanel = ({
 		// Use the first available ethereum account for all transactions
 		const acc = (await accounts(eth))[0];
 
+		const parentContract = new web3.eth.Contract(Idea.abi, prop.funder.id);
+
 		// Allocate the votes to the contract
 		await parentContract.methods
 			.approve(prop.id, parseBig(web3, Number(nVotes)).toString())
@@ -105,6 +106,8 @@ export const PropVotePanel = ({
 				setVoteCasting(true);
 			})
 			.then(() => {
+				const propContract = new web3.eth.Contract(Prop.abi, prop.id);
+
 				// The votes can now be used
 				// Place the vote
 				return propContract.methods

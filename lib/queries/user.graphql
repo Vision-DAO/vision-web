@@ -88,3 +88,9 @@ query GetUserBalance($iID: ID!) @live(interval: 5000) {
     balance
   }
 }
+
+query GetUserVote($vID: ID!) @live {
+  vote(id: $vID) {
+    votes
+  }
+}
