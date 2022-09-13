@@ -46,7 +46,7 @@ export const ProfileTooltip = ({ addr }: { addr: string }) => {
 			)}
 			<Link href={`/profile/${addr}`}>
 				<a ref={line}>
-					{profile.content?.name !== undefined ? (
+					{id && profile.content?.name !== undefined ? (
 						<p>{profile.content.name}</p>
 					) : (
 						<AddrOrEns addr={addr} />
