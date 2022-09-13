@@ -139,7 +139,7 @@ query GetProps($id: ID!, $dayStart: BigInt!) @live {
     activeProps(where: { status_not: Accepted }, orderBy: createdAt, orderDirection: desc) {
       ...PropInformation
     }
-    children {
+    children(orderBy: finalizedAt, orderDirection: desc) {
       ...PropInformation
     }
   }
