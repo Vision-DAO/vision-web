@@ -34,6 +34,7 @@ export const PropActivityPanel = ({ prop }: { prop: PropInfo }) => {
 	});
 
 	const expiration = new Date(Number(prop.expiration) * 1000);
+	const rejected = Number(prop.votesFor) <= Number(prop.funder.supply) * 0.5;
 
 	return (
 		<div className={styles.activityPanelContainer}>
@@ -42,21 +43,20 @@ export const PropActivityPanel = ({ prop }: { prop: PropInfo }) => {
 				<h2>Activity</h2>
 			</div>
 			<div className={events ? styles.activityList : styles.loadingContainer}>
-				{new Date() > expiration && prop.status !== "Accepted" ? (
-					<ActivityEntry
-						kind="ProposalRejected"
-						timestamp={expiration}
-						label={<p>Proposal Rejected: {prop.title}</p>}
-					/>
-				) : (
-					prop.finalizedAt && (
+				{new Date() > expiration &&
+					(rejected ? (
+						<ActivityEntry
+							kind="ProposalRejected"
+							timestamp={expiration}
+							label={<p>Proposal Rejected: {prop.title}</p>}
+						/>
+					) : (
 						<ActivityEntry
 							kind="ProposalAccepted"
 							timestamp={new Date(Number(prop.finalizedAt) * 1000)}
 							label={<p>Proposal Accepted: {prop.title}</p>}
 						/>
-					)
-				)}
+					))}
 				{events ? (
 					events.map((e) => {
 						return ActivityEntry({ ...e });
