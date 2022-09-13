@@ -133,10 +133,10 @@ export const ProposalLine = ({
 		contract.methods
 			.disperseFunding(prop.toFund)
 			.send({ from: account })
-			.on("error", (e: string) => {
+			.on("error", (e: string | { message: string }) => {
 				setReleasePending(false);
 
-				setErrMsg(e);
+				setErrMsg(typeof e === "string" ? e : e.message);
 			})
 			.on("transactionHash", (hash: string) => {
 				setDepMsg(`Releasing funds: ${hash}`);
