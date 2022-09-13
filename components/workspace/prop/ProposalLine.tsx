@@ -148,6 +148,10 @@ export const ProposalLine = ({
 			});
 	};
 
+	const votesLabel = formatErc(
+		Number(prop.votesFor) + Number(prop.votesAgainst)
+	);
+
 	return (
 		<div className={styles.propRow}>
 			<div className={styles.leftInfo}>
@@ -229,8 +233,8 @@ export const ProposalLine = ({
 			</div>
 			<div className={styles.rightInfo}>
 				<div className={styles.propStat}>
-					<h1>
-						{formatErc(Number(prop.votesFor) + Number(prop.votesAgainst))}
+					<h1 style={{ fontSize: votesLabel.length > 3 ? "1.5em" : undefined }}>
+						{votesLabel}
 					</h1>
 					<p>Votes</p>
 				</div>
