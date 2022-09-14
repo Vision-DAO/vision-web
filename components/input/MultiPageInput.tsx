@@ -86,8 +86,16 @@ export const MultiPageInput = ({
 					<p>Prev</p>
 				</OutlinedButton>
 				<FilledButton
-					className={`${styles.button} ${styles.nextButton} ${styles.navButton}`}
-					onClick={() => onClick()}
+					className={`${styles.button} ${styles.nextButton} ${
+						styles.navButton
+					} ${loading ? styles.disabledButton : ""}`}
+					onClick={
+						loading
+							? () => {
+									return;
+							  }
+							: () => onClick()
+					}
 				>
 					{loading
 						? [

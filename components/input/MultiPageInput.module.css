@@ -103,3 +103,8 @@
 	grid-template-rows: 1fr;
 	grid-template-columns: 1fr;
 }
+
+.disabledButton:hover {
+	background-color: #5D5FEF !important;
+	cusror: defaut;
+}

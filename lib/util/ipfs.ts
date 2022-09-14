@@ -163,7 +163,10 @@ export const useIdeaImage = (ipfsAddr: string): string | undefined => {
 	const ipfs = useContext(IpfsContext);
 
 	useEffect(() => {
-		if (!ipfsAddr || !CID.isCID(ipfsAddr)) return;
+		if (!ipfsAddr) return;
+
+		const ipfsCID = CID.parse(ipfsAddr);
+		if (!ipfsCID) return;
 
 		if (ipfsAddr in cache && "icon" in cache[ipfsAddr]) return;
 
@@ -188,7 +191,10 @@ export const useIdeaDescription = (ipfsAddr: string): string | undefined => {
 
 	// The description of the DAO is stored on IPFS, off-chain
 	useEffect(() => {
-		if (!ipfsAddr || !CID.isCID(ipfsAddr)) return;
+		if (!ipfsAddr) return;
+
+		const ipfsCID = CID.parse(ipfsAddr);
+		if (!ipfsCID) return;
 
 		if (ipfsAddr in ipfsCache && "description" in ipfsCache[ipfsAddr]) return;
 
