@@ -105,6 +105,8 @@ query GetDaoAbout($id: ID!, $dayStart: BigInt!) @live {
         id
       }
       value
+      id
+      createdAt
     }
   }
 }

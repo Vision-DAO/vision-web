@@ -23,15 +23,7 @@ export const IdeaActivityPanel = ({
 	const dayStart = new Date();
 	dayStart.setUTCHours(0, 0, 0, 0);
 
-	const ideaCreatedAt = new Date(idea.createdAt * 1000);
-
-	const timestamp = (e: Event): number => {
-		if ("finalizedAt" in e) return e.finalizedAt;
-		if ("createdAt" in e) return e.createdAt;
-
-		// This is literally impossible
-		return -1;
-	};
+	const ideaCreatedAt = new Date(Number(idea.createdAt) * 1000);
 
 	const transferSender = (
 		e: GetDaoAboutQuery["idea"]["recentTransfers"][0]
@@ -72,7 +64,12 @@ export const IdeaActivityPanel = ({
 
 			if ("title" in e) {
 				title = <p>{e.title}</p>;
-			} else if ("sendUser" in e && e.sendUser !== null) {
+			} else if (
+				"sendDao" in e ||
+				"sendUser" ||
+				"recipDao" in e ||
+				"recipUser" in e
+			) {
 				const { url: sUrl, label: sLabel } = transferSender(e);
 				const { url: rUrl, label: rLabel } = transferRecip(e);
 				title = (
