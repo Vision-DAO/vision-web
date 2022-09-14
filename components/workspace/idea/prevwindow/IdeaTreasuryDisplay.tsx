@@ -53,8 +53,9 @@ export const IdeaTreasuryDisplay = ({
 										{Math.round(
 											(idea.treasury[selectedToken].balance /
 												idea.treasury[selectedToken].token.supply) *
-												1000
+												10000
 										) / 100}
+										%
 									</b>
 								</p>
 							</div>
