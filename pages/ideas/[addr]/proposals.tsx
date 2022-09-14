@@ -53,6 +53,14 @@ export const Proposals = () => {
 		};
 	}, []);
 
+	const onDeploy = () => {
+		setModal(null);
+
+		setTimeout(() => {
+			setModal(undefined);
+		}, 300);
+	};
+
 	const newPropModalContent = (
 		<GeneralModal title={`New Proposal: ${idea.name}`}>
 			<NewProposalPanel
@@ -61,7 +69,7 @@ export const Proposals = () => {
 				eth={eth}
 				parent={idea}
 				parentAddr={idea.id}
-				onDeploy={() => setModal(null)}
+				onDeploy={onDeploy}
 			/>
 		</GeneralModal>
 	);
