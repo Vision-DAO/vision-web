@@ -114,7 +114,7 @@ export const NewProposalPanel = ({
 	/**
 	 * Attempts to deploy the contract, displaying an error message otherwise.
 	 */
-	const deployContract = async () => {
+	const deployContract = async (markDone: () => void) => {
 		for (const [key, { label, page }] of Object.entries(requiredFields)) {
 			if (key === "expiry") {
 				if (expiry === 0) {
@@ -199,6 +199,7 @@ export const NewProposalPanel = ({
 					console.error(e);
 
 					setDeploying(false);
+					markDone();
 				})
 				.on("transactionHash", (hash) => {
 					setStatusMessage(`Deploying! Tx hash: ${hash}`);
@@ -220,6 +221,7 @@ export const NewProposalPanel = ({
 							console.error(e);
 
 							setDeploying(false);
+							markDone();
 						})
 						.on("transactionHash", (hash) => {
 							setStatusMessage(`Registering proposal! Tx hash: ${hash}`);
@@ -228,6 +230,7 @@ export const NewProposalPanel = ({
 							setDeploying(false);
 
 							onDeploy();
+							markDone();
 						});
 				});
 		} catch (e) {

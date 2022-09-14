@@ -19,7 +19,7 @@ export const MultiPageInput = ({
 }: {
 	children: ReactElement[];
 	labels: ReactElement[] | ReactElement;
-	onSubmit: () => Promise<void>;
+	onSubmit: (markDone: () => void) => void;
 	pageSetter?: (pageSetter: (page: number) => void) => void;
 }) => {
 	const [step, setStep] = useState<number>(0);
@@ -33,9 +33,7 @@ export const MultiPageInput = ({
 		}
 
 		setLoading(true);
-		onSubmit().then(() => {
-			setLoading(false);
-		});
+		onSubmit(() => setLoading(false));
 	};
 
 	useEffect(() => {
