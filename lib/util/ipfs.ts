@@ -5,6 +5,7 @@ import { usePublicRecord, useClient } from "@self.id/framework";
 import { blobify } from "./blobify";
 import { useWeb3 } from "./web3";
 import { useGraph, useStream } from "./graph";
+import { CID } from "multiformats/cid";
 import { GetUserBalanceQuery, Scalars } from "../../.graphclient";
 import { chainId, IdxContext, explorers, useConnStatus } from "./networks";
 import { Caip10Link } from "@ceramicnetwork/stream-caip10-link";
@@ -162,7 +163,7 @@ export const useIdeaImage = (ipfsAddr: string): string | undefined => {
 	const ipfs = useContext(IpfsContext);
 
 	useEffect(() => {
-		if (!ipfsAddr || ipfsAddr === "") return;
+		if (!ipfsAddr || !CID.isCID(ipfsAddr)) return;
 
 		if (ipfsAddr in cache && "icon" in cache[ipfsAddr]) return;
 
@@ -187,6 +188,8 @@ export const useIdeaDescription = (ipfsAddr: string): string | undefined => {
 
 	// The description of the DAO is stored on IPFS, off-chain
 	useEffect(() => {
+		if (!ipfsAddr || !CID.isCID(ipfsAddr)) return;
+
 		if (ipfsAddr in ipfsCache && "description" in ipfsCache[ipfsAddr]) return;
 
 		// Trigger a load of the description of the DAO

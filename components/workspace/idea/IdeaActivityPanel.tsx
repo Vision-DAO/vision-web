@@ -36,18 +36,18 @@ export const IdeaActivityPanel = ({
 	const transferSender = (
 		e: GetDaoAboutQuery["idea"]["recentTransfers"][0]
 	): { url: string; label: string } => {
-		if ("sendUser" in e)
+		if ("sendUser" in e && e.sendUser)
 			return { url: `/profile/${e.sendUser.id}`, label: e.sendUser.id };
-		else if ("sendDao" in e)
+		else if ("sendDao" in e && e.sendDao)
 			return { url: `/ideas/${e.sendDao.id}/about`, label: e.sendDao.name };
 	};
 
 	const transferRecip = (
 		e: GetDaoAboutQuery["idea"]["recentTransfers"][0]
 	): { url: string; label: string } => {
-		if ("recipUser" in e)
+		if ("recipUser" in e && e.recipUser !== null)
 			return { url: `/profile/${e.recipUser.id}`, label: e.recipUser.id };
-		else if ("recipDao" in e)
+		else if ("recipDao" in e && e.recipDao !== null)
 			return { url: `/ideas/${e.recipDao.id}/about`, label: e.recipDao.name };
 	};
 
@@ -63,21 +63,21 @@ export const IdeaActivityPanel = ({
 			let title = <p></p>;
 
 			if ("finalizedAt" in e) {
-				timestamp = new Date(e.finalizedAt * 1000);
+				timestamp = new Date(Number(e.finalizedAt) * 1000);
 				event =
 					e.status === "Accepted" ? "ProposalAccepted" : "ProposalRejected";
 			}
 
-			if ("createdAt" in e) timestamp = new Date(e.createdAt * 1000);
+			if ("createdAt" in e) timestamp = new Date(Number(e.createdAt) * 1000);
 
 			if ("title" in e) {
 				title = <p>{e.title}</p>;
-			} else if ("sendUser" in e) {
+			} else if ("sendUser" in e && e.sendUser !== null) {
 				const { url: sUrl, label: sLabel } = transferSender(e);
 				const { url: rUrl, label: rLabel } = transferRecip(e);
 				title = (
 					<p>
-						{formatErc(e.value)} {idea.ticker} from{" "}
+						{formatErc(Number(e.value))} {idea.ticker} from{" "}
 						<Link href={sUrl}>
 							<a className={styles.actorLabel}>{sLabel}</a>
 						</Link>{" "}
