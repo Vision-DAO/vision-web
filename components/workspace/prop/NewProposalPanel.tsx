@@ -127,6 +127,16 @@ export const NewProposalPanel = ({
 				continue;
 			}
 
+			if (key === "dataIpfsAddr" && propDetails[key] === "") {
+				setStatusMessage(
+					() =>
+						"Missing proposal metadata. Please add a description at minimum."
+				);
+				setInputPage(page);
+
+				return;
+			}
+
 			if (propDetails[key] === null || propDetails[key] === undefined) {
 				setStatusMessage(() => `Missing required proposal field: ${label}.`);
 				setInputPage(page);
