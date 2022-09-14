@@ -234,7 +234,7 @@ export const IdeaMap = ({
 				.map(({ funder, toFund }) => {
 					return {
 						data: {
-							id: `${toFund}${funder}`,
+							id: `${toFund}${funder.id}`,
 							source: funder.id,
 							target: toFund,
 						},

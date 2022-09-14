@@ -1,0 +1,25 @@
+.basicListInfo {
+	display: flex;
+
+	flex-flow: column nowrap;
+
+	justify-content: flex-start;
+	align-items: stretch;
+}
+
+.basicListInfo p {
+	padding: 0;
+	margin: 0;
+}
+
+.basicListInfo>* {
+	margin-top: 0.5em;
+}
+
+.basicListInfo {
+	margin-top: 0.5em;
+}
+
+.advancedInfo {
+	margin-top: 0.5em;
+}

@@ -14,11 +14,13 @@ export const VisionaryBubble = ({
 	onClick,
 	size,
 	active,
+	identicon = true,
 }: {
 	seed: string;
 	onClick: () => void;
 	size: number;
 	active: boolean;
+	identicon?: boolean;
 }) => {
 	const img = useUserPic(seed);
 
@@ -36,7 +38,7 @@ export const VisionaryBubble = ({
 					src={img}
 				/>
 			) : (
-				<Blockies seed={seed} size={size} scale={9} />
+				identicon && <Blockies seed={seed} size={size} scale={9} />
 			)}
 		</div>
 	);

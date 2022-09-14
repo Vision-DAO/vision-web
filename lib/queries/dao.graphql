@@ -108,6 +108,16 @@ query GetDaoAbout($id: ID!, $dayStart: BigInt!) @live {
       id
       createdAt
     }
+    treasury {
+      id
+      balance
+      token {
+        name
+        id
+        supply
+        ticker
+      }
+    }
   }
 }
 

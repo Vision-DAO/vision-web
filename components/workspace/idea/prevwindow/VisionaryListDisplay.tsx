@@ -122,6 +122,7 @@ export const VisionaryListDisplay = ({
 									/>
 								);
 							})}
+						{}
 					</div>
 				</div>
 			)}

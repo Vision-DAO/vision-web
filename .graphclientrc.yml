@@ -3,6 +3,10 @@ sources:
     handler:
       graphql:
         endpoint: https://api.thegraph.com/subgraphs/name/dowlandaiello/vision-v1-subgraph
+  - name: uniswap-v2
+    handler:
+      graphql:
+        endpoint: https://api.thegraph.com/subgraphs/name/dowlandaiello/uniswap-v3-subgraph-mumbai
 
 plugins:
   - pollingLive:

@@ -1,7 +1,9 @@
 import { IdeaMetadataDisplay } from "./prevwindow/IdeaMetadataDisplay";
 import { VisionaryListDisplay } from "./prevwindow/VisionaryListDisplay";
 import { VisualDisplaySelector } from "../../status/VisualDisplaySelector";
+import { IdeaTreasuryDisplay } from "./prevwindow/IdeaTreasuryDisplay";
 import InfoRounded from "@mui/icons-material/InfoRounded";
+import BankRounded from "@mui/icons-material/AccountBalance";
 import {
 	loadIdeaBinaryData,
 	IpfsContext,
@@ -46,6 +48,10 @@ export const IdeaVisualInfoWindow = ({
 		Members: {
 			content: <VisionaryListDisplay idea={idea} />,
 			navIcon: <AccountCircleRounded fontSize="large" />,
+		},
+		Treasury: {
+			content: <IdeaTreasuryDisplay idea={idea} />,
+			navIcon: <BankRounded fontSize="large" />,
 		},
 	};
 
