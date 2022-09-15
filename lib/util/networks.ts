@@ -14,7 +14,7 @@ export type Network = "ethereum" | "polygon" | "polygon-test" | "unknown";
 export const registries: Map<string, string | null> = new Map([
 	["ethereum", null],
 	["polygon", null],
-	["polygon-test", "0x801841dc9B6629187eF7B4c1851999F8b4DA2863"],
+	["polygon-test", "0x14455279A99E55c69afc9E2C01019853827Bfd08"],
 ]);
 
 export const zAddr = "0x0000000000000000000000000000000000000000";
@@ -23,7 +23,7 @@ export const zAddr = "0x0000000000000000000000000000000000000000";
  * Address of the Vision token on different networks.
  */
 export const visTokenAddr: { [net: string]: string } = {
-	"polygon-test": "0xcdE398FE14f86c4dBF0B053F7AdD78da85820D6D",
+	"polygon-test": "0x4382ba37f5fff804e96620a1ce168694ff8c53dc",
 };
 
 /**
