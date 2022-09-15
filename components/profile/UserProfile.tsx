@@ -116,7 +116,7 @@ export const UserProfile = ({ id, addr }: { id: string; addr: string }) => {
 			feed={feed}
 			background={bg || defaultBackground.src}
 			profilePicture={pfp || defaultProfileIcon.src}
-			editable={connection.status == "connected" && connection.selfID.id == id}
+			editable={isUser}
 			onEditProfile={handleChangeProfile}
 		/>
 	);

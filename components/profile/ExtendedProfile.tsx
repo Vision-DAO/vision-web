@@ -265,7 +265,7 @@ export const ExtendedProfile = ({
 									}}
 								/>
 							) : (
-								<EditIcon onClick={() => setEditing(true)} />
+								editable && <EditIcon onClick={() => setEditing(true)} />
 							)}
 							<ShareIcon onClick={shareProfile} />
 						</div>
