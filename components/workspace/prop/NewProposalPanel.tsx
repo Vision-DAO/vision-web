@@ -63,7 +63,7 @@ export const NewProposalPanel = ({
 	const [expiry, setParsedExpiry] = useState<number>(
 		new Date().getTime() / 1000
 	);
-	const fundingKinds = [`Making More ${parent.ticker}`, "Treasury Allocation"];
+	const fundingKinds = ["Treasury Allocation", `Making More ${parent.ticker}`];
 
 	// Default form values. ALL are required
 	const [propDetails, setPropDetails] = useState({
