@@ -4,7 +4,7 @@ import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
 import ClearRoundedIcon from "@mui/icons-material/ClearRounded";
 import SaveIcon from "@mui/icons-material/Save";
 import VoteIcon from "@mui/icons-material/HowToVote";
-import AttachMoneyIcon from "@mui/icons-material/AttachMoneyIcon";
+import AttachMoneyIcon from "@mui/icons-material/AttachMoneyRounded";
 import CampaignRoundedIcon from "@mui/icons-material/CampaignRounded";
 import { OutlinedListEntry } from "../../../status/OutlinedListEntry";
 import { formatDateObj } from "../../../../lib/util/networks";
