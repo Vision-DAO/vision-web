@@ -6,6 +6,13 @@ query PropInfo($id: ID!) @live {
       name
       supply
       ticker
+      treasury {
+        balance
+        token {
+          ticker
+          id
+        }
+      }
     }
     toFund
     rate {

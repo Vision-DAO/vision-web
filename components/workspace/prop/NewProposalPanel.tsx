@@ -175,22 +175,19 @@ export const NewProposalPanel = ({
 		try {
 			setDeploying(true);
 
-			await contract
-				.deploy({
-					data: Proposal.bytecode,
-					arguments: [
-						propDetails.title,
-						propDetails.parentAddr,
-						propDetails.destAddr,
-						propDetails.rate.token,
-						propDetails.rate.kind,
-						web3.utils
-							.toBN(propDetails.rate.value)
-							.mul(web3.utils.toBN(10).pow(web3.utils.toBN(18))),
-						propDetails.dataIpfsAddr,
-						Math.ceil(expiry),
-					],
-				})
+			await registry.methods
+				.submitProp(
+					propDetails.title,
+					propDetails.parentAddr,
+					propDetails.destAddr,
+					propDetails.rate.token,
+					propDetails.rate.kind,
+					web3.utils
+						.toBN(propDetails.rate.value)
+						.mul(web3.utils.toBN(10).pow(web3.utils.toBN(18))),
+					propDetails.dataIpfsAddr,
+					Math.ceil(expiry)
+				)
 				.send({
 					from: deployer,
 				})
@@ -211,27 +208,9 @@ export const NewProposalPanel = ({
 						setStatusMessage("Failed to deploy contract.");
 					}
 
-					setDeploying(true);
-
-					return registry.methods
-						.submitProp(receipt.contractAddress)
-						.send({ from: deployer })
-						.on("error", (e) => {
-							setStatusMessage(e.message);
-							console.error(e);
-
-							setDeploying(false);
-							markDone();
-						})
-						.on("transactionHash", (hash) => {
-							setStatusMessage(`Registering proposal! Tx hash: ${hash}`);
-						})
-						.on("receipt", () => {
-							setDeploying(false);
-
-							onDeploy();
-							markDone();
-						});
+					setDeploying(false);
+					onDeploy();
+					markDone();
 				});
 		} catch (e) {
 			setStatusMessage(`Failed to deploy contract: ${e}`);

@@ -130,6 +130,23 @@ export const ProposalLine = ({
 	const onReleaseFunds = async () => {
 		setReleasePending(true);
 
+		// Make sure the DAO has enough of the funding token to spend if it's a treasury allocation
+		const treasuryEntry = prop.funder.treasury.find(
+			({ token: { id } }) => id === prop.rate.token
+		) ?? { balance: 0, token: { id: prop.rate.token, ticker: ticker } };
+
+		if (
+			prop.rate.kind === "Treasury" &&
+			treasuryEntry.balance < prop.rate.value
+		) {
+			setErrMsg(
+				`${prop.funder.name} doesn't have enough ${ticker} to release funding.`
+			);
+			setReleasePending(false);
+
+			return;
+		}
+
 		const contract = new web3.eth.Contract(Idea.abi, prop.funder.id);
 		contract.methods
 			.disperseFunding(prop.toFund)

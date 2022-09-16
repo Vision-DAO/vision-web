@@ -92,45 +92,52 @@ export const PropVotePanel = ({
 		const parentContract = new web3.eth.Contract(Idea.abi, prop.funder.id);
 
 		// Allocate the votes to the contract
-		await parentContract.methods
-			.approve(prop.id, parseBig(web3, Number(nVotes)).toString())
+		console.log(
+			await parentContract.methods.allowance(acc, prop.id).call(),
+			nVotes
+		);
+		if (
+			(await parentContract.methods.allowance(acc, prop.id).call()) < nVotes
+		) {
+			await parentContract.methods
+				.approve(prop.id, parseBig(web3, Number(nVotes)).toString())
+				.send({
+					from: acc,
+				})
+				.on("error", (e) => {
+					setErrorMsg(e.message);
+				})
+				.once("transactionHash", (hash: string) => {
+					setErrorMsg(`(1/2) Allocating votes. Tx hash: ${hash}`);
+
+					setVoteCasting(true);
+				});
+		}
+
+		const propContract = new web3.eth.Contract(Prop.abi, prop.id);
+
+		// The votes can now be used
+		// Place the vote
+		return propContract.methods
+			.vote(parseBig(web3, Number(nVotes)).toString(), direction)
 			.send({
 				from: acc,
 			})
-			.on("error", (e) => {
+			.on("error", (e: { message: string }) => {
 				setErrorMsg(e.message);
 			})
 			.once("transactionHash", (hash: string) => {
-				setErrorMsg(`(1/2) Allocating votes. Tx hash: ${hash}`);
+				setErrorMsg(`Sending! Tx hash: ${hash}`);
 
 				setVoteCasting(true);
 			})
-			.then(() => {
-				const propContract = new web3.eth.Contract(Prop.abi, prop.id);
+			.once("receipt", () => {
+				// Clear any loading indicator
+				setErrorMsg("");
+				setVoteCasting(false);
 
-				// The votes can now be used
-				// Place the vote
-				return propContract.methods
-					.vote(parseBig(web3, Number(nVotes)).toString(), direction)
-					.send({
-						from: acc,
-					})
-					.on("error", (e: { message: string }) => {
-						setErrorMsg(e.message);
-					})
-					.once("transactionHash", (hash: string) => {
-						setErrorMsg(`Sending! Tx hash: ${hash}`);
-
-						setVoteCasting(true);
-					})
-					.once("receipt", () => {
-						// Clear any loading indicator
-						setErrorMsg("");
-						setVoteCasting(false);
-
-						// Show the user an indicator that their vote has been cast
-						setConfirmationRequired(true);
-					});
+				// Show the user an indicator that their vote has been cast
+				setConfirmationRequired(true);
 			});
 	};
 

@@ -34,7 +34,9 @@ export const PropActivityPanel = ({ prop }: { prop: PropInfo }) => {
 	});
 
 	const expiration = new Date(Number(prop.expiration) * 1000);
-	const rejected = Number(prop.votesFor) <= Number(prop.funder.supply) * 0.5;
+	const rejected =
+		Number(prop.votesFor) <= Number(prop.funder.supply) * 0.5 &&
+		prop.status !== "Accepted";
 
 	return (
 		<div className={styles.activityPanelContainer}>
