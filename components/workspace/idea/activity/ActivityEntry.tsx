@@ -4,6 +4,7 @@ import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
 import ClearRoundedIcon from "@mui/icons-material/ClearRounded";
 import SaveIcon from "@mui/icons-material/Save";
 import VoteIcon from "@mui/icons-material/HowToVote";
+import AttachMoneyIcon from "@mui/icons-material/AttachMoneyIcon";
 import CampaignRoundedIcon from "@mui/icons-material/CampaignRounded";
 import { OutlinedListEntry } from "../../../status/OutlinedListEntry";
 import { formatDateObj } from "../../../../lib/util/networks";
@@ -21,6 +22,9 @@ export const icons: { [kind: string]: ReactElement } = {
 		<ClearRoundedIcon fontSize="large" sx={{ opacity: 0.7, zIndex: 1 }} />
 	),
 	VoteCast: <VoteIcon fontSize="large" sx={{ opacity: 0.7, zIndex: 1 }} />,
+	Transfer: (
+		<AttachMoneyIcon fontSize="large" sx={{ opacity: 0.7, zIndex: 1 }} />
+	),
 };
 
 const properLabels = {
@@ -29,6 +33,7 @@ const properLabels = {
 	ProposalRejected: "Proposal Rejected",
 	NewProposal: "New Proposal",
 	VoteCast: "Vote Cast",
+	Transfer: "Transfer",
 };
 
 export interface ActivityEntryProps {

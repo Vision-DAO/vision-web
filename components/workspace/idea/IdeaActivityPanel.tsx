@@ -84,6 +84,7 @@ export const IdeaActivityPanel = ({
 						</Link>
 					</p>
 				);
+				event = "Transfer";
 			}
 
 			return {
