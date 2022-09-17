@@ -135,6 +135,10 @@ export const ProposalLine = ({
 			({ token: { id } }) => id === prop.rate.token
 		) ?? { balance: 0, token: { id: prop.rate.token, ticker: ticker } };
 
+		const contract = new web3.eth.Contract(Idea.abi, prop.funder.id);
+
+		const actual = await contract.methods.fundedIdeas(prop.toFund).call();
+
 		if (
 			prop.rate.kind === "Treasury" &&
 			treasuryEntry.balance < prop.rate.value
@@ -147,7 +151,6 @@ export const ProposalLine = ({
 			return;
 		}
 
-		const contract = new web3.eth.Contract(Idea.abi, prop.funder.id);
 		contract.methods
 			.disperseFunding(prop.toFund)
 			.send({ from: account })

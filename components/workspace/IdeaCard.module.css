@@ -11,6 +11,7 @@
 	padding: 1em;
 
 	width: 20vw;
+	min-width: 20vw;
 }
 
 .card h1, .card h2, .card p {
@@ -92,4 +93,8 @@
 
 .svgButton:hover {
 	opacity: 0.6;
+}
+
+.description {
+	overflow-y: auto;
 }

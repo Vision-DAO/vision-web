@@ -75,7 +75,7 @@ export const IdeaCard = ({
 					<Skeleton width="80%" />
 				</div>
 			) : (
-				<p>{description}</p>
+				<p className={styles.description}>{description}</p>
 			)}
 			<div className={`${styles.infoLine} ${styles.infoArea}`}>
 				<div className={styles.compoundLabel}>

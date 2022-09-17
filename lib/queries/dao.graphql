@@ -137,6 +137,7 @@ fragment PropInformation on Prop {
   finalizedAt
   funder {
     id
+    name
     treasury {
       balance
       token {

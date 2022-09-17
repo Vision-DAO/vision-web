@@ -242,6 +242,9 @@
 	align-items: stretch;
 
 	max-width: 100%;
+	max-height: 20vh;
+
+	overflow-x: auto;
 }
 
 .daoCarousel>* {
