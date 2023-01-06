@@ -54,10 +54,10 @@ export const NetworkedWorkspace = ({
 			title: "No Ethereum Provider",
 			message: "Please install a web3 provider to continue.",
 		};
-	} else if (network != "polygon" && network != "polygon-test") {
+	} else if (network != "arbitrum-test") {
 		content = {
 			title: "Wrong Network",
-			message: "Please connect to the Polygon network to continue.",
+			message: "Please connect to the Arbitrum Goerli network to continue.",
 		};
 	} else if (!connected) {
 		content = {
@@ -69,7 +69,7 @@ export const NetworkedWorkspace = ({
 	if (connection.status != "connected") {
 		content = {
 			title: "Not Connected",
-			message: "Please login via Polygon to continue.",
+			message: "Please login via Arbitrum Goerli to continue.",
 		};
 	}
 

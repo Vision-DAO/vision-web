@@ -209,7 +209,7 @@ export const NavPanel = ({ items, onProfileClicked, ctx }: NavProps) => {
 					severity="action"
 				>
 					<h2>
-						Connect to <b>Polygon</b>
+						Connect to <b>Arbitrum</b>
 					</h2>
 				</OutlinedButton>
 			</div>

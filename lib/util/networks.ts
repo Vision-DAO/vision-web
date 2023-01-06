@@ -6,7 +6,7 @@ import {
 import { useWeb3 } from "./web3";
 import { IDX } from "@ceramicstudio/idx";
 
-export type Network = "ethereum" | "polygon" | "polygon-test" | "unknown";
+export type Network = "ethereum" | "polygon" | "arbitrum-test" | "unknown";
 
 /**
  * Registries deployed to different networks (used for bootstrapping).
@@ -14,7 +14,7 @@ export type Network = "ethereum" | "polygon" | "polygon-test" | "unknown";
 export const registries: Map<string, string | null> = new Map([
 	["ethereum", null],
 	["polygon", null],
-	["polygon-test", "0x5e1819C8E8558068371a069e749223be05c63BD2"],
+	["arbitrum-test", "0x33B1b6e896f1484cd7bdD76A60F058eDFaF8a158"],
 ]);
 
 export const zAddr = "0x0000000000000000000000000000000000000000";
@@ -23,7 +23,7 @@ export const zAddr = "0x0000000000000000000000000000000000000000";
  * Address of the Vision token on different networks.
  */
 export const visTokenAddr: { [net: string]: string } = {
-	"polygon-test": "0x94b1b6b3169b945fb8648c5185ccd1cf8f1f1123",
+	"arbitrum-test": "0x4dB2e952Fd2Af1C1eBcfe129D5D180a73146e16E",
 };
 
 /**
@@ -73,6 +73,9 @@ const networks = {
 	80001: "polygon-test",
 	137: "polygon",
 
+	// Arbitrum goerli
+	421613: "arbitrum-test",
+
 	// Eth ropsten, mainnet
 	1981: "ethereum",
 	1: "ethereum",
@@ -82,6 +85,7 @@ export const explorers = {
 	"polygon-test": "https://mumbai.polygonscan.com",
 	polygon: "https://polygonscan.com",
 	ethereum: "https://etherscan.io",
+	"arbitrum-test": "https://goerli.arbiscan.io",
 };
 
 /**
@@ -139,13 +143,13 @@ export const requestChangeNetwork = async (ethProvider: any): Promise<void> => {
 		method: "wallet_addEthereumChain",
 		params: [
 			{
-				chainId: "0x13881",
-				chainName: "Polygon Testnet",
-				nativeCurrency: { name: "Polygon", symbol: "MATIC", decimals: 18 },
+				chainId: "0x66EED",
+				chainName: "Arbitrum Testnet",
+				nativeCurrency: { name: "Ethereum", symbol: "AGOR", decimals: 18 },
 				rpcUrls: [
-					"https://nd-333-212-679.p2pify.com/b3780ceca4a0bb12fd62cbecd480efef",
+					"https://nd-831-126-851.p2pify.com/5f357614effa9e6de852490e3f8fa109",
 				],
-				blockExplorerUrls: ["https://mumbai.polygonscan.com"],
+				blockExplorerUrls: ["https://goerli.arbiscan.io"],
 			},
 		],
 	});
@@ -154,7 +158,7 @@ export const requestChangeNetwork = async (ethProvider: any): Promise<void> => {
 		method: "wallet_switchEthereumChain",
 		params: [
 			{
-				chainId: "0x13881",
+				chainId: "0x66EED",
 			},
 		],
 	});
