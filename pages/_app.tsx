@@ -101,6 +101,7 @@ const whitelist: string[] = [
 	"0xe435FD01C2647AFCDaBB75e1054718385ebc3046",
 	"0x997a4AbE9d9ae9a458C37F6Ca9aE28798DdE543F",
 	"0x0F2A3c726de5ccAAA813544d71772669afc40e22",
+	"0x7C6323c5ab63B6DF572189F5D4a1Df345C31cA11",
 ].map((s) => s.toLowerCase());
 
 // pages navigable through the main application
