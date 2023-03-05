@@ -2,7 +2,7 @@ sources:
   - name: vision-v1-subgraph
     handler:
       graphql:
-        endpoint: https://api.thegraph.com/subgraphs/name/dowlandaiello/vision-v1-subgraph
+        endpoint: https://api.studio.thegraph.com/query/29998/vision-v1-subgraph/0.1.2
   - name: uniswap-v2
     handler:
       graphql:

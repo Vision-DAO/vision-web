@@ -146,9 +146,7 @@ export const requestChangeNetwork = async (ethProvider: any): Promise<void> => {
 				chainId: "0x66EED",
 				chainName: "Arbitrum Testnet",
 				nativeCurrency: { name: "Ethereum", symbol: "AGOR", decimals: 18 },
-				rpcUrls: [
-					"https://nd-831-126-851.p2pify.com/5f357614effa9e6de852490e3f8fa109",
-				],
+				rpcUrls: ["https://endpoints.omniatech.io/v1/arbitrum/goerli/public"],
 				blockExplorerUrls: ["https://goerli.arbiscan.io"],
 			},
 		],
