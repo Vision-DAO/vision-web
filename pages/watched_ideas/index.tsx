@@ -13,6 +13,7 @@ export const registries: Map<string, string | null> = new Map([
 	["ethereum", null],
 	["polygon", null],
 	["polygon-test", "0x33B1b6e896f1484cd7bdD76A60F058eDFaF8a158"],
+	["arbitrum-one", "0x91dE242E2CCE6fa76Ba97641ad7E13230F2eb7b4"],
 ]);
 
 /**

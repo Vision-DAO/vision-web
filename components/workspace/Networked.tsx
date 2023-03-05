@@ -54,10 +54,10 @@ export const NetworkedWorkspace = ({
 			title: "No Ethereum Provider",
 			message: "Please install a web3 provider to continue.",
 		};
-	} else if (network != "arbitrum-test") {
+	} else if (network != "arbitrum-one") {
 		content = {
 			title: "Wrong Network",
-			message: "Please connect to the Arbitrum Goerli network to continue.",
+			message: "Please connect to the Arbitrum network to continue.",
 		};
 	} else if (!connected) {
 		content = {
@@ -69,7 +69,7 @@ export const NetworkedWorkspace = ({
 	if (connection.status != "connected") {
 		content = {
 			title: "Not Connected",
-			message: "Please login via Arbitrum Goerli to continue.",
+			message: "Please login via Arbitrum to continue.",
 		};
 	}
 

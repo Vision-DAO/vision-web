@@ -6,7 +6,12 @@ import {
 import { useWeb3 } from "./web3";
 import { IDX } from "@ceramicstudio/idx";
 
-export type Network = "ethereum" | "polygon" | "arbitrum-test" | "unknown";
+export type Network =
+	| "ethereum"
+	| "polygon"
+	| "arbitrum-test"
+	| "unknown"
+	| "arbitrum-one";
 
 /**
  * Registries deployed to different networks (used for bootstrapping).
@@ -14,6 +19,7 @@ export type Network = "ethereum" | "polygon" | "arbitrum-test" | "unknown";
 export const registries: Map<string, string | null> = new Map([
 	["ethereum", null],
 	["polygon", null],
+	["arbitrum-one", "0x91dE242E2CCE6fa76Ba97641ad7E13230F2eb7b4"],
 	["arbitrum-test", "0x33B1b6e896f1484cd7bdD76A60F058eDFaF8a158"],
 ]);
 
@@ -24,6 +30,7 @@ export const zAddr = "0x0000000000000000000000000000000000000000";
  */
 export const visTokenAddr: { [net: string]: string } = {
 	"arbitrum-test": "0x4dB2e952Fd2Af1C1eBcfe129D5D180a73146e16E",
+	"arbitrum-one": "0x4470b2daaa232b1ebcf7dbf9da3153176a1391de",
 };
 
 /**
@@ -75,6 +82,7 @@ const networks = {
 
 	// Arbitrum goerli
 	421613: "arbitrum-test",
+	42161: "arbitrum-one",
 
 	// Eth ropsten, mainnet
 	1981: "ethereum",
@@ -86,6 +94,7 @@ export const explorers = {
 	polygon: "https://polygonscan.com",
 	ethereum: "https://etherscan.io",
 	"arbitrum-test": "https://goerli.arbiscan.io",
+	"arbitrum-one": "https://arbiscan.io",
 };
 
 /**
@@ -143,11 +152,13 @@ export const requestChangeNetwork = async (ethProvider: any): Promise<void> => {
 		method: "wallet_addEthereumChain",
 		params: [
 			{
-				chainId: "0x66EED",
-				chainName: "Arbitrum Testnet",
-				nativeCurrency: { name: "Ethereum", symbol: "AGOR", decimals: 18 },
-				rpcUrls: ["https://endpoints.omniatech.io/v1/arbitrum/goerli/public"],
-				blockExplorerUrls: ["https://goerli.arbiscan.io"],
+				chainId: "0xA4B1",
+				chainName: "Arbitrum",
+				nativeCurrency: { name: "Ethereum", symbol: "ETH", decimals: 18 },
+				rpcUrls: [
+					"https://nd-512-646-033.p2pify.com/92aea0dcbee84b80f4001e94dd2ee784",
+				],
+				blockExplorerUrls: ["https://arbiscan.io"],
 			},
 		],
 	});
@@ -156,7 +167,7 @@ export const requestChangeNetwork = async (ethProvider: any): Promise<void> => {
 		method: "wallet_switchEthereumChain",
 		params: [
 			{
-				chainId: "0x66EED",
+				chainId: "0xA4B1",
 			},
 		],
 	});
