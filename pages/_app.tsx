@@ -314,48 +314,4 @@ const App = ({ Component, pageProps }: AppPropsWithLayout) => {
 	);
 };
 
-/**
- * TODO: Find a workaround with next edge functions that uses a fully browser
- * compatible version of web3.
- */
-App.getInitialProps = async ({ ctx: { req, res }, router }) => {
-	// The server has already verified the user's identity
-	if (!req) return {};
-
-	if (req) {
-		// TODO: Abstract this
-		if (req.url === "/login" || req.url === "/Vision_Eye_Transparent.png")
-			return {};
-
-		const signature = req.cookies[LOGIN_ATTESTATION];
-
-		// Check that the user is an authenticated user
-		if (
-			signature &&
-			whitelist.includes(
-				EthCrypto.recover(
-					signature,
-					EthCrypto.hash.keccak256(
-						`\x19Ethereum Signed Message:\n${LOGIN_ATTESTATION.length}${LOGIN_ATTESTATION}`
-					)
-				).toLowerCase()
-			)
-		) {
-			return {};
-		}
-	}
-
-	// Use two methods of redirecting
-	if (res) {
-		res.setHeader("location", "/login");
-		res.statusCode = 302;
-		res.end();
-	} else if (router) {
-		router.replace("/login");
-	}
-
-	// Redirect the user to the login page.
-	return {};
-};
-
 export default App;
