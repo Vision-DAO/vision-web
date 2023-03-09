@@ -19,7 +19,7 @@ export type Network =
 export const registries: Map<string, string | null> = new Map([
 	["ethereum", null],
 	["polygon", null],
-	["arbitrum-one", "0x91dE242E2CCE6fa76Ba97641ad7E13230F2eb7b4"],
+	["arbitrum-one", "0x4298c83d06e02EB419ee214fc5Eb4848d9f75cE1"],
 	["arbitrum-test", "0x33B1b6e896f1484cd7bdD76A60F058eDFaF8a158"],
 ]);
 
@@ -30,7 +30,7 @@ export const zAddr = "0x0000000000000000000000000000000000000000";
  */
 export const visTokenAddr: { [net: string]: string } = {
 	"arbitrum-test": "0x4dB2e952Fd2Af1C1eBcfe129D5D180a73146e16E",
-	"arbitrum-one": "0x4470b2daaa232b1ebcf7dbf9da3153176a1391de",
+	"arbitrum-one": "0x37d7912Cb5457c5938Ab6DDe31B7a26A15D5Ce71",
 };
 
 /**
@@ -155,9 +155,7 @@ export const requestChangeNetwork = async (ethProvider: any): Promise<void> => {
 				chainId: "0xA4B1",
 				chainName: "Arbitrum",
 				nativeCurrency: { name: "Ethereum", symbol: "ETH", decimals: 18 },
-				rpcUrls: [
-					"https://nd-512-646-033.p2pify.com/92aea0dcbee84b80f4001e94dd2ee784",
-				],
+				rpcUrls: ["https://arb1.arbitrum.io/rpc"],
 				blockExplorerUrls: ["https://arbiscan.io"],
 			},
 		],

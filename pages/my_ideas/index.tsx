@@ -18,7 +18,7 @@ import styles from "../index.module.css";
 export const registries: Map<string, string | null> = new Map([
 	["ethereum", null],
 	["polygon", null],
-	["arbitrum-one", "0x91dE242E2CCE6fa76Ba97641ad7E13230F2eb7b4"],
+	["arbitrum-one", "0x4298c83d06e02EB419ee214fc5Eb4848d9f75cE1"],
 	["arbitrum-test", "0x33B1b6e896f1484cd7bdD76A60F058eDFaF8a158"],
 ]);
 

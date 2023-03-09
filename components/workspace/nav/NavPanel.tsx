@@ -189,19 +189,6 @@ export const NavPanel = ({ items, onProfileClicked, ctx }: NavProps) => {
 										if (tokens.has(id)) return;
 
 										tokens.add(id);
-
-										await window.ethereum.request({
-											method: "wallet_watchAsset",
-											params: {
-												type: "ERC20",
-												options: {
-													address: id,
-													symbol: ticker,
-													decimals: 18,
-													image: "",
-												},
-											},
-										});
 									}
 								}
 							});
